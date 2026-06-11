@@ -1,7 +1,7 @@
 # Status Derivation — Specification
 
 **Function:** `status = f(claim, evidence, events, policy, authorityTrace, now)`
-**Version constant:** `STATUS_FUNCTION_VERSION` (currently `"1"`)
+**Version constant:** `statusFunctionVersion` (currently `"1"`)
 **Source of truth:** `src/status.ts` in `@kontourai/surface`
 
 ---
@@ -9,7 +9,7 @@
 ## Principle
 
 Claim status is a pure, versioned, deterministic function (ADR 0003 §7). Given the
-same inputs and the same `STATUS_FUNCTION_VERSION`, any conforming implementation
+same inputs and the same status function version, any conforming implementation
 must derive the same status. There is no stored status field that overrides
 computation; the derived status is always recomputed from the input bundle at
 evaluation time.
@@ -20,7 +20,7 @@ no clock-tick events and no background expiry.
 
 Reproducibility guarantee: if two independent implementations receive the same
 `(claim, evidence, events, policies, authorityTrace, now)` and the same
-`STATUS_FUNCTION_VERSION`, they must return the same `TrustStatus`.
+status function version, they must return the same `TrustStatus`.
 
 ---
 
@@ -214,12 +214,12 @@ From weakest to strongest: `unknown` < `rejected` < `superseded` < `disputed` <
 
 ## Versioning
 
-`STATUS_FUNCTION_VERSION` is a string exported by `@kontourai/surface`. It is
+`statusFunctionVersion` is a string exported by `@kontourai/surface`. It is
 incremented when the algorithm changes in a way that could produce different outputs
 for the same inputs. `InquiryRecord.statusFunctionVersion` captures which version
 was active at resolution time, enabling re-evaluation when the algorithm version
 changes.
 
-Conforming implementations must declare which `STATUS_FUNCTION_VERSION` value they
+Conforming implementations must declare which status function version value they
 implement. Implementations claiming version `"1"` must satisfy all conformance
 cases in `spec/conformance/`.

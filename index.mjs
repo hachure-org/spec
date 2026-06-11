@@ -2,15 +2,15 @@
  * hachure — canonical npm distribution of the Hachure trust format spec.
  *
  * Exports:
- *   STATUS_FUNCTION_VERSION  — spec-side declaration of the current status
- *                               derivation algorithm version. Reference
- *                               implementations must export a matching value.
- *   schemas                  — Map<recordName, parsedSchemaObject> for every
- *                               normative schema shipped with this package.
- *   testVectors              — Array<{name, vector}> of all conformance test
- *                               vectors. Each vector has `input`, `expect`, and
- *                               `now` fields; run them against your implementation
- *                               to claim conformance.
+ *   statusFunctionVersion  — spec-side declaration of the current status
+ *                             derivation algorithm version. Reference
+ *                             implementations must export a matching value.
+ *   schemas                — Map<recordName, parsedSchemaObject> for every
+ *                             normative schema shipped with this package.
+ *   testVectors            — Array<{name, vector}> of all conformance test
+ *                             vectors. Each vector has `input`, `expect`, and
+ *                             `now` fields; run them against your implementation
+ *                             to claim conformance.
  */
 
 import { readFileSync, readdirSync } from 'node:fs';
@@ -24,7 +24,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 // Any implementation claiming conformance at this version must produce the
 // same status outputs as the test vectors for all cases in conformance/.
 // ---------------------------------------------------------------------------
-export const STATUS_FUNCTION_VERSION = '1';
+export const statusFunctionVersion = '1';
 
 // ---------------------------------------------------------------------------
 // Schemas — Map of record name (filename without .schema.json) → parsed JSON.

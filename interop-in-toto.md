@@ -124,7 +124,7 @@ A Kontour `TrustBundle` adds **living status** on top:
 |---|---|
 | Status is sealed at signing time. | Status is recomputed from events at query time: `f(claim, events, policy, now)`. |
 | Tamper-evident; content cannot change. | Append-only; new events and evidence accumulate. |
-| Verifier trusts the signer's identity. | Verifier trusts the derivation algorithm (`STATUS_FUNCTION_VERSION`). |
+| Verifier trusts the signer's identity. | Verifier trusts the derivation algorithm (`statusFunctionVersion`). |
 | Useful for supply-chain audits and legal holds. | Useful for operational dashboards, gates, and consumer inquiries. |
 
 The two are complementary: embed the bundle in an in-toto envelope to

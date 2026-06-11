@@ -5,18 +5,18 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { STATUS_FUNCTION_VERSION, schemas, testVectors } from '../index.mjs';
+import { statusFunctionVersion, schemas, testVectors } from '../index.mjs';
 
 // ---------------------------------------------------------------------------
-// STATUS_FUNCTION_VERSION
+// statusFunctionVersion
 // ---------------------------------------------------------------------------
-test('STATUS_FUNCTION_VERSION is a non-empty string', () => {
-  assert.equal(typeof STATUS_FUNCTION_VERSION, 'string');
-  assert.ok(STATUS_FUNCTION_VERSION.length > 0);
+test('statusFunctionVersion is a non-empty string', () => {
+  assert.equal(typeof statusFunctionVersion, 'string');
+  assert.ok(statusFunctionVersion.length > 0);
 });
 
-test('STATUS_FUNCTION_VERSION is "1"', () => {
-  assert.equal(STATUS_FUNCTION_VERSION, '1');
+test('statusFunctionVersion is "1"', () => {
+  assert.equal(statusFunctionVersion, '1');
 });
 
 // ---------------------------------------------------------------------------

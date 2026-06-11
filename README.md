@@ -14,17 +14,17 @@ npm i -D hachure
 ```
 
 The package ships the normative JSON schemas, conformance test vectors, and the
-`STATUS_FUNCTION_VERSION` constant that ties implementations to a specific
+`statusFunctionVersion` constant that ties implementations to a specific
 algorithm revision.
 
 **Claiming conformance:** run the test vectors from `testVectors` against your
 implementation. For each vector, call your status-derivation function with
 `vector.input` and `vector.now`, then assert that the derived status for every
 claim ID matches `vector.expect.statusByClaimId`. Passing all vectors for a given
-`STATUS_FUNCTION_VERSION` is the bar for a conforming implementation.
+status function version is the bar for a conforming implementation.
 
 ```js
-import { testVectors, STATUS_FUNCTION_VERSION } from 'hachure';
+import { testVectors, statusFunctionVersion } from 'hachure';
 
 for (const { name, vector } of testVectors) {
   const results = deriveStatuses(vector.input, new Date(vector.now));
@@ -73,8 +73,8 @@ Resource Shape envelope. Product-specific records use product-scoped namespaces
 Pre-1.0: the format uses hard breaking changes rather than compatibility aliases.
 No forward or backward compatibility guarantees are made across versions. Version
 bumps are reflected in `schemaVersion` (an integer field in TrustBundle, currently
-`3`) and in `STATUS_FUNCTION_VERSION` (a string exported by the reference
-implementation, currently `"1"`).
+`3`) and in the status function version (a string exported by the reference
+implementation as `statusFunctionVersion`, currently `"1"`).
 
 ---
 
