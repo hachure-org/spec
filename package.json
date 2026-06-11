@@ -1,0 +1,34 @@
+{
+  "name": "hachure",
+  "version": "0.1.0",
+  "description": "Hachure — canonical distribution of the open trust format: normative JSON schemas, conformance test vectors, and spec constants.",
+  "type": "module",
+  "main": "./index.mjs",
+  "exports": {
+    ".": "./index.mjs",
+    "./schemas/*.json": "./schemas/*.json",
+    "./conformance/*.json": "./conformance/*.json"
+  },
+  "files": [
+    "schemas",
+    "conformance",
+    "index.mjs",
+    "README.md",
+    "status-function.md",
+    "interop-in-toto.md"
+  ],
+  "scripts": {
+    "test": "node --test test/index.test.mjs"
+  },
+  "keywords": [
+    "trust",
+    "format",
+    "spec",
+    "conformance",
+    "hachure"
+  ],
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  }
+}

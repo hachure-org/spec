@@ -7,6 +7,35 @@
 
 ---
 
+## Install
+
+```sh
+npm i -D hachure
+```
+
+The package ships the normative JSON schemas, conformance test vectors, and the
+`STATUS_FUNCTION_VERSION` constant that ties implementations to a specific
+algorithm revision.
+
+**Claiming conformance:** run the test vectors from `testVectors` against your
+implementation. For each vector, call your status-derivation function with
+`vector.input` and `vector.now`, then assert that the derived status for every
+claim ID matches `vector.expect.statusByClaimId`. Passing all vectors for a given
+`STATUS_FUNCTION_VERSION` is the bar for a conforming implementation.
+
+```js
+import { testVectors, STATUS_FUNCTION_VERSION } from 'hachure';
+
+for (const { name, vector } of testVectors) {
+  const results = deriveStatuses(vector.input, new Date(vector.now));
+  for (const [claimId, expected] of Object.entries(vector.expect.statusByClaimId)) {
+    assert.equal(results[claimId], expected, `${name} / ${claimId}`);
+  }
+}
+```
+
+---
+
 ## What this is
 
 Hachure is an open format for portable trust state. It defines how claims about
