@@ -1,6 +1,6 @@
 {
   "name": "hachure",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Hachure \u2014 canonical distribution of the open trust format: normative JSON schemas, conformance test vectors, and spec constants.",
   "type": "module",
   "main": "./index.mjs",
@@ -31,5 +31,9 @@
   "license": "MIT",
   "publishConfig": {
     "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hachure-org/spec.git"
   }
 }
