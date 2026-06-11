@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kontourai.io/schemas/surface/claim.schema.json",
+  "title": "Kontour Surface Claim",
+  "type": "object",
+  "required": ["id", "subjectType", "subjectId", "surface", "claimType", "fieldOrBehavior", "value", "createdAt", "updatedAt"],
+  "properties": {
+    "id": { "type": "string" },
+    "subjectType": { "type": "string" },
+    "subjectId": { "type": "string" },
+    "surface": { "type": "string" },
+    "claimType": { "type": "string" },
+    "fieldOrBehavior": { "type": "string" },
+    "value": {},
+    "status": { "enum": ["unknown", "proposed", "assumed", "verified", "stale", "disputed", "superseded", "rejected"] },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "impactLevel": { "enum": ["low", "medium", "high", "critical"] },
+    "materiality": { "enum": ["low", "medium", "high"] },
+    "currentIntegrityRef": { "type": "string" },
+    "currentIntegrityAnchor": { "$ref": "#/$defs/integrityAnchor" },
+    "verificationPolicyId": { "type": "string" },
+    "confidenceBasis": { "type": "object" },
+    "subjectAliases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["subjectType", "subjectId"],
+        "properties": {
+          "subjectType": { "type": "string" },
+          "subjectId": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "derivedFrom": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "derivationEdges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["inputClaimId"],
+        "properties": {
+          "inputClaimId": { "type": "string" },
+          "method": { "enum": ["sum", "max", "min", "model", "rule-application", "copy", "normalization", "manual"] },
+          "role": { "type": "string" },
+          "supportStrength": { "enum": ["weak", "moderate", "strong"] },
+          "rationale": { "type": "string" },
+          "metadata": { "type": "object" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "qualifiers": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "metadata": { "type": "object" }
+  },
+  "$defs": {
+    "integrityAnchor": {
+      "type": "object",
+      "required": ["id", "kind", "algorithm", "value", "sourceRef"],
+      "properties": {
+        "id": { "type": "string" },
+        "kind": { "enum": ["hash", "signature", "transparency_log", "timestamp", "external_ref", "other"] },
+        "algorithm": { "type": "string" },
+        "value": { "type": "string" },
+        "sourceRef": { "type": "string" },
+        "observedAt": { "type": "string", "format": "date-time" },
+        "verificationStatus": { "enum": ["unverified", "verified", "failed", "not_applicable"] },
+        "verifiedAt": { "type": "string", "format": "date-time" },
+        "verifiedBy": { "type": "string" },
+        "metadata": { "type": "object" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

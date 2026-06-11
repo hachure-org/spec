@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kontourai.io/schemas/surface/evidence.schema.json",
+  "title": "Kontour Surface Evidence",
+  "type": "object",
+  "required": ["id", "claimId", "evidenceType", "method", "sourceRef", "excerptOrSummary", "observedAt", "collectedBy"],
+  "properties": {
+    "id": { "type": "string" },
+    "claimId": { "type": "string" },
+    "supportStrength": {
+      "enum": ["cited", "entails"],
+      "description": "Evidence-to-Claim support strength. Omitted means entails for legacy claimId producers; cited means reference/context only and does not satisfy policy support."
+    },
+    "evidenceType": {
+      "enum": ["source_excerpt", "test_output", "human_attestation", "attestation", "calculation_trace", "document_citation", "crawl_observation", "policy_rule"]
+    },
+    "method": {
+      "enum": ["observation", "extraction", "validation", "corroboration", "attestation", "auditability", "anchoring", "monitoring"]
+    },
+    "sourceRef": { "type": "string" },
+    "sourceLocator": { "type": "string" },
+    "excerptOrSummary": { "type": "string" },
+    "observedAt": { "type": "string", "format": "date-time" },
+    "collectedBy": { "type": "string" },
+    "integrityRef": { "type": "string" },
+    "integrityAnchor": { "$ref": "#/$defs/integrityAnchor" },
+    "metadata": { "type": "object" }
+  },
+  "$defs": {
+    "integrityAnchor": {
+      "type": "object",
+      "required": ["id", "kind", "algorithm", "value", "sourceRef"],
+      "properties": {
+        "id": { "type": "string" },
+        "kind": { "enum": ["hash", "signature", "transparency_log", "timestamp", "external_ref", "other"] },
+        "algorithm": { "type": "string" },
+        "value": { "type": "string" },
+        "sourceRef": { "type": "string" },
+        "observedAt": { "type": "string", "format": "date-time" },
+        "verificationStatus": { "enum": ["unverified", "verified", "failed", "not_applicable"] },
+        "verifiedAt": { "type": "string", "format": "date-time" },
+        "verifiedBy": { "type": "string" },
+        "metadata": { "type": "object" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kontourai.io/schemas/surface/trust-bundle.schema.json",
+  "title": "Surface TrustBundle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "source", "claims", "evidence", "policies", "events"],
+  "properties": {
+    "schemaVersion": { "enum": [2, 3] },
+    "source": { "type": "string" },
+    "claims": {
+      "type": "array",
+      "items": { "$ref": "claim.schema.json" }
+    },
+    "evidence": {
+      "type": "array",
+      "items": { "$ref": "evidence.schema.json" }
+    },
+    "policies": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "events": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "identityLinks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["subjects"],
+        "properties": {
+          "subjects": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "object",
+              "required": ["subjectType", "subjectId"],
+              "properties": {
+                "subjectType": { "type": "string" },
+                "subjectId": { "type": "string" }
+              },
+              "additionalProperties": false
+            }
+          },
+          "reason": { "type": "string" },
+          "attestedBy": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "claimGroups": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/claimGroup" }
+    },
+    "authorityTrace": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/authorityTrace" }
+    }
+  },
+  "$defs": {
+    "subjectRef": {
+      "type": "object",
+      "required": ["subjectType", "subjectId"],
+      "properties": {
+        "subjectType": { "type": "string" },
+        "subjectId": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "authorityTrace": {
+      "type": "object",
+      "required": ["id", "subject", "actorRef", "authorityType", "authorityRef", "sourceRef", "observedAt"],
+      "properties": {
+        "id": { "type": "string" },
+        "subject": { "$ref": "#/$defs/subjectRef" },
+        "actorRef": { "type": "string" },
+        "authorityType": { "enum": ["role", "permission", "credential", "system", "organization", "policy", "other"] },
+        "authorityRef": { "type": "string" },
+        "sourceRef": { "type": "string" },
+        "observedAt": { "type": "string", "format": "date-time" },
+        "evidenceIds": { "type": "array", "items": { "type": "string" } },
+        "claimIds": { "type": "array", "items": { "type": "string" } },
+        "validFrom": { "type": "string", "format": "date-time" },
+        "validUntil": { "type": "string", "format": "date-time" },
+        "revokedAt": { "type": "string", "format": "date-time" },
+        "integrityRef": { "type": "string" },
+        "integrityAnchor": { "$ref": "#/$defs/integrityAnchor" },
+        "metadata": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "integrityAnchor": {
+      "type": "object",
+      "required": ["id", "kind", "algorithm", "value", "sourceRef"],
+      "properties": {
+        "id": { "type": "string" },
+        "kind": { "enum": ["hash", "signature", "transparency_log", "timestamp", "external_ref", "other"] },
+        "algorithm": { "type": "string" },
+        "value": { "type": "string" },
+        "sourceRef": { "type": "string" },
+        "observedAt": { "type": "string", "format": "date-time" },
+        "verificationStatus": { "enum": ["unverified", "verified", "failed", "not_applicable"] },
+        "verifiedAt": { "type": "string", "format": "date-time" },
+        "verifiedBy": { "type": "string" },
+        "metadata": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "claimGroup": {
+      "type": "object",
+      "required": ["id", "title", "kind"],
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "kind": { "enum": ["claimGroup", "framework", "requirement-set"] },
+        "description": { "type": "string" },
+        "claimIds": { "type": "array", "items": { "type": "string" } },
+        "requirements": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/claimRequirement" }
+        },
+        "rollupPolicy": {
+          "type": "object",
+          "required": ["mode"],
+          "properties": {
+            "mode": { "enum": ["all-required", "any-required"] },
+            "requiredRequirementIds": { "type": "array", "items": { "type": "string" } },
+            "optionalRequirementIds": { "type": "array", "items": { "type": "string" } }
+          },
+          "additionalProperties": false
+        },
+        "metadata": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "claimRequirement": {
+      "type": "object",
+      "required": ["id", "title", "claimIds"],
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "claimIds": { "type": "array", "items": { "type": "string" } },
+        "required": { "type": "boolean" },
+        "severity": { "enum": ["low", "medium", "high", "critical"] },
+        "validationStrategy": { "$ref": "#/$defs/validationStrategy" },
+        "metadata": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "validationStrategy": {
+      "type": "object",
+      "properties": {
+        "requiredEvidence": {
+          "type": "array",
+          "items": { "enum": ["source_excerpt", "test_output", "human_attestation", "attestation", "calculation_trace", "document_citation", "crawl_observation", "policy_rule"] }
+        },
+        "requiredMethods": {
+          "type": "array",
+          "items": { "enum": ["observation", "extraction", "validation", "corroboration", "attestation", "auditability", "anchoring", "monitoring"] }
+        },
+        "requiresCorroboration": { "type": "boolean" },
+        "acceptanceCriteria": { "type": "array", "items": { "type": "string" } },
+        "reviewAuthority": { "type": "string" },
+        "notes": { "type": "string" },
+        "metadata": { "type": "object" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "not": {
+    "anyOf": [
+      { "required": ["id"] },
+      { "required": ["generatedAt"] },
+      { "required": ["summary"] },
+      { "required": ["transparencyGaps"] },
+      { "required": ["evidenceRequirementsByClaimId"] }
+    ]
+  }
+}
