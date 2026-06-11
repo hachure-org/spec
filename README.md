@@ -226,6 +226,19 @@ validates TrustBundle input against these schemas via `validateTrustBundle()`.
 
 ---
 
+## Profiles
+
+The core specification covers record shapes and status semantics. Profiles are
+optional, independently adoptable conventions for interop and transport. Adopting
+a profile requires no changes to core record shapes or the status function.
+
+| Profile | File | What it covers |
+|---|---|---|
+| in-toto interop | [interop-in-toto.md](interop-in-toto.md) | Wrapping a TrustBundle as a signed in-toto Statement v1 / DSSE envelope. |
+| Verification endpoint | [verification-endpoint.md](verification-endpoint.md) | Producer-served HTTP endpoint for receivers to fetch post-export event deltas. |
+
+---
+
 ## Out of scope: future extension profiles
 
 The following producer domains are explicitly out of scope for this core specification.
