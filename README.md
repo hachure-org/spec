@@ -236,6 +236,7 @@ a profile requires no changes to core record shapes or the status function.
 |---|---|---|
 | in-toto interop | [interop-in-toto.md](interop-in-toto.md) | Wrapping a TrustBundle as a signed in-toto Statement v1 / DSSE envelope. |
 | Verification endpoint | [verification-endpoint.md](verification-endpoint.md) | Producer-served HTTP endpoint for receivers to fetch post-export event deltas. |
+| Assurance | [assurance.md](assurance.md) | Signing as a dial: L0/L1/L2 assurance levels, identity presentation, consumer policy, and human signing ceremony. |
 
 ---
 
