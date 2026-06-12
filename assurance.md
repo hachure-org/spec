@@ -170,9 +170,47 @@ the authenticated identity, and that certificate signs the record.  The entire
 flow completes in the same session as the authorizing act; signing a record
 retroactively from a different session is not a conforming ceremony.
 
+**Recommended mechanism for highest-assurance human ceremonies:** WebAuthn /
+passkey with user-verification (UV=1).  A device-local authenticator satisfies
+three independent assurance legs simultaneously:
+
+- **Presence** — the passkey gesture (biometric or PIN) proves the enrolled
+  device is physically present; biometric data never leaves the device.
+- **Identity** — the hardware-backed assertion composes with the OIDC
+  certificate: the certificate binds the ephemeral key to the OIDC subject;
+  the passkey attests the device-local identity enrolled at registration time.
+- **Engagement** (non-normative) — oversight metrics such as session duration
+  or interaction events can accompany the record as non-normative evidence;
+  they are not part of the conformance criteria.
+
+Because the three legs are independent, losing one (e.g., no biometric sensor
+on the device) does not forfeit the others.  An OIDC-only ceremony without a
+passkey assertion is still a conforming L1 ceremony; the passkey upgrade is
+RECOMMENDED where the platform supports it.
+
 Design intent: friction lands only where authority is exercised.  Routine
 read-only operations, status queries, and bundle consumption carry no signing
 requirement.  The ceremony surfaces once, at the moment of consequence.
+
+## Collection channels and media evidence
+
+Any collection channel defined in the reference implementation (see ADR 0004 in
+the reference implementation) MAY attach media evidence — for example,
+capture-provenance imagery conforming to C2PA — as ordinary evidence entries
+with integrity anchors.  Three rules govern such attachments:
+
+1. **Channels do not replace admissible testimony kinds.**  A photo or video of
+   a signing gesture is attached evidence, not a substitute for an `exchange` or
+   `authorized-action` block.  The admissible testimony kinds in ADR 0004 remain
+   the authoritative record; media is corroborating context.
+2. **Capture provenance determines evidence grade.**  Media accompanied by a
+   valid C2PA manifest (or equivalent capture-provenance credential) is treated
+   as integrity-anchored evidence at the level its anchor supports.  Media
+   without capture provenance is ordinary L0 evidence: present, but carrying no
+   additional assurance weight beyond the transport channel.
+3. **Integrity anchors are required for non-L0 media claims.**  If a consumer
+   policy requires L1 or higher evidence grade for media, the media item MUST
+   carry an `IntegrityAnchor` referencing the capture-provenance credential.
 
 ---
 
