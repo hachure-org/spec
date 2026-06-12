@@ -30,7 +30,7 @@ Producers supporting this profile expose a verification endpoint at a well-known
 path on the same host that issued the bundle:
 
 ```
-GET https://<producer-host>/.well-known/hachure/verify?ref=<integrityRef>[&ref=...]
+GET https://<producer-host>/.well-known/hachure/verify?ref=<ref>[&ref=...]
 ```
 
 Multiple refs may be passed as repeated `ref` query parameters. For large sets,
@@ -40,16 +40,38 @@ a POST variant is also allowed:
 POST https://<producer-host>/.well-known/hachure/verify
 Content-Type: application/json
 
-{ "refs": ["<integrityRef>", ...] }
+{ "refs": ["<ref>", ...] }
 ```
-
-`integrityRef` is the integrity anchor value carried on a claim or bundle
-(`claim.integrityRef` or a bundle-level `integrityAnchor.value`).
 
 Producers MAY require authentication before serving a response. The response
 semantics defined in this profile are unchanged by the presence or absence of
 authentication; the receiver simply may not be able to reach the endpoint
 without valid credentials.
+
+### Ref resolution semantics
+
+A `ref` value in the request MAY be any of the following:
+
+- **(a) A claim `id`** — the stable identifier on a claim object (`claim.id`).
+- **(b) A claim's current integrity ref** — the `currentIntegrityRef` string field
+  on a claim (`claim.currentIntegrityRef`, per `schemas/claim.schema.json`).
+  Note: the analogous full anchor object is `claim.currentIntegrityAnchor`; when
+  resolving by integrity value, match against `currentIntegrityRef` or
+  `currentIntegrityAnchor.value`.
+- **(c) A bundle-level integrity anchor value** — the `.value` field of an
+  `integrityAnchor` object carried on an `authorityTrace` or `evidence` record
+  within a bundle (`schemas/trust-bundle.schema.json` `$defs/integrityAnchor`
+  → `value`).
+
+Producers MUST support lookup by (a) and (b). Producers MAY support lookup by (c).
+Receivers SHOULD prefer (a) for stability; (b) and (c) are useful when only an
+integrity value is available from a prior bundle snapshot.
+
+**Multi-match:** a single ref value MAY match more than one claim (for example,
+two claims that share the same `currentIntegrityRef`). When a ref matches multiple
+claims, the response includes ALL matching claims. A ref is reported as unknown
+(in `unknownRefs`) only when it matches nothing — zero claims, evidence records,
+or authority traces.
 
 ---
 
@@ -60,8 +82,9 @@ scoped to the records matching the requested refs, plus a `metadata` extension
 block. The bundle carries:
 
 - **`source`** — the producer identifier, matching `source` in the original bundle.
-- **`claims`** — all claims whose `integrityRef` was among the requested refs.
-  Each claim is returned in its current form as the producer knows it.
+- **`claims`** — all claims that matched the requested refs (by id, currentIntegrityRef,
+  or anchor value as described above). When a ref matched multiple claims, all are
+  included. Each claim is returned in its current form as the producer knows it.
 - **`evidence`** and **`events`** — the delta since issuance where the producer
   can supply it: new evidence items, new verification events, revocation events,
   dispute events. Producers that do not track a delta MAY return the full current
@@ -69,19 +92,34 @@ block. The bundle carries:
   means it was never present in the original bundle.
 - **`authorityTrace`** — current authority traces relevant to the matched claims,
   including any that have been revoked since the original bundle was issued.
-- **`metadata`** — a free-form object on the bundle. This profile defines four
+- **`metadata`** — a free-form object on the bundle. This profile defines five
   reserved keys within `metadata`:
 
   | Key | Type | Required | Meaning |
   |---|---|---|---|
   | `respondedAt` | ISO 8601 string | yes | The timestamp at which the producer assembled this response. |
-  | `statusFunctionVersion` | string | yes | The status function version active at the producer at response time. |
+  | `statusFunctionVersion` | string | yes | The status function version the producer's current evaluation pipeline uses — i.e. the value the implementation exports (e.g. `statusFunctionVersion` from the reference implementation), independent of any version values stored inside served bundles. |
   | `requestedRefs` | string[] | yes | The full list of refs from the request, in order. |
-  | `unknownRefs` | string[] | yes | Refs from the request that the producer does not recognise. Must be present even if empty. |
+  | `unknownRefs` | string[] | yes | Refs from the request that matched nothing. Must be present even if empty. |
+  | `evaluatedAt` | `"response"` \| `"generation"` | no | When omitted or `"response"`, the producer evaluated claims dynamically at response time. `"generation"` indicates the producer cannot evaluate dynamically (e.g. static file serving) and the `statusFunctionVersion` reflects the version recorded when the bundle was originally generated. |
 
 Unknown refs are reported in `unknownRefs` honestly. A producer MUST NOT silently
 omit a ref it does not recognise; it MUST include it in `unknownRefs` so the
 receiver can distinguish "no changes" from "not found."
+
+**`statusFunctionVersion` source:** producers report the version their current
+evaluation pipeline uses — the value their implementation exports at response time.
+This is independent of any `statusFunctionVersion` fields stored inside the claims
+or events within served bundles. Producers that serve static bundles without
+dynamic evaluation MUST report the version that was active at generation time and
+MUST set `evaluatedAt: "generation"` in metadata.
+
+**`integrityAnchor` shape:** integrity anchor objects in responses follow the
+`integrityAnchor` definition in `schemas/claim.schema.json` (`$defs/integrityAnchor`)
+and `schemas/trust-bundle.schema.json` (`$defs/integrityAnchor`). Required fields
+are `id`, `kind`, `algorithm`, `value`, and `sourceRef`. On claims the anchor is
+carried as `currentIntegrityAnchor`; on authority-trace and evidence records it
+is carried as `integrityAnchor`.
 
 ---
 
@@ -150,3 +188,19 @@ unsigned responses are valid.
   specified here.
 - **Key management.** Public-key distribution, rotation, and revocation are out
   of scope. See the ADR 0004 backlog note above.
+
+---
+
+## Changelog
+
+**Amended after first independent implementation — hachure.org site function.**
+Five ambiguities resolved: (1) corrected claim integrity field names to schema
+truth (`currentIntegrityRef`, `currentIntegrityAnchor`) and noted authority-trace
+and evidence fields (`integrityRef`, `integrityAnchor`); (2) defined ref resolution
+semantics — producers MUST support id and currentIntegrityRef lookups, MAY support
+anchor-value lookups; (3) clarified multi-match: a ref matching multiple claims
+returns all of them, unknown only when nothing matches; (4) clarified
+`statusFunctionVersion` source as the producer's current pipeline export, added
+optional `evaluatedAt` metadata key (`"response"` | `"generation"`) for static
+producers; (5) added normative cross-reference to `integrityAnchor` schema
+definition in `schemas/claim.schema.json` and `schemas/trust-bundle.schema.json`.
