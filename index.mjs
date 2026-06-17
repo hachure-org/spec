@@ -24,7 +24,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 // Any implementation claiming conformance at this version must produce the
 // same status outputs as the test vectors for all cases in conformance/.
 // ---------------------------------------------------------------------------
-export const statusFunctionVersion = '1';
+export const statusFunctionVersion = '2';
 
 // ---------------------------------------------------------------------------
 // Schemas — Map of record name (filename without .schema.json) → parsed JSON.

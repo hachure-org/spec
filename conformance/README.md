@@ -17,6 +17,9 @@ implementation derives the expected statuses.
 | `sf-disputed-blocking.json` | Verified event + blocking contradicting evidence → disputed | 2026-06-10T00:00:00.000Z |
 | `sf-authority-resolved.json` | Disputed claim resolved by authority-gated event | 2026-06-10T00:00:00.000Z |
 | `sf-reference-bundle-snapshot.json` | Full the reference bundle at fixed now — four claims | 2026-06-10T00:00:00.000Z |
+| `sf-expired-window.json` | Claim-intrinsic validity window — stale past `expiresAt` and past `ttlSeconds` (schema 4) | 2026-06-10T00:00:00.000Z |
+| `sf-revoked-event.json` | Explicit invalidation event (`status: revoked`, `type: invalidation`) → stale (schema 4) | 2026-06-10T00:00:00.000Z |
+| `sf-no-freshness-fields.json` | No freshness fields present → derives unchanged from `statusFunctionVersion` `1` | 2026-06-10T00:00:00.000Z |
 
 ## Test vector format
 

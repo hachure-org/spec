@@ -1,7 +1,7 @@
 # Status Derivation — Specification
 
 **Function:** `status = f(claim, evidence, events, policy, authorityTrace, now)`
-**Version constant:** `statusFunctionVersion` (currently `"1"`)
+**Version constant:** `statusFunctionVersion` (currently `"2"`)
 **Source of truth:** `src/status.ts` in `@kontourai/surface`
 
 ---
@@ -110,8 +110,17 @@ Filter all events to those matching `claim.id`, sort most-recent-first by `creat
 Let `latestEvent` be the first (most recent) event.
 
 If `latestEvent` exists and its `status` is one of `"rejected"`, `"disputed"`,
-`"superseded"`, or `"stale"` — return that status. These are terminal: they are
-not overridden by evidence inspection.
+`"superseded"`, `"stale"`, or `"revoked"` — return that status. These are
+terminal: they are not overridden by evidence inspection. An event with
+`type: "invalidation"` is always terminal in this step regardless of its
+`status` (it asserts the claim is no longer good); `"revoked"` derives `stale`
+(treated as an explicit, event-driven staleness) unless a later verification
+event re-asserts the claim.
+
+> **Schema-version note (`statusFunctionVersion` `"2"`, `schemaVersion` `4`):**
+> the `"revoked"` event status and `type: "invalidation"` classifier are new.
+> Bundles that never use them derive identically to `statusFunctionVersion`
+> `"1"`.
 
 ### Step 3: Assumed from event
 
@@ -123,7 +132,21 @@ If `latestEvent` exists and `latestEvent.status === "verified"`:
 
 #### 4a. Staleness check
 
-If a policy is present, check whether the verification is stale based on
+**Claim-intrinsic validity window (`statusFunctionVersion` `"2"`, schema `4`).**
+Before consulting the policy validity rule, check the claim's own validity
+window, which overrides policy timing when present:
+
+- If `claim.expiresAt` is set, the claim is stale when `now > Date.parse(claim.expiresAt)`.
+- Else if `claim.ttlSeconds` is set, compute
+  `expiry = Date.parse(latestEvent.verifiedAt ?? latestEvent.createdAt) + claim.ttlSeconds * 1000`;
+  the claim is stale when `now > expiry`.
+- **Precedence:** `expiresAt` wins over `ttlSeconds` when both are present.
+  When neither is present, fall through to the policy validity rule below
+  (identical to `statusFunctionVersion` `"1"`).
+
+If the claim-intrinsic window marks the claim stale: return **`stale`**.
+
+Otherwise, if a policy is present, check whether the verification is stale based on
 `policy.validityRule.kind`:
 
 - **`"commit"`** — stale if `claim.currentIntegrityRef` is set AND none of the
