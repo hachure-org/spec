@@ -1,0 +1,76 @@
+{
+  "now": "2026-06-10T00:00:00.000Z",
+  "input": {
+    "schemaVersion": 4,
+    "source": "spec-conformance:revoked-event",
+    "claims": [
+      {
+        "id": "claim.access.grant",
+        "subjectType": "credential",
+        "subjectId": "access:deploy-key-7",
+        "surface": "access-control.grants",
+        "claimType": "software-evidence",
+        "fieldOrBehavior": "deployKeyValid",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-06-05T00:00:00.000Z",
+        "impactLevel": "critical",
+        "verificationPolicyId": "policy.software-evidence.commit"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "evidence.access.grant",
+        "claimId": "claim.access.grant",
+        "evidenceType": "test_output",
+        "method": "validation",
+        "sourceRef": "grant issuance log",
+        "excerptOrSummary": "Deploy key issued and validated.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "access-service"
+      }
+    ],
+    "policies": [
+      {
+        "id": "policy.software-evidence.commit",
+        "claimType": "software-evidence",
+        "requiredEvidence": ["test_output"],
+        "requiredMethods": ["validation"],
+        "requiresCorroboration": false,
+        "acceptanceCriteria": ["evidence check passes"],
+        "reviewAuthority": "repo policy",
+        "validityRule": { "kind": "commit" },
+        "stalenessTriggers": ["revocation"],
+        "conflictRules": [],
+        "impactLevel": "critical"
+      }
+    ],
+    "events": [
+      {
+        "id": "event.access.grant.verified",
+        "claimId": "claim.access.grant",
+        "status": "verified",
+        "actor": "access-service",
+        "method": "validation",
+        "evidenceIds": ["evidence.access.grant"],
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "verifiedAt": "2026-05-01T00:00:00.000Z"
+      },
+      {
+        "id": "event.access.grant.revoked",
+        "claimId": "claim.access.grant",
+        "status": "revoked",
+        "type": "invalidation",
+        "actor": "security-officer",
+        "method": "manual-revocation",
+        "evidenceIds": [],
+        "createdAt": "2026-06-05T00:00:00.000Z"
+      }
+    ]
+  },
+  "expect": {
+    "statusByClaimId": {
+      "claim.access.grant": "stale"
+    }
+  }
+}

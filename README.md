@@ -73,8 +73,16 @@ Resource Shape envelope. Product-specific records use product-scoped namespaces
 Pre-1.0: the format uses hard breaking changes rather than compatibility aliases.
 No forward or backward compatibility guarantees are made across versions. Version
 bumps are reflected in `schemaVersion` (an integer field in TrustBundle, currently
-`3`) and in the status function version (a string exported by the reference
-implementation as `statusFunctionVersion`, currently `"1"`).
+`4`) and in the status function version (a string exported by the reference
+implementation as `statusFunctionVersion`, currently `"2"`).
+
+Schema version `4` adds optional claim freshness fields (`expiresAt` /
+`ttlSeconds`) and an optional invalidation event vocabulary (event `status:
+"revoked"` and event `type: "invalidation"`). All additions are optional, so
+every bundle valid at `schemaVersion` `3` remains valid; only the deriver
+(`statusFunctionVersion` `2`) folds the new fields into a status. See
+`status-function.md` and the `sf-expired-window` / `sf-revoked-event` /
+`sf-no-freshness-fields` conformance vectors.
 
 ---
 

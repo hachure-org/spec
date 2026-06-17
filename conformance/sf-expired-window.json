@@ -1,0 +1,102 @@
+{
+  "now": "2026-06-10T00:00:00.000Z",
+  "input": {
+    "schemaVersion": 4,
+    "source": "spec-conformance:expired-window",
+    "claims": [
+      {
+        "id": "claim.window.expires-at",
+        "subjectType": "data-field",
+        "subjectId": "dataset:session-token",
+        "surface": "public-data.status",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "tokenValid",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "expiresAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.public-data-field.manual"
+      },
+      {
+        "id": "claim.window.ttl",
+        "subjectType": "data-field",
+        "subjectId": "dataset:cache-entry",
+        "surface": "public-data.status",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "cacheFresh",
+        "value": true,
+        "createdAt": "2026-06-09T00:00:00.000Z",
+        "updatedAt": "2026-06-09T00:00:00.000Z",
+        "ttlSeconds": 3600,
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.manual"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "evidence.window.expires-at",
+        "claimId": "claim.window.expires-at",
+        "evidenceType": "human_attestation",
+        "method": "attestation",
+        "sourceRef": "operator review",
+        "excerptOrSummary": "Token issued and attested valid until 2026-06-01.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "operator"
+      },
+      {
+        "id": "evidence.window.ttl",
+        "claimId": "claim.window.ttl",
+        "evidenceType": "human_attestation",
+        "method": "attestation",
+        "sourceRef": "operator review",
+        "excerptOrSummary": "Cache entry attested fresh at refresh time.",
+        "observedAt": "2026-06-09T00:00:00.000Z",
+        "collectedBy": "operator"
+      }
+    ],
+    "policies": [
+      {
+        "id": "policy.public-data-field.manual",
+        "claimType": "public-data-field",
+        "requiredEvidence": ["human_attestation"],
+        "requiredMethods": ["attestation"],
+        "requiresCorroboration": false,
+        "acceptanceCriteria": ["operator attestation"],
+        "reviewAuthority": "operator",
+        "validityRule": { "kind": "manual" },
+        "stalenessTriggers": ["validity window expires"],
+        "conflictRules": [],
+        "impactLevel": "high"
+      }
+    ],
+    "events": [
+      {
+        "id": "event.window.expires-at.verified",
+        "claimId": "claim.window.expires-at",
+        "status": "verified",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": ["evidence.window.expires-at"],
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "verifiedAt": "2026-05-01T00:00:00.000Z"
+      },
+      {
+        "id": "event.window.ttl.verified",
+        "claimId": "claim.window.ttl",
+        "status": "verified",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": ["evidence.window.ttl"],
+        "createdAt": "2026-06-09T00:00:00.000Z",
+        "verifiedAt": "2026-06-09T00:00:00.000Z"
+      }
+    ]
+  },
+  "expect": {
+    "statusByClaimId": {
+      "claim.window.expires-at": "stale",
+      "claim.window.ttl": "stale"
+    }
+  }
+}
