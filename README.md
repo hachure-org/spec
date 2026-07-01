@@ -128,6 +128,11 @@ anchors, policy references, derivation edges, and confidence basis metadata.
 Derived trust status is never stored on the claim itself as source of truth; it is
 computed from the surrounding bundle at evaluation time.
 
+Claims also carry two optional round-trip fields, tolerated but never producer-authored:
+`producerStatus` (the producer's own declared status, present when a TrustReport's
+derived claims are re-fed as bundle input) and `freshness` ({ `asOf`, `expiresAt`?,
+`stale` }, a freshness stamp on derived/report claims).
+
 ### Evidence
 
 An item of support for a claim. Evidence is linked to a claim via `claimId`. Each
@@ -186,7 +191,7 @@ re-evaluation if the derivation algorithm changes.
 ### DerivationRule
 
 A named, versioned rule that derives a boolean answer from existing claims (ADR 0003 §5).
-Rules compose claims using value predicates (`eq`, `gt`, `gte`, `lte`, `in`, `exists`)
+Rules compose claims using value predicates (`eq`, `neq`, `gt`, `gte`, `lt`, `lte`, `in`, `exists`)
 and status predicates (`acceptedStatuses`), combined with `"all"` or `"any"`. Rules
 are promoted from Flow's gate-expectation language. The weakest-link confidence ceiling
 propagates through rule evaluation unchanged.
@@ -198,7 +203,7 @@ propagates through rule evaluation unchanged.
 Status is a pure, versioned function of the bundle data and a `now` timestamp. The
 full specification of the derivation algorithm is in [status-function.md](status-function.md).
 
-The eight possible statuses:
+The nine possible statuses:
 
 | Status | Meaning |
 |---|---|
@@ -210,6 +215,7 @@ The eight possible statuses:
 | `disputed` | A verified claim has blocking contradicting evidence, or a terminal dispute event exists. |
 | `superseded` | A terminal event marks the claim as superseded. |
 | `rejected` | A terminal event marks the claim as rejected. |
+| `revoked` | An explicit invalidation event has revoked the claim's verification. For single-claim status derivation this folds to `stale` (see [status-function.md](status-function.md), Step 2) unless a later verification event re-asserts the claim; the reference implementation still tracks `revoked` as a distinct, weakest-ranked raw status for `Claim.status`/`VerificationEvent.status`, claim-group rollups, and weakest-link ordering. |
 
 ---
 
