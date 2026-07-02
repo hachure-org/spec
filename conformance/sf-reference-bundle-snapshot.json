@@ -1,7 +1,7 @@
 {
   "now": "2026-06-10T00:00:00.000Z",
   "input": {
-    "schemaVersion": 3,
+    "schemaVersion": 5,
     "source": "kontour-surface-validation-fixtures",
     "identityLinks": [
       {
@@ -23,7 +23,7 @@
         "id": "claim.repo-governance.api-proof",
         "subjectType": "repo-surface",
         "subjectId": "example/repo:src/api",
-        "surface": "repo-governance.developer-evidence",
+        "facet": "repo-governance.developer-evidence",
         "claimType": "software-evidence",
         "fieldOrBehavior": "acceptanceCriteriaLane",
         "value": "npm test passed for API surface change",
@@ -49,7 +49,7 @@
         "id": "claim.field-attested-records.registration-status",
         "subjectType": "attested-record",
         "subjectId": "field-attested-records:denver-example-record",
-        "surface": "field-attested-records.public-data",
+        "facet": "field-attested-records.public-data",
         "claimType": "public-data-field",
         "fieldOrBehavior": "registrationStatus",
         "value": "OPEN",
@@ -70,7 +70,7 @@
         "id": "claim.fact-resolution.w2-wages",
         "subjectType": "fact",
         "subjectId": "fact-resolution:demo-case-2025:w2.wages",
-        "surface": "fact-resolution.financial-facts",
+        "facet": "fact-resolution.financial-facts",
         "claimType": "verified-financial-fact",
         "fieldOrBehavior": "w2.wages",
         "value": 123456,
@@ -90,7 +90,7 @@
         "id": "claim.surface.future-console",
         "subjectType": "roadmap-item",
         "subjectId": "kontour-surface:hosted-console",
-        "surface": "surface.roadmap",
+        "facet": "surface.roadmap",
         "claimType": "roadmap-capability",
         "fieldOrBehavior": "implementationStatus",
         "value": "planned",

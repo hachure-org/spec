@@ -2,7 +2,7 @@
   "$schemaComment": "Machine-readable conformance manifest for the Hachure trust format. Not a JSON Schema itself — a structured index of what an implementation must pass to claim conformance at each level. Additive to, not a replacement for, index.mjs's `testVectors` export (which lists raw vectors, not levels/pass-criteria).",
   "manifestVersion": 1,
   "appliesTo": {
-    "schemaVersion": [2, 3, 4],
+    "schemaVersion": [5],
     "statusFunctionVersion": "2"
   },
   "levels": [

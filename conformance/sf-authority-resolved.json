@@ -1,14 +1,14 @@
 {
   "now": "2026-06-10T00:00:00.000Z",
   "input": {
-    "schemaVersion": 3,
+    "schemaVersion": 5,
     "source": "spec-conformance:authority-resolved",
     "claims": [
       {
         "id": "claim.status.current",
         "subjectType": "data-field",
         "subjectId": "dataset:program-status",
-        "surface": "public-data.program",
+        "facet": "public-data.program",
         "claimType": "public-data-field",
         "fieldOrBehavior": "currentStatus",
         "value": "active",

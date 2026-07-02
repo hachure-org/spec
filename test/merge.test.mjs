@@ -232,7 +232,7 @@ test('merge-collision-order-independence.json expect block matches design.md §1
 // ---------------------------------------------------------------------------
 test('a TrustBundle with producerId set validates against trust-bundle.schema.json', () => {
   const bundle = {
-    schemaVersion: 4,
+    schemaVersion: 5,
     source: 'producer-a:run-1',
     producerId: 'producer-a',
     claims: [],
@@ -246,7 +246,7 @@ test('a TrustBundle with producerId set validates against trust-bundle.schema.js
 
 test('a TrustBundle with an empty-string producerId is rejected (minLength 1)', () => {
   const bundle = {
-    schemaVersion: 4,
+    schemaVersion: 5,
     source: 'producer-a:run-1',
     producerId: '',
     claims: [],

@@ -79,7 +79,7 @@ function compileRoot(rootFilename) {
 test('AC1: identityLink with all 7 fields validates against trust-bundle.schema.json', () => {
   const validateBundle = compileRoot('trust-bundle.schema.json');
   const bundle = {
-    schemaVersion: 4,
+    schemaVersion: 5,
     source: 'test',
     claims: [],
     evidence: [],
@@ -107,7 +107,7 @@ test('AC1: identityLink with all 7 fields validates against trust-bundle.schema.
 test('AC1: identityLink with an unknown extra key is rejected', () => {
   const validateBundle = compileRoot('trust-bundle.schema.json');
   const bundle = {
-    schemaVersion: 4,
+    schemaVersion: 5,
     source: 'test',
     claims: [],
     evidence: [],
@@ -172,7 +172,7 @@ test('AC3: an event object missing a required field is rejected by the bundle sc
 // ---------------------------------------------------------------------------
 function buildTrustReportFixture() {
   return {
-    schemaVersion: 4,
+    schemaVersion: 5,
     id: 'report.1',
     generatedAt: '2026-06-10T00:00:00.000Z',
     source: 'test',
@@ -181,7 +181,7 @@ function buildTrustReportFixture() {
         id: 'claim.access.grant',
         subjectType: 'credential',
         subjectId: 'access:deploy-key-7',
-        surface: 'access-control.grants',
+        facet: 'access-control.grants',
         claimType: 'software-evidence',
         fieldOrBehavior: 'deployKeyValid',
         value: true,
@@ -217,7 +217,7 @@ test('AC2: a TrustReport fixture matching buildTrustReport()\'s documented shape
 test('AC2: a bare TrustBundle (no report-only fields) is rejected by trust-report.schema.json', () => {
   const validateReport = compileRoot('trust-report.schema.json');
   const bundle = {
-    schemaVersion: 4,
+    schemaVersion: 5,
     source: 'test',
     claims: [],
     evidence: [],
@@ -298,4 +298,77 @@ test('all conformance/*.json input bundles validate against the tightened trust-
     const valid = validateBundle(vector.input);
     assert.equal(valid, true, `${file}: ${JSON.stringify(validateBundle.errors)}`);
   }
+});
+
+// ---------------------------------------------------------------------------
+// AC1/AC2 (facet-rename, 0.9.0) — Claim.surface -> Claim.facet hard break
+// ---------------------------------------------------------------------------
+function buildBaseClaim() {
+  return {
+    id: 'claim.facet-rename-test.1',
+    subjectType: 'repo',
+    subjectId: 'test-repo',
+    claimType: 'coverage',
+    fieldOrBehavior: 'lineCoverage',
+    value: 80,
+    createdAt: '2026-06-01T00:00:00.000Z',
+    updatedAt: '2026-06-01T00:00:00.000Z',
+  };
+}
+
+function buildBaseBundle(schemaVersion, claim) {
+  return {
+    schemaVersion,
+    source: 'test',
+    claims: [claim],
+    evidence: [],
+    policies: [],
+    events: [],
+  };
+}
+
+test('AC1: a claim omitting `facet` entirely still validates against claim.schema.json (locks in optionality)', () => {
+  const validateClaim = compileRoot('claim.schema.json');
+  const claim = buildBaseClaim();
+  assert.ok(!('facet' in claim));
+  const valid = validateClaim(claim);
+  assert.equal(valid, true, JSON.stringify(validateClaim.errors));
+});
+
+test('AC1: a claim carrying the legacy `surface` key is rejected by claim.schema.json\'s additionalProperties', () => {
+  const validateClaim = compileRoot('claim.schema.json');
+  const claim = { ...buildBaseClaim(), facet: 'coverage.unit', surface: 'legacy-value' };
+  const valid = validateClaim(claim);
+  assert.equal(valid, false);
+  assert.ok(
+    validateClaim.errors.some(
+      (e) => e.keyword === 'additionalProperties' && e.params.additionalProperty === 'surface',
+    ),
+    JSON.stringify(validateClaim.errors),
+  );
+});
+
+test('AC2: a schemaVersion:4 bundle whose claim carries `surface` is rejected on both the schemaVersion enum and the claim\'s additionalProperties', () => {
+  const validateBundle = compileRoot('trust-bundle.schema.json');
+  const claim = { ...buildBaseClaim(), surface: 'legacy-value' };
+  const bundle = buildBaseBundle(4, claim);
+  const valid = validateBundle(bundle);
+  assert.equal(valid, false);
+  const errors = validateBundle.errors;
+  assert.ok(
+    errors.some((e) => e.instancePath === '/schemaVersion' && e.keyword === 'enum'),
+    JSON.stringify(errors),
+  );
+  assert.ok(
+    errors.some((e) => e.keyword === 'additionalProperties' && e.params.additionalProperty === 'surface'),
+    JSON.stringify(errors),
+  );
+});
+
+test('AC1/AC2: a schemaVersion:5 bundle whose claim carries `facet` validates cleanly (happy path)', () => {
+  const validateBundle = compileRoot('trust-bundle.schema.json');
+  const claim = { ...buildBaseClaim(), facet: 'coverage.unit' };
+  const bundle = buildBaseBundle(5, claim);
+  const valid = validateBundle(bundle);
+  assert.equal(valid, true, JSON.stringify(validateBundle.errors));
 });

@@ -42,7 +42,7 @@ identifier for the *system* that produced the bundle, distinct from
 
 ```jsonc
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "source": "producer-a:run-48213",  // unchanged: free text, may vary per run
   "producerId": "producer-a",        // OPTIONAL, new: stable across runs
   "claims": [ /* ... */ ]
@@ -114,7 +114,7 @@ for agreement/conflict comparison, §7) **if and only if:**
    is equal once (1) is applied (same `fieldOrBehavior`, same `qualifiers`
    after the existing trim/lowercase/sort normalization).
 
-**`claimType` and `surface` are explicitly excluded from the identity key —
+**`claimType` and `facet` are explicitly excluded from the identity key —
 this is a deliberate design decision, not an oversight:**
 
 - `claimType` is excluded because the canonical claim key is defined over
@@ -124,13 +124,13 @@ this is a deliberate design decision, not an oversight:**
   `claimType` taxonomies are still the same logical claim for merge
   purposes; reusing the canonical key means merge and Inquiry matching never
   diverge on this point.
-- `surface` is excluded because it is a producer-defined grouping or
+- `facet` is excluded because it is a producer-defined grouping or
   namespace for related claims, not the primary thing users evaluate. Two
-  producers will pick unrelated `surface` values for logically identical
-  claims — there is no shared `surface` vocabulary across producers;
+  producers will pick unrelated `facet` values for logically identical
+  claims — there is no shared `facet` vocabulary across producers;
   including it in the identity key would make cross-producer matches
-  essentially never fire. `surface` remains meaningful *within* one
-  producer's bundle (grouping, reporting `bySurface` counts) but plays no
+  essentially never fire. `facet` remains meaningful *within* one
+  producer's bundle (grouping, reporting `byFacet` counts) but plays no
   role in cross-producer identity.
 
 This means: **claims are never collapsed into one record by claim identity.**
@@ -386,9 +386,14 @@ claim).
 
 ## Versioning
 
-This document introduces no change to `statusFunctionVersion` (stays `"2"`)
-and no change to `schemaVersion`'s meaning (stays `4` — the new
-`TrustBundle.producerId` field is optional and ignored by the unchanged
-status-derivation fold). A bundle merged under this document and fed to the
-unchanged fold produces identical per-claim results to a bundle that was
-never merged.
+This document introduces no change to `statusFunctionVersion` (stays `"2"`).
+`schemaVersion` itself has moved since this document's `producerId` addition
+first shipped: it is now `5` (README.md's Namespace and versioning section is
+the single source of truth for the current value), reflecting the unrelated
+`surface` → `facet` rename described in §4 — not anything this document
+introduces. Nothing in this document depends on that hard break: the
+`producerId` field (§2) is optional and ignored by the unchanged
+status-derivation fold, and remains schema-valid at `schemaVersion` `5`
+exactly as it was when it shipped. A bundle merged under this document and fed
+to the unchanged fold produces identical per-claim results to a bundle that
+was never merged.

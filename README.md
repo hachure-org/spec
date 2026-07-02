@@ -73,7 +73,7 @@ Resource Shape envelope. Product-specific records use product-scoped namespaces
 Pre-1.0: the format uses hard breaking changes rather than compatibility aliases.
 No forward or backward compatibility guarantees are made across versions. Version
 bumps are reflected in `schemaVersion` (an integer field in TrustBundle, currently
-`4`) and in the status function version (a string exported by the reference
+`5`) and in the status function version (a string exported by the reference
 implementation as `statusFunctionVersion`, currently `"2"`).
 
 Schema version `4` adds optional claim freshness fields (`expiresAt` /
@@ -83,6 +83,14 @@ every bundle valid at `schemaVersion` `3` remains valid; only the deriver
 (`statusFunctionVersion` `2`) folds the new fields into a status. See
 `status-function.md` and the `sf-expired-window` / `sf-revoked-event` /
 `sf-no-freshness-fields` conformance vectors.
+
+Schema version `5` renames the Claim `surface` field to `facet` and makes it
+optional (previously required) — the one deliberate hard break named above.
+Bundles declaring `schemaVersion` `2` through `4` are no longer schema-valid
+under this release: their `surface` field is rejected by `claim.schema.json`'s
+`additionalProperties: false`. Producers MUST re-emit as `facet` and self-declare
+`schemaVersion: 5`. See `merge.md` §4 for `facet`'s (unchanged) treatment in claim
+identity.
 
 ---
 
@@ -140,7 +148,9 @@ a disputed mapping claim cannot yield a verified answer.
 ### Claim
 
 An assertion about a real-world subject. A claim has a stable `id`, a `subjectType`
-and `subjectId` pair identifying what is being asserted, a `claimType`, a
+and `subjectId` pair identifying what is being asserted, an optional `facet` (a
+producer-defined grouping or namespace for the claim — see `merge.md` §4 for why
+it's excluded from cross-producer claim identity), a `claimType`, a
 `fieldOrBehavior`, and a `value`. Claims carry optional `impactLevel`, integrity
 anchors, policy references, derivation edges, and confidence basis metadata.
 
