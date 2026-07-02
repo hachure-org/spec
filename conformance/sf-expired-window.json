@@ -1,14 +1,14 @@
 {
   "now": "2026-06-10T00:00:00.000Z",
   "input": {
-    "schemaVersion": 4,
+    "schemaVersion": 5,
     "source": "spec-conformance:expired-window",
     "claims": [
       {
         "id": "claim.window.expires-at",
         "subjectType": "data-field",
         "subjectId": "dataset:session-token",
-        "surface": "public-data.status",
+        "facet": "public-data.status",
         "claimType": "public-data-field",
         "fieldOrBehavior": "tokenValid",
         "value": true,
@@ -22,7 +22,7 @@
         "id": "claim.window.ttl",
         "subjectType": "data-field",
         "subjectId": "dataset:cache-entry",
-        "surface": "public-data.status",
+        "facet": "public-data.status",
         "claimType": "public-data-field",
         "fieldOrBehavior": "cacheFresh",
         "value": true,

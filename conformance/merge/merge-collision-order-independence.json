@@ -1,9 +1,9 @@
 {
-  "$comment": "Hand-derivation (merge.md §5/§6/§8). This vector's inputs/expect are STRUCTURALLY identical to .kontourai/flow-agents/hachure-identifier-merge/design.md §11 'Worked example + independent hand-derivation' -- the bundle-level source/producerId values were genericized from design.md §11's worked example (survey -> producer-a, veritas -> producer-b, flow -> producer-c; mapping recorded in this session's deliver.md History) to keep this shipped, machine-checked conformance fixture vendor-neutral, consistent with the rest of this repo's conformance vectors and merge.md's own examples (plan.md AC7). This rename does NOT change expect: source/producerId are bundle-level fields, not part of the Claim record being compared, so the tie-break outcome below is unaffected -- re-derived by hand against the renamed inputs. shared.claim.x appears in Bundle A (subjectId r1, surface readiness, claimType coverage, value 91) and Bundle B (subjectId r2, surface governance, claimType policy-check, value true) -- content differs under the same id, so per merge.md §5 rule 2 this is a collision, reported as {collection: 'claims', id: 'shared.claim.x'}. Per merge.md §6's tie-break, compute a canonical (sorted-key) serialization of each variant: A's serialization starts '{\\\"claimType\\\":\\\"coverage\\\",...}', B's starts '{\\\"claimType\\\":\\\"policy-check\\\",...}' -- lexicographically 'coverage' < 'policy-check' ('c' < 'p'), so A's record is the deterministically-kept content regardless of whether the implementation is handed [A,B,C], [B,A,C], [C,B,A], or any other permutation of the 3 inputs -- this is the vector that exercises the order-independence MUST (test/merge.test.mjs asserts identical output across every permutation of inputs). Bundle C's claim ('unrelated.claim.y') never collides with anything, and its id is a distinct string never repeated. Status-function.md Step 6 ('no policy, no evidence') applies to both surviving claim ids ('shared.claim.x' from kept content A, and 'unrelated.claim.y') since no bundle attaches any policy or evidence/events -> both derive 'unknown'.",
+  "$comment": "Hand-derivation (merge.md §5/§6/§8). This vector's inputs/expect are STRUCTURALLY identical to .kontourai/flow-agents/hachure-identifier-merge/design.md §11 'Worked example + independent hand-derivation' -- the bundle-level source/producerId values were genericized from design.md §11's worked example (survey -> producer-a, veritas -> producer-b, flow -> producer-c; mapping recorded in this session's deliver.md History) to keep this shipped, machine-checked conformance fixture vendor-neutral, consistent with the rest of this repo's conformance vectors and merge.md's own examples (plan.md AC7). This rename does NOT change expect: source/producerId are bundle-level fields, not part of the Claim record being compared, so the tie-break outcome below is unaffected -- re-derived by hand against the renamed inputs. shared.claim.x appears in Bundle A (subjectId r1, facet readiness, claimType coverage, value 91) and Bundle B (subjectId r2, facet governance, claimType policy-check, value true) -- content differs under the same id, so per merge.md §5 rule 2 this is a collision, reported as {collection: 'claims', id: 'shared.claim.x'}. Per merge.md §6's tie-break, compute a canonical (sorted-key) serialization of each variant: A's serialization starts '{\\\"claimType\\\":\\\"coverage\\\",...}', B's starts '{\\\"claimType\\\":\\\"policy-check\\\",...}' -- lexicographically 'coverage' < 'policy-check' ('c' < 'p'), so A's record is the deterministically-kept content regardless of whether the implementation is handed [A,B,C], [B,A,C], [C,B,A], or any other permutation of the 3 inputs -- this is the vector that exercises the order-independence MUST (test/merge.test.mjs asserts identical output across every permutation of inputs). hachure-facet-rename provenance note: this vector's claim key was renamed surface -> facet (0.9.0). The tie-break outcome is unaffected by that rename and was re-derived by hand, not merely asserted: both colliding records' sorted-key canonical serializations still diverge for the first time inside the claimType value ('coverage' vs 'policy-check'), a key that is alphabetically earlier than every other property on this claim shape (id, subjectType, subjectId, facet, fieldOrBehavior, value, createdAt, updatedAt) both before and after the rename -- the facet/surface key itself never becomes part of the comparison because the strings already diverge before either serialization reaches that key, regardless of where the renamed key sorts relative to the others. (Confirmed by direct RFC-8785-shaped sorted-key serialization of both the pre-rename and post-rename claim objects: both produce the same 'A sorts first' result.) Bundle C's claim ('unrelated.claim.y') never collides with anything, and its id is a distinct string never repeated. Status-function.md Step 6 ('no policy, no evidence') applies to both surviving claim ids ('shared.claim.x' from kept content A, and 'unrelated.claim.y') since no bundle attaches any policy or evidence/events -> both derive 'unknown'.",
   "now": "2026-06-10T00:00:00.000Z",
   "inputs": [
     {
-      "schemaVersion": 4,
+      "schemaVersion": 5,
       "source": "producer-a",
       "producerId": "producer-a",
       "claims": [
@@ -11,7 +11,7 @@
           "id": "shared.claim.x",
           "subjectType": "repo",
           "subjectId": "r1",
-          "surface": "readiness",
+          "facet": "readiness",
           "claimType": "coverage",
           "fieldOrBehavior": "coverage",
           "value": 91,
@@ -24,7 +24,7 @@
       "events": []
     },
     {
-      "schemaVersion": 4,
+      "schemaVersion": 5,
       "source": "producer-b",
       "producerId": "producer-b",
       "claims": [
@@ -32,7 +32,7 @@
           "id": "shared.claim.x",
           "subjectType": "repo",
           "subjectId": "r2",
-          "surface": "governance",
+          "facet": "governance",
           "claimType": "policy-check",
           "fieldOrBehavior": "signed-off",
           "value": true,
@@ -45,7 +45,7 @@
       "events": []
     },
     {
-      "schemaVersion": 4,
+      "schemaVersion": 5,
       "source": "producer-c",
       "producerId": "producer-c",
       "claims": [
@@ -53,7 +53,7 @@
           "id": "unrelated.claim.y",
           "subjectType": "gate",
           "subjectId": "g1",
-          "surface": "gates",
+          "facet": "gates",
           "claimType": "gate-status",
           "fieldOrBehavior": "passed",
           "value": true,
