@@ -1,0 +1,149 @@
+{
+  "$comment": "Hand-derivation (merge.md §7c; status-function.md Steps 1-4). Both claims share subjectType/subjectId ('resource'/'svc-1') and fieldOrBehavior ('granted') -> same canonical claim (§4). Both bundles carry the identical policy 'policy.access-check.basic' (byte-identical in both -> unioning it is not a collision), which additionally declares incompatibleStatuses covering ['verified','disputed'] purely as an illustration that this does NOT by itself flip either claim's status (§7c) -- neither this vector's expect block nor status-function.md's fold reads incompatibleStatuses at all; it only affects the report layer, out of scope here (§9). No ids collide across the two bundles -> collisions is empty. Fold for producer-a's claim: latestEvent is 'producer-a.event.access.verified' (status 'verified', not terminal, skip Steps 2-3) -> Step 4 applies. 4a: claim has no expiresAt/ttlSeconds, policy validityRule.kind='duration', durationDays=30, verifiedAt=2026-06-01T00:00:00Z, now=2026-06-10T00:00:00Z -> 9 days elapsed < 30 -> not stale. 4b: entailing evidence (supportStrength defaults to 'entails' on both evidence items) = [producer-a.evidence.access.pass, producer-a.evidence.access.fail]; their evidenceType set {source_excerpt} and method set {observation} both satisfy policy.requiredEvidence=['source_excerpt']/requiredMethods=['observation']; requiresCorroboration=false -> no gap. 4c: 'producer-a.evidence.access.fail' has passing=false and blocking=true, observedAt=2026-06-05 (after the verified event) -> blocking failure found -> return 'disputed'. Fold for producer-b's claim: latestEvent is 'producer-b.event.access.verified' (status 'verified') -> Step 4. 4a: verifiedAt=2026-06-02T00:00:00Z, now=2026-06-10T00:00:00Z -> 8 days < 30 -> not stale. 4b: entailing evidence = [producer-b.evidence.access.pass], evidenceType {source_excerpt}, method {observation} -> satisfies policy -> no gap. 4c: the one evidence item has no 'passing:false' entry (passing is absent) -> no blocking failure -> 4d: return 'verified'. This demonstrates merge does not let producer-b's 'verified' overwrite or suppress producer-a's independently-derived 'disputed', and vice versa.",
+  "now": "2026-06-10T00:00:00.000Z",
+  "inputs": [
+    {
+      "schemaVersion": 4,
+      "source": "producer-a:run-3",
+      "producerId": "producer-a",
+      "claims": [
+        {
+          "id": "producer-a.claim.access.grant",
+          "subjectType": "resource",
+          "subjectId": "svc-1",
+          "surface": "access",
+          "claimType": "access-check",
+          "fieldOrBehavior": "granted",
+          "value": true,
+          "createdAt": "2026-06-01T00:00:00.000Z",
+          "updatedAt": "2026-06-01T00:00:00.000Z"
+        }
+      ],
+      "evidence": [
+        {
+          "id": "producer-a.evidence.access.pass",
+          "claimId": "producer-a.claim.access.grant",
+          "evidenceType": "source_excerpt",
+          "method": "observation",
+          "sourceRef": "source A: access log",
+          "excerptOrSummary": "Access granted.",
+          "observedAt": "2026-06-01T00:00:00.000Z",
+          "collectedBy": "agent-a"
+        },
+        {
+          "id": "producer-a.evidence.access.fail",
+          "claimId": "producer-a.claim.access.grant",
+          "evidenceType": "source_excerpt",
+          "method": "observation",
+          "sourceRef": "source A2: revocation log",
+          "excerptOrSummary": "Access revocation observed after original grant.",
+          "observedAt": "2026-06-05T00:00:00.000Z",
+          "collectedBy": "agent-a",
+          "passing": false,
+          "blocking": true
+        }
+      ],
+      "policies": [
+        {
+          "id": "policy.access-check.basic",
+          "claimType": "access-check",
+          "requiredEvidence": ["source_excerpt"],
+          "requiredMethods": ["observation"],
+          "requiresCorroboration": false,
+          "acceptanceCriteria": ["access confirmed from source"],
+          "reviewAuthority": "operator",
+          "validityRule": { "kind": "duration", "durationDays": 30 },
+          "stalenessTriggers": [],
+          "conflictRules": [],
+          "impactLevel": "medium",
+          "incompatibleStatuses": [
+            { "statuses": ["verified", "disputed"], "message": "conflicting access status across producers" }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": "producer-a.event.access.verified",
+          "claimId": "producer-a.claim.access.grant",
+          "status": "verified",
+          "actor": "operator-a",
+          "method": "attestation",
+          "evidenceIds": ["producer-a.evidence.access.pass"],
+          "createdAt": "2026-06-01T00:00:00.000Z",
+          "verifiedAt": "2026-06-01T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "schemaVersion": 4,
+      "source": "producer-b:run-4",
+      "producerId": "producer-b",
+      "claims": [
+        {
+          "id": "producer-b.claim.access.grant",
+          "subjectType": "resource",
+          "subjectId": "svc-1",
+          "surface": "access",
+          "claimType": "access-check",
+          "fieldOrBehavior": "granted",
+          "value": true,
+          "createdAt": "2026-06-02T00:00:00.000Z",
+          "updatedAt": "2026-06-02T00:00:00.000Z"
+        }
+      ],
+      "evidence": [
+        {
+          "id": "producer-b.evidence.access.pass",
+          "claimId": "producer-b.claim.access.grant",
+          "evidenceType": "source_excerpt",
+          "method": "observation",
+          "sourceRef": "source B: access log",
+          "excerptOrSummary": "Access granted, confirmed.",
+          "observedAt": "2026-06-02T00:00:00.000Z",
+          "collectedBy": "agent-b"
+        }
+      ],
+      "policies": [
+        {
+          "id": "policy.access-check.basic",
+          "claimType": "access-check",
+          "requiredEvidence": ["source_excerpt"],
+          "requiredMethods": ["observation"],
+          "requiresCorroboration": false,
+          "acceptanceCriteria": ["access confirmed from source"],
+          "reviewAuthority": "operator",
+          "validityRule": { "kind": "duration", "durationDays": 30 },
+          "stalenessTriggers": [],
+          "conflictRules": [],
+          "impactLevel": "medium",
+          "incompatibleStatuses": [
+            { "statuses": ["verified", "disputed"], "message": "conflicting access status across producers" }
+          ]
+        }
+      ],
+      "events": [
+        {
+          "id": "producer-b.event.access.verified",
+          "claimId": "producer-b.claim.access.grant",
+          "status": "verified",
+          "actor": "operator-b",
+          "method": "attestation",
+          "evidenceIds": ["producer-b.evidence.access.pass"],
+          "createdAt": "2026-06-02T00:00:00.000Z",
+          "verifiedAt": "2026-06-02T00:00:00.000Z"
+        }
+      ]
+    }
+  ],
+  "expect": {
+    "mergedClaimIds": [
+      "producer-a.claim.access.grant",
+      "producer-b.claim.access.grant"
+    ],
+    "collisions": [],
+    "statusByClaimId": {
+      "producer-a.claim.access.grant": "disputed",
+      "producer-b.claim.access.grant": "verified"
+    }
+  }
+}
