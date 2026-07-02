@@ -1,0 +1,59 @@
+{
+  "$comment": "Hand-derivation (merge.md §4/§5/§7a; status-function.md Step 6). Bundle A (producer-a) and Bundle B (producer-b) each carry one claim with the same subjectType/subjectId ('repo'/'repo-1') and the same fieldOrBehavior ('coverage'), no qualifiers on either side -> canonicalClaimKey equal (§4) -> same logical claim. Values are deep-equal (91 === 91) -> agreement (§7a): both claims MUST be retained as distinct records (never collapsed), so mergedClaimIds contains both distinct ids. Neither claims/evidence/policies/events share an id across the two bundles, so collisions is empty. Per-claim status: neither bundle attaches any policy or evidence/events for its claim, so status-function.md Step 6 ('No policy') applies for both -> policy is undefined and evidence.length === 0 -> 'unknown' for both, independently of one another and of the agreement itself (merge does not synthesize a stronger status from agreement, §7a).",
+  "now": "2026-06-10T00:00:00.000Z",
+  "inputs": [
+    {
+      "schemaVersion": 4,
+      "source": "producer-a:run-1",
+      "producerId": "producer-a",
+      "claims": [
+        {
+          "id": "producer-a.claim.readiness.coverage",
+          "subjectType": "repo",
+          "subjectId": "repo-1",
+          "surface": "readiness",
+          "claimType": "coverage",
+          "fieldOrBehavior": "coverage",
+          "value": 91,
+          "createdAt": "2026-06-01T00:00:00.000Z",
+          "updatedAt": "2026-06-01T00:00:00.000Z"
+        }
+      ],
+      "evidence": [],
+      "policies": [],
+      "events": []
+    },
+    {
+      "schemaVersion": 4,
+      "source": "producer-b:run-7",
+      "producerId": "producer-b",
+      "claims": [
+        {
+          "id": "producer-b.claim.readiness.coverage",
+          "subjectType": "repo",
+          "subjectId": "repo-1",
+          "surface": "readiness",
+          "claimType": "coverage",
+          "fieldOrBehavior": "coverage",
+          "value": 91,
+          "createdAt": "2026-06-02T00:00:00.000Z",
+          "updatedAt": "2026-06-02T00:00:00.000Z"
+        }
+      ],
+      "evidence": [],
+      "policies": [],
+      "events": []
+    }
+  ],
+  "expect": {
+    "mergedClaimIds": [
+      "producer-a.claim.readiness.coverage",
+      "producer-b.claim.readiness.coverage"
+    ],
+    "collisions": [],
+    "statusByClaimId": {
+      "producer-a.claim.readiness.coverage": "unknown",
+      "producer-b.claim.readiness.coverage": "unknown"
+    }
+  }
+}

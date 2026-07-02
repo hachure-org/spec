@@ -32,3 +32,39 @@ implementation derives the expected statuses.
   }
 }
 ```
+
+## Merge conformance vectors
+
+`conformance/merge/` contains a second, distinct family of vectors that make
+the [Identifier & Multi-Producer Merge Semantics specification](../merge.md)
+executable. Each vector merges two or more input `TrustBundle`s and asserts
+the merged claim-id set, any id collisions, and the per-claim status derived
+independently on the merged bundle. This repo's `npm test` (`test/merge.test.mjs`)
+validates vector *shape* and Ajv-validates every `inputs[]` entry against
+`trust-bundle.schema.json`; it does not execute `mergeBundles`/
+`mergeBundlesDetailed`/`deriveClaimStatus` (this repo carries no
+`@kontourai/surface` dependency) — see `merge.md`'s "Reference implementation
+notes" for the implementation-side conformance loop.
+
+### Merge test vector inventory
+
+| File | Scenario | Now |
+|---|---|---|
+| `merge-agree-values.json` | Two producers' claims agree on the same canonical subject+field; both retained as distinct records, both derive their own status independently | 2026-06-10T00:00:00.000Z |
+| `merge-conflict-value.json` | Two producers' claims disagree on value, governed by a shared `incompatibleValues` policy; both retained, statuses computed independently | 2026-06-10T00:00:00.000Z |
+| `merge-conflict-status.json` | Producer A's claim reaches `disputed` via its own blocking evidence; producer B's claim independently reaches `verified` — merge does not let one overwrite or suppress the other | 2026-06-10T00:00:00.000Z |
+| `merge-collision-order-independence.json` | Three bundles; one `Claim.id` shared by two with genuinely different content (accidental collision) plus one unrelated bundle; asserts the merge result (kept content + collisions) is identical for every permutation of `inputs` | 2026-06-10T00:00:00.000Z |
+
+### Merge test vector format
+
+```json
+{
+  "now": "<ISO 8601 string>",
+  "inputs": [ /* TrustBundle, TrustBundle, ... */ ],
+  "expect": {
+    "mergedClaimIds": ["<id>", "..."],
+    "collisions": [{ "collection": "claims", "id": "<id>" }],
+    "statusByClaimId": { "<claimId>": "<TrustStatus>" }
+  }
+}
+```

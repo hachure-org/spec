@@ -104,8 +104,14 @@ Plain-language definition (ADR 0002):
 > the producer played by — packed so it can cross a product boundary without the
 > receiver needing access to the producer's internals.
 
-The `source` field identifies the producer. Bundles from multiple producers can be
-merged; conflicts surface as `disputed` status (never last-write-wins).
+The `source` field identifies the producer (free-text, may vary per run); an optional
+`producerId` field carries a stable, unsigned identifier for the producing system,
+consistent across every bundle it emits. When present, `producerId` MUST be a
+non-empty string. Bundles from multiple producers can be merged
+into one ledger without last-write-wins and without deleting losing evidence; conflicts
+between claims are surfaced as `contradiction` transparency gaps, never silently
+resolved or used to flip a claim's status. The full specification of identifier
+conventions and the merge algorithm is in [merge.md](merge.md).
 
 An optional `identityLinks` array declares co-referent subjects — real-world entities
 known under more than one identifier.  Each link carries a stable optional `id`, a

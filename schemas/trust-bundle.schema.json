@@ -8,6 +8,11 @@
   "properties": {
     "schemaVersion": { "enum": [2, 3, 4] },
     "source": { "type": "string" },
+    "producerId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Optional stable identifier for the producing system, distinct from source (which is free-text and may vary per run). When present, MUST be a non-empty string (minLength: 1) -- see merge.md section 2. Omitted (never synthesized) on a merged bundle."
+    },
     "claims": {
       "type": "array",
       "items": { "$ref": "claim.schema.json" }

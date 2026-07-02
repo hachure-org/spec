@@ -1,0 +1,100 @@
+{
+  "$comment": "Hand-derivation (merge.md §4/§5/§7b; status-function.md Step 7). Both claims share subjectType/subjectId ('repo'/'repo-2') and fieldOrBehavior ('tier'), no qualifiers -> same canonical claim key (§4). Values 'gold' (producer-a) and 'silver' (producer-b) are not deep-equal, and both bundles reference the identical policy 'policy.pricing-field.tier-conflict', which declares incompatibleValues covering ['gold','silver'] -> this is a value conflict (§7b): both claims MUST be retained (mergedClaimIds has both distinct ids); the conflict itself surfaces only as a report-layer contradiction transparency gap, which is out of this vector format's scope (merge.md §9) and does NOT affect either claim's own status computation. The policy object is byte-identical in both bundles under the same id, so unioning it is not a collision (merge.md §5 rule 2) -> collisions is empty. Status-function.md fold, per claim: no verification event in either bundle (skip Steps 1-5); a policy IS resolved (claimType 'pricing-field' matches) so Step 6 ('no policy') does not apply; Step 7 applies ('policy present, no verification event'): producer-a's claim has one entailing evidence item with evidenceType 'source_excerpt', so its evidence-type set is {source_excerpt}, which is a superset of policy.requiredEvidence=['source_excerpt'] -> 'proposed'. producer-b's claim has no evidence at all, so its evidence-type set is {} which does NOT contain 'source_excerpt' -> 'unknown'. The two claims resolve to different statuses purely from their own attached evidence, independent of the value conflict between them.",
+  "now": "2026-06-10T00:00:00.000Z",
+  "inputs": [
+    {
+      "schemaVersion": 4,
+      "source": "producer-a:run-2",
+      "producerId": "producer-a",
+      "claims": [
+        {
+          "id": "producer-a.claim.pricing.tier",
+          "subjectType": "repo",
+          "subjectId": "repo-2",
+          "surface": "pricing",
+          "claimType": "pricing-field",
+          "fieldOrBehavior": "tier",
+          "value": "gold",
+          "createdAt": "2026-06-01T00:00:00.000Z",
+          "updatedAt": "2026-06-01T00:00:00.000Z"
+        }
+      ],
+      "evidence": [
+        {
+          "id": "producer-a.evidence.tier.source",
+          "claimId": "producer-a.claim.pricing.tier",
+          "evidenceType": "source_excerpt",
+          "method": "observation",
+          "sourceRef": "source A: internal pricing sheet",
+          "excerptOrSummary": "Tier is gold.",
+          "observedAt": "2026-06-01T00:00:00.000Z",
+          "collectedBy": "crawler-a"
+        }
+      ],
+      "policies": [
+        {
+          "id": "policy.pricing-field.tier-conflict",
+          "claimType": "pricing-field",
+          "requiredEvidence": ["source_excerpt"],
+          "acceptanceCriteria": ["tier confirmed by source"],
+          "reviewAuthority": "operator",
+          "validityRule": { "kind": "historical" },
+          "stalenessTriggers": [],
+          "conflictRules": [],
+          "impactLevel": "medium",
+          "incompatibleValues": [
+            { "values": ["gold", "silver"], "message": "tier values conflict across producers" }
+          ]
+        }
+      ],
+      "events": []
+    },
+    {
+      "schemaVersion": 4,
+      "source": "producer-b:run-9",
+      "producerId": "producer-b",
+      "claims": [
+        {
+          "id": "producer-b.claim.pricing.tier",
+          "subjectType": "repo",
+          "subjectId": "repo-2",
+          "surface": "pricing",
+          "claimType": "pricing-field",
+          "fieldOrBehavior": "tier",
+          "value": "silver",
+          "createdAt": "2026-06-02T00:00:00.000Z",
+          "updatedAt": "2026-06-02T00:00:00.000Z"
+        }
+      ],
+      "evidence": [],
+      "policies": [
+        {
+          "id": "policy.pricing-field.tier-conflict",
+          "claimType": "pricing-field",
+          "requiredEvidence": ["source_excerpt"],
+          "acceptanceCriteria": ["tier confirmed by source"],
+          "reviewAuthority": "operator",
+          "validityRule": { "kind": "historical" },
+          "stalenessTriggers": [],
+          "conflictRules": [],
+          "impactLevel": "medium",
+          "incompatibleValues": [
+            { "values": ["gold", "silver"], "message": "tier values conflict across producers" }
+          ]
+        }
+      ],
+      "events": []
+    }
+  ],
+  "expect": {
+    "mergedClaimIds": [
+      "producer-a.claim.pricing.tier",
+      "producer-b.claim.pricing.tier"
+    ],
+    "collisions": [],
+    "statusByClaimId": {
+      "producer-a.claim.pricing.tier": "proposed",
+      "producer-b.claim.pricing.tier": "unknown"
+    }
+  }
+}
