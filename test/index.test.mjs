@@ -113,3 +113,54 @@ for (const { name, vector } of testVectors) {
     );
   });
 }
+
+// ---------------------------------------------------------------------------
+// conformanceManifest
+// ---------------------------------------------------------------------------
+import { existsSync, readdirSync as _readdirSync } from 'node:fs';
+import { dirname as _dirname, join as _join } from 'node:path';
+import { fileURLToPath as _fileURLToPath } from 'node:url';
+import { conformanceManifest } from '../index.mjs';
+
+const __repoRoot = _dirname(_dirname(_fileURLToPath(import.meta.url)));
+
+test('conformanceManifest is a non-empty object with a levels array', () => {
+  assert.ok(conformanceManifest && typeof conformanceManifest === 'object');
+  assert.ok(Array.isArray(conformanceManifest.levels));
+  assert.ok(conformanceManifest.levels.length >= 3, 'expected at least 3 conformance levels (L1/L2/L3)');
+});
+
+test('conformanceManifest.appliesTo declares schemaVersion and statusFunctionVersion', () => {
+  assert.ok(Array.isArray(conformanceManifest.appliesTo?.schemaVersion));
+  assert.ok(conformanceManifest.appliesTo.schemaVersion.length > 0);
+  assert.equal(typeof conformanceManifest.appliesTo?.statusFunctionVersion, 'string');
+  assert.equal(conformanceManifest.appliesTo.statusFunctionVersion, statusFunctionVersion);
+});
+
+for (const level of conformanceManifest.levels ?? []) {
+  test(`conformanceManifest level "${level.level}" satisfiedBy files exist on disk`, () => {
+    const satisfiedBy = level.satisfiedBy;
+    assert.ok(satisfiedBy && typeof satisfiedBy === 'object', `level "${level.level}" missing satisfiedBy`);
+
+    if (satisfiedBy.kind === 'schema-validation') {
+      const dir = _join(__repoRoot, satisfiedBy.schemaDir);
+      assert.ok(existsSync(dir), `schemaDir does not exist: ${dir}`);
+      for (const file of satisfiedBy.schemaFiles ?? []) {
+        const filePath = _join(dir, file);
+        assert.ok(existsSync(filePath), `schema file does not exist: ${filePath}`);
+      }
+    }
+
+    if (satisfiedBy.kind === 'test-vectors') {
+      const dir = _join(__repoRoot, satisfiedBy.vectorDir);
+      assert.ok(existsSync(dir), `vectorDir does not exist: ${dir}`);
+      const prefix = satisfiedBy.vectorFilePattern.replace(/\*.*$/, '');
+      const matching = _readdirSync(dir).filter((f) => f.startsWith(prefix) && f.endsWith('.json'));
+      assert.equal(
+        matching.length,
+        satisfiedBy.vectorCount,
+        `expected ${satisfiedBy.vectorCount} files matching "${satisfiedBy.vectorFilePattern}" in ${dir}, found ${matching.length}`,
+      );
+    }
+  });
+}

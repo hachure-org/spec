@@ -1,6 +1,6 @@
 {
   "name": "hachure",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "statusFunctionVersion": "2",
   "description": "Hachure — canonical distribution of the open trust format: normative JSON schemas, conformance test vectors, and spec constants.",
   "type": "module",
@@ -19,7 +19,8 @@
     "merge.md",
     "interop-in-toto.md",
     "verification-endpoint.md",
-    "assurance.md"
+    "assurance.md",
+    "SECURITY.md"
   ],
   "scripts": {
     "test": "node --test test/*.test.mjs"

@@ -3,6 +3,7 @@
 **Function:** `status = f(claim, evidence, events, policy, authorityTrace, now)`
 **Version constant:** `statusFunctionVersion` (currently `"2"`)
 **Source of truth:** `src/status.ts` in `@kontourai/surface`
+**Conformance language:** MUST/SHOULD/MAY keywords in this document are to be interpreted per RFC 2119/BCP 14, as defined in [README.md's Conformance language section](README.md#conformance-language).
 
 ---
 

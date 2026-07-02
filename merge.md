@@ -3,6 +3,7 @@
 **Function:** `mergeBundles(bundles: TrustBundle[]) → TrustBundle` /
 `mergeBundlesDetailed(bundles: TrustBundle[]) → { bundle: TrustBundle; collisions: MergeCollision[] }`
 **Source of truth:** `src/merge.ts`, `src/identity.ts`, `src/canonical.ts` in `@kontourai/surface`
+**Conformance language:** MUST/SHOULD/MAY keywords in this document are to be interpreted per RFC 2119/BCP 14, as defined in [README.md's Conformance language section](README.md#conformance-language).
 
 ---
 
@@ -194,14 +195,40 @@ content-identical, an implementation MUST:
    just against the first-seen one), and report a collision for every
    distinct-content pair.
 2. Choose the *kept* record deterministically from content alone — not from
-   array position — using the record whose RFC 8785 (JSON Canonicalization
-   Scheme) serialization sorts lexicographically first among the distinct
-   contents. (RFC 8785/JCS is the target canonicalization primitive; until it
-   is adopted bundle-wide, an implementation MAY substitute `JSON.stringify`
-   of each object with its keys sorted recursively, which is
-   order-independent for this purpose even though it is not RFC 8785-compliant
-   in general — this rule asks for convergence-under-permutation of *this*
-   function, not full JCS compliance.)
+   array position — using the record whose [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785)
+   (JSON Canonicalization Scheme, JCS) serialization sorts lexicographically
+   first among the distinct contents.
+
+**Canonicalization decision (ratified):** RFC 8785/JCS is the normative
+canonicalization primitive for this tie-break rule, and for `"hash"`-kind
+`integrityAnchor` computation bundle-wide (`SECURITY.md` §"Integrity anchors
+and canonicalization" states the identical rule for hashing — one decision,
+cited from both places). This was previously a "target primitive... until
+adopted bundle-wide" hedge; it is now ratified as MUST, not a future
+aspiration: canonicalization MUST be RFC 8785 (JCS) — full stop, with no
+sorted-key-`JSON.stringify` shortcut carve-out. Two implementations that both
+claim RFC 8785 compliance and compare the same distinct contents MUST agree
+on which one sorts first.
+
+> **Note (informative, not normative):** producing byte-identical RFC 8785
+> output across languages has real cross-language pitfalls implementers
+> should verify against, not assume away. (a) Non-ASCII string escaping —
+> RFC 8785 (via RFC 8259) requires strings to contain literal UTF-8
+> characters, never `\uXXXX` escapes, but several languages' default JSON
+> serializers `\u`-escape non-ASCII by default (e.g. Python's `json.dumps`'s
+> `ensure_ascii=True` default) and must be reconfigured to emit literal
+> UTF-8. (b) Number serialization MUST follow the ECMAScript
+> `Number::toString` algorithm (RFC 8785 §3.2.2.3) — native to JavaScript
+> engines, but other languages need a compliant implementation of that exact
+> algorithm, not their own default float-to-string routine. (c) Property
+> sort order is by UTF-16 code unit value (RFC 8785 §3.2.3), not codepoint,
+> byte, or locale-collation order. RFC 8785 §3.1 also does not apply Unicode
+> normalization — strings are canonicalized exactly as they already are in
+> memory, so two visually-identical strings that differ only in Unicode
+> normalization form produce different canonical bytes. A hand-rolled
+> sorted-key `JSON.stringify` can silently diverge from RFC 8785 on any of
+> these points; there is no shortcut that is safe to assume equivalent
+> without verifying against a conformant JCS implementation.
 
 This makes the merged bundle a pure, order-independent function of the *set*
 of input bundles — the same guarantee `status-function.md` already gives for
@@ -301,11 +328,14 @@ claim).
   Referenced descriptively in §7b/§7c (the `contradiction` gap type already
   exists informally, per `schemas/trust-report.schema.json`'s own
   `$comment`), but this document does not add a schema for them.
-- **RFC 8785 canonicalization as a general bundle-hashing primitive.** §6
-  depends on *a* canonicalization function existing for its tie-break rule
-  and names RFC 8785 (JCS) as the target, with a documented interim fallback
-  (sorted-key `JSON.stringify`) — it does not itself specify RFC 8785
-  adoption bundle-wide.
+- **A canonicalization *library* shipped by this repo.** RFC 8785/JCS is
+  ratified (§6) as the normative canonicalization primitive for both the §6
+  tie-break rule and `"hash"`-kind `integrityAnchor` computation
+  (`SECURITY.md`) — that decision is now settled, not deferred. What remains
+  out of scope here is providing a canonicalization *implementation*:
+  `hachure-org/spec` ships schemas and prose, not runtime code: it is the
+  reference implementation's (`@kontourai/surface`'s) responsibility to
+  implement RFC 8785, not this repo's.
 - **Cryptographic producer identity (DIDs, keys, transparency-log-anchored
   identity).** `producerId` (§2) is deliberately unsigned and unverified.
   Where verifiable producer identity is needed, use Assurance L1/L2

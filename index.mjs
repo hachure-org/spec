@@ -11,6 +11,13 @@
  *                             vectors. Each vector has `input`, `expect`, and
  *                             `now` fields; run them against your implementation
  *                             to claim conformance.
+ *   conformanceManifest    — structured object describing conformance levels
+ *                             (L1 schema-valid, L2 status vectors, L3 merge
+ *                             vectors), which files satisfy each, and the
+ *                             schemaVersion/statusFunctionVersion it applies
+ *                             to. Parsed from conformance/manifest.json.
+ *                             Distinct from testVectors: this describes what
+ *                             passing means, testVectors is the raw fixtures.
  */
 
 import { readFileSync, readdirSync } from 'node:fs';
@@ -50,7 +57,9 @@ function loadTestVectors() {
   const conformanceDir = join(__dirname, 'conformance');
   const vectors = [];
   for (const file of readdirSync(conformanceDir).sort()) {
-    if (!file.endsWith('.json')) continue;
+    // manifest.json is structured metadata (see conformanceManifest below),
+    // not a { now, input, expect } test vector — excluded here.
+    if (!file.endsWith('.json') || file === 'manifest.json') continue;
     const name = basename(file, '.json');
     const vector = JSON.parse(readFileSync(join(conformanceDir, file), 'utf8'));
     vectors.push({ name, vector });
@@ -59,3 +68,15 @@ function loadTestVectors() {
 }
 
 export const testVectors = loadTestVectors();
+
+// ---------------------------------------------------------------------------
+// Conformance manifest — structured levels/requirements, distinct from the
+// raw testVectors list above. See conformance/manifest.json and
+// conformance/README.md for the human-readable pointer.
+// ---------------------------------------------------------------------------
+function loadConformanceManifest() {
+  const manifestPath = join(__dirname, 'conformance', 'manifest.json');
+  return JSON.parse(readFileSync(manifestPath, 'utf8'));
+}
+
+export const conformanceManifest = loadConformanceManifest();

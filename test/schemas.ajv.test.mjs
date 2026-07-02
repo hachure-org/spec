@@ -291,7 +291,9 @@ test('AC5: revoked is present in all 7 canonical status-enum sites, and claim.sc
 test('all conformance/*.json input bundles validate against the tightened trust-bundle.schema.json', () => {
   const validateBundle = compileRoot('trust-bundle.schema.json');
   for (const file of readdirSync(conformanceDir).sort()) {
-    if (!file.endsWith('.json') || file === 'README.md') continue;
+    // manifest.json is the structured conformance manifest (levels/requirements),
+    // not a { input, expect, now } vector — not a TrustBundle to validate here.
+    if (!file.endsWith('.json') || file === 'manifest.json') continue;
     const vector = JSON.parse(readFileSync(join(conformanceDir, file), 'utf8'));
     const valid = validateBundle(vector.input);
     assert.equal(valid, true, `${file}: ${JSON.stringify(validateBundle.errors)}`);

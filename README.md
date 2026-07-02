@@ -86,6 +86,19 @@ every bundle valid at `schemaVersion` `3` remains valid; only the deriver
 
 ---
 
+## Conformance language
+
+The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**,
+**SHOULD**, **SHOULD NOT**, **RECOMMENDED**, **MAY**, and **OPTIONAL** in this
+document and in every other normative document in this repository
+(`merge.md`, `assurance.md`, `verification-endpoint.md`,
+`status-function.md`, `interop-in-toto.md`, `SECURITY.md`) are to be
+interpreted as described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119)
+and clarified by [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174) (BCP 14),
+only when they appear in all capitals, as shown here.
+
+---
+
 ## Scope: core record shapes
 
 This specification covers the following record types. Each is a first-class concept
@@ -260,6 +273,42 @@ a profile requires no changes to core record shapes or the status function.
 
 ---
 
+## Relationship to W3C Verifiable Credentials
+
+Hachure and the [W3C Verifiable Credentials](https://www.w3.org/TR/vc-data-model-2.0/)
+data model both represent claims-with-evidence, and it is a fair question why
+this format does not simply build on VC instead of defining its own record
+shapes.
+
+**The short answer:** DID-based issuer identity is the dominant convention
+in the VC ecosystem — a resolvable, typically key-based identifier scheme —
+though the VC data model itself permits any URL as an issuer identifier.
+Hachure treats signing as an opt-in [Assurance](assurance.md) dial (L0
+unsigned by default, L1/L2 signed on request), not a precondition for a
+record to exist.
+Requiring DIDs for `producerId` ([merge.md](merge.md) §2) would collapse that
+layered design into "every producer needs key infrastructure just to be
+namespaced for merge" — a strictly higher bar than merge, or basic claim
+authorship, actually needs. `producerId` is deliberately at the same trust
+level as the existing `source` field: free-text, unsigned, always available,
+upgradable to a cryptographically verifiable identity only when a consumer's
+policy requires it.
+
+This is not a rejection of DIDs or VCs — an implementation that wants
+DID-backed producer identity can express it today via Assurance L1/L2's OIDC-
+or held-key-backed signing (`assurance.md` §"Identity presentation"), and
+nothing here prevents a future profile from mapping Hachure records into a VC
+envelope for interop with VC-native ecosystems. It is a statement that Hachure
+does not *require* DID infrastructure just to produce a valid, useful record —
+consistent with the "signing is a dial, not a gate" principle that runs
+through the whole Assurance profile.
+
+See [merge.md](merge.md) §10 "Prior art" for the fuller technical rationale,
+and [assurance.md](assurance.md) for how signed identity is layered on top
+when a consumer needs it.
+
+---
+
 ## Out of scope: future extension profiles
 
 The following producer domains are explicitly out of scope for this core specification.
@@ -286,7 +335,28 @@ fixed `now`. The test at `tests/spec-conformance.test.ts` loads every test vecto
 asserts that the reference implementation derives the expected statuses, making this
 specification executable.
 
-See [conformance/README.md](conformance/README.md) for the test vector inventory.
+See [conformance/README.md](conformance/README.md) for the test vector inventory, and
+[conformance/manifest.json](conformance/manifest.json) (also exported as
+`conformanceManifest`) for a machine-readable index of what an implementation
+must pass to claim conformance at each level (L1 schema-valid records, L2
+status-derivation vectors, L3 merge vectors).
+
+---
+
+## Project documents
+
+- **[SECURITY.md](SECURITY.md)** — the format's honest trust boundaries:
+  source/producerId spoofing, verification-endpoint replay risk, and
+  whole-bundle substitution, and which [Assurance](assurance.md) level
+  mitigates each.
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** — how to propose a change, when a
+  design writeup is expected, and the conformance-vector requirement for
+  behavior changes. *(Draft — see the banner in that file.)*
+- **[GOVERNANCE.md](GOVERNANCE.md)** — who currently has decision authority,
+  and what "neutral governance" is expected to mean when the project moves
+  toward it. Expands the "Governance intent" paragraph above; does not
+  contradict it. *(Draft — see the banner in that file.)*
+- **[LICENSE](LICENSE)** — MIT, matching `package.json`'s `"license"` field.
 
 ---
 

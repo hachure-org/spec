@@ -1,0 +1,71 @@
+{
+  "$schemaComment": "Machine-readable conformance manifest for the Hachure trust format. Not a JSON Schema itself — a structured index of what an implementation must pass to claim conformance at each level. Additive to, not a replacement for, index.mjs's `testVectors` export (which lists raw vectors, not levels/pass-criteria).",
+  "manifestVersion": 1,
+  "appliesTo": {
+    "schemaVersion": [2, 3, 4],
+    "statusFunctionVersion": "2"
+  },
+  "levels": [
+    {
+      "level": "L1",
+      "name": "Schema-valid records",
+      "description": "Every core record type an implementation emits or accepts validates against the corresponding normative JSON Schema in schemas/. This is the floor: an implementation that cannot produce or consume schema-valid records cannot claim any higher level.",
+      "requires": [],
+      "satisfiedBy": {
+        "kind": "schema-validation",
+        "schemaDir": "schemas",
+        "schemaFiles": [
+          "claim.schema.json",
+          "derivation-rule.schema.json",
+          "evidence.schema.json",
+          "inquiry-record.schema.json",
+          "trust-bundle.schema.json",
+          "trust-report.schema.json",
+          "verification-event.schema.json",
+          "verification-policy.schema.json"
+        ],
+        "howToRun": "Validate your implementation's own TrustBundle output (and any other emitted record types) against schemas/trust-bundle.schema.json with all sibling schemas registered for $ref resolution, using an Ajv (draft 2020-12) instance or equivalent."
+      }
+    },
+    {
+      "level": "L2",
+      "name": "Status derivation vectors",
+      "description": "The implementation's status-derivation function (status-function.md) produces the expected per-claim status for every single-bundle conformance vector in this directory, at the vector's fixed `now`.",
+      "requires": ["L1"],
+      "satisfiedBy": {
+        "kind": "test-vectors",
+        "vectorDir": "conformance",
+        "vectorFilePattern": "sf-*.json",
+        "vectorCount": 8,
+        "specRef": "status-function.md",
+        "howToRun": "For each vector file, call your status-derivation function with vector.input and new Date(vector.now), then assert the derived status for every claim id matches vector.expect.statusByClaimId. All vectors must pass for the statusFunctionVersion declared in appliesTo.statusFunctionVersion."
+      }
+    },
+    {
+      "level": "L3",
+      "name": "Multi-producer merge vectors",
+      "description": "The implementation's merge function (merge.md) produces the expected merged claim-id set, collision set, and per-claim statuses on the merged bundle for every merge conformance vector, and the merge result is identical regardless of input bundle order (merge.md §6 determinism rule).",
+      "requires": ["L1", "L2"],
+      "satisfiedBy": {
+        "kind": "test-vectors",
+        "vectorDir": "conformance/merge",
+        "vectorFilePattern": "merge-*.json",
+        "vectorCount": 4,
+        "specRef": "merge.md",
+        "howToRun": "For each vector file, call mergeBundles/mergeBundlesDetailed on vector.inputs (and on every permutation of vector.inputs, to prove order-independence per merge.md §6), then assert the merged claim ids, collisions, and per-claim statuses (via your L2 status-derivation function on the merged bundle) match vector.expect."
+      }
+    }
+  ],
+  "canonicalization": {
+    "primitive": "RFC 8785 (JCS)",
+    "appliesTo": [
+      "merge.md §6 deterministic tie-break rule",
+      "\"hash\"-kind integrityAnchor computation (SECURITY.md)"
+    ],
+    "status": "ratified"
+  },
+  "notes": [
+    "This manifest describes what passing looks like; it does not itself execute anything. hachure-org/spec ships schemas, prose, and vector fixtures — it does not depend on @kontourai/surface, so this repo's own `npm test` validates vector shape and Ajv-validates vector `input`/`inputs[]` fields against trust-bundle.schema.json, but does not run status/merge derivation itself. Algorithmic conformance (L2/L3) is proven by an implementation actually running its own deriveClaimStatus/mergeBundles against these vectors, per merge.md's \"Reference implementation notes\" table.",
+    "L2 and L3 are independent axes in principle (an implementation could theoretically support merge without an L1-conformant single-bundle deriver), but requires:['L1','L2'] on L3 reflects that merge.md's own conformance loop (merge.md's Reference implementation notes table) evaluates merged-bundle status via the same deriveClaimStatus function L2 exercises — there is no separate merge-only status function to test independently."
+  ]
+}
