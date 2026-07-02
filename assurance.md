@@ -4,6 +4,7 @@
 **Status:** draft
 **Namespace:** `hachure.org/v1`
 **Depends on:** core record shapes, [interop-in-toto.md](interop-in-toto.md), [verification-endpoint.md](verification-endpoint.md)
+**Conformance language:** MUST/SHOULD/MAY keywords in this document are to be interpreted per RFC 2119/BCP 14, as defined in [README.md's Conformance language section](README.md#conformance-language).
 
 ---
 

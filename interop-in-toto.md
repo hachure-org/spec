@@ -2,6 +2,7 @@
 
 **Module:** `@kontourai/surface` — `src/interop/in-toto.ts`
 **Public exports:** `toInTotoStatement`, `toDsseEnvelope`, `buildPaeBytes`, `parseDssePayload`
+**Conformance language:** MUST/SHOULD/MAY keywords in this document are to be interpreted per RFC 2119/BCP 14, as defined in [README.md's Conformance language section](README.md#conformance-language).
 
 ---
 

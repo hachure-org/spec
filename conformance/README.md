@@ -3,6 +3,18 @@
 This directory contains input bundles and expected per-claim statuses that make
 the [Status Derivation specification](../status-function.md) executable.
 
+**Machine-readable conformance manifest:** [`manifest.json`](manifest.json)
+(also exported as `conformanceManifest` from the package root) is a
+structured index of what an implementation must pass to claim conformance at
+each level (L1 schema-valid records, L2 status-derivation vectors, L3 merge
+vectors) — distinct from, and more structured than, the raw vector inventory
+below. Read it, or run:
+
+```js
+import { conformanceManifest } from 'hachure';
+console.log(conformanceManifest.levels);
+```
+
 Each test vector is a JSON file with an `input` (a valid TrustBundle) and an `expect`
 object listing expected per-claim statuses at a fixed `now` timestamp. The test at
 `tests/spec-conformance.test.ts` loads every test vector and asserts that the reference
