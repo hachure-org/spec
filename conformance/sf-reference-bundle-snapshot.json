@@ -2,7 +2,7 @@
   "now": "2026-06-10T00:00:00.000Z",
   "input": {
     "schemaVersion": 5,
-    "source": "kontour-surface-validation-fixtures",
+    "source": "example-producer-validation-fixtures",
     "identityLinks": [
       {
         "subjects": [
@@ -87,9 +87,9 @@
         }
       },
       {
-        "id": "claim.surface.future-console",
+        "id": "claim.roadmap.future-service",
         "subjectType": "roadmap-item",
-        "subjectId": "kontour-surface:hosted-console",
+        "subjectId": "example-producer:hosted-service",
         "facet": "surface.roadmap",
         "claimType": "roadmap-capability",
         "fieldOrBehavior": "implementationStatus",
@@ -326,7 +326,7 @@
       "claim.repo-governance.api-proof": "verified",
       "claim.field-attested-records.registration-status": "stale",
       "claim.fact-resolution.w2-wages": "verified",
-      "claim.surface.future-console": "unknown"
+      "claim.roadmap.future-service": "unknown"
     }
   }
 }
