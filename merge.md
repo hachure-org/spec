@@ -173,7 +173,10 @@ rather than guessing a coercion):
      throwing.
 3. **`source` becomes a synthesized combination** of the distinct `source`
    values across the merged bundles (`merged:<a>+<b>`); **`producerId` MUST
-   be omitted** on a merged bundle (§2).
+   be omitted** on a merged bundle (§2). The optional `proof` block
+   (`schemaVersion` 6) MUST likewise be omitted from merged output — a
+   producer's signature attests that producer's bundle and does not survive
+   merging with other producers' records.
 4. The merged bundle is not itself a new producer assertion — it MUST be
    accepted as input to the same, unmodified status derivation
    (`status-function.md`) and to the merge function again (merge MUST be
@@ -373,23 +376,23 @@ claim).
 The bundled implementation (`lib/merge.mjs` in the `hachure` package)
 satisfies §5, §6 (order independence and the JCS tie-break, exercised under
 every input permutation by `test/merge.conformance.test.mjs`), and §8. The
-notes below track one *other* known implementation, `@kontourai/surface`, and
-are informative only:
+notes below track one *other* known implementation, `@kontourai/surface`
+(v2.1+), and are informative only:
 
 | Normative rule (this document) | Where it lands in `@kontourai/surface` `src/` | Status |
 |---|---|---|
-| §2 `producerId` field | `src/types.ts` `TrustBundle` interface; `schemas/trust-bundle.schema.json` (this repo) | New — add optional field (not yet in the reference implementation) |
+| §2 `producerId` field | `src/types.ts` `TrustBundle` interface; validated in `src/validate.ts` | Implemented |
 | §3 id convention | Prose-only; no code change (SHOULD, unenforced) | N/A |
 | §4 claim identity across producers | `src/canonical.ts` `canonicalClaimKey` + `src/identity.ts` `buildIdentityIndex` | Reused unchanged |
 | §5 rule 1–2 (union by id, first-occurrence-wins-if-identical, collision on differing content) | `src/merge.ts` `unionById` / `unionOptionalById` | Implemented |
-| §5 rule 3 (`producerId` omitted on merge) | `src/merge.ts` `mergeBundlesDetailed` (the `source` synthesis block) | Implementer TODO: add omission of `producerId` |
-| §6 determinism / order-independence | `src/merge.ts` `unionById` | **Known gap**: current `unionById` only compares against the first-seen record for a given id, not every colliding record — kept-content and the collision set are both order-dependent today for 3+-way collisions on one id. Not yet true; needs an implementation fix. |
-| §6 tie-break (canonical-serialization ordering) | `src/merge.ts` `sameContent` | Implementer TODO: no multi-way tie-break exists yet, since there's no multi-way comparison yet |
+| §5 rule 3 (`producerId` and `proof` omitted on merge) | `src/merge.ts` `mergeBundlesDetailed` | Implemented (locked by test) |
+| §6 determinism / order-independence | `src/merge.ts` `unionById` groups every record sharing an id across all bundles and compares each against every other | Implemented |
+| §6 tie-break (canonical-serialization ordering) | `src/merge.ts` `resolveGroup` — kept content chosen by canonical-serialization ordering, never array position | Implemented |
 | §7b value conflict → `contradiction` gap | `src/conflict-derivation.ts` `deriveConflictTransparencyGaps` | Implemented |
-| §7c status conflict | `src/conflict-derivation.ts` (no code change needed — the code already matches this document's narrower rule) | Implemented; `docs/adr/0002-trust-bundle.md` in `@kontourai/surface` previously described a broader behavior and has a correction note |
+| §7c status conflict | `src/conflict-derivation.ts` (no code change needed — the code already matches this document's narrower rule) | Implemented |
 | §7d dispute resolution | `src/dispute.ts` `buildDisputeResolutionEvent`; `status-function.md` Step 1 | Implemented |
 | §8 collision detection | `src/merge.ts` `MergeCollision` (a TS type; not currently a normative wire schema, and stays that way per §9) | Implemented |
-| Conformance vectors | `conformance/merge/*.json` (this repo) | Vector shape/schema validated by this repo's `npm test`; algorithmic correctness is proven by an implementation actually running `mergeBundlesDetailed`/`deriveClaimStatus` against them, not by this repo alone |
+| Conformance vectors | `conformance/merge/*.json` (this repo) | Run in both suites: this repo's `test/merge.conformance.test.mjs` (bundled implementation, every permutation) and `@kontourai/surface`'s own tests |
 
 ---
 

@@ -98,3 +98,21 @@ test('re-merging a merged bundle is accepted (merge is re-appliable)', () => {
     first.claims.map((c) => c.id).sort()
   );
 });
+
+test('merged bundle omits the proof block (merge.md §5 rule 3)', () => {
+  const { vector } = vectors.find((v) => v.name === 'merge-agree-values');
+  const [a, b] = structuredClone(vector.inputs);
+  a.proof = {
+    anchors: [
+      {
+        id: 'anchor.rekor.entry',
+        kind: 'transparency_log',
+        algorithm: 'rekor',
+        value: 'example-log-entry-uuid',
+        sourceRef: 'https://rekor.sigstore.dev/example',
+      },
+    ],
+  };
+  const { bundle } = mergeBundlesDetailed([a, b]);
+  assert.equal('proof' in bundle, false, 'a producer signature does not survive merging');
+});
