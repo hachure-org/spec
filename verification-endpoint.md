@@ -129,7 +129,8 @@ is carried as `integrityAnchor`.
 A response may be signed or unsigned. The two carry different weight.
 
 **Signed response.** A producer that wraps the response bundle in a DSSE envelope
-(per [interop-in-toto.md](interop-in-toto.md)) or attaches a `proof` block provides
+(per [interop-in-toto.md](interop-in-toto.md)) or attaches a `proof` block
+(`trust-bundle.schema.json`, `schemaVersion` 6) provides
 independently verifiable testimony. The receiver can verify the signature using the
 producer's public key before trusting any of the returned data. A signed response is
 as trustworthy as the key and the in-toto statement it protects.

@@ -47,7 +47,8 @@ that OIDC identity for the lifetime of the signing event.
 
 An L1 signature MAY be submitted to a public transparency log (Rekor or
 equivalent).  When it is, the resulting log entry UUID SHOULD be stored in the
-bundle's `proof` block as an `IntegrityAnchor` of kind `transparency_log`.
+bundle's optional `proof` block (`trust-bundle.schema.json`, `schemaVersion` 6)
+as an `IntegrityAnchor` of kind `transparency_log`.
 Transparency-log inclusion is encouraged but not required for L1 conformance.
 
 The OIDC issuer and subject carried in the signing certificate are the
@@ -90,13 +91,14 @@ correlate the envelope with a specific bundle revision.
 
 ### Attestations
 
-A human's `ReviewOutcome` record carrying an `authorizing` block (ADR 0004) is
-an identity-signed attestation.  When the human's OIDC identity signs that
+A producer-defined review record carrying an authorizing block (e.g. the
+`ReviewOutcome` shape some implementations use — an extension record, not a
+core schema) is an identity-signed attestation.  When the human's OIDC identity signs that
 record at the moment the authority is exercised (see
 [Human signing ceremony](#human-signing-ceremony)), the result is non-repudiable
 evidence that a specific identity made a specific decision.  This signed
-attestation is the appropriate content for the `identityEvidence` field on a
-Claim: it collapses "someone in this org approved this" into "this OIDC-verified
+attestation is attached to the claim as ordinary Evidence
+(`evidenceType: "attestation"`, anchored via `integrityAnchor`): it collapses "someone in this org approved this" into "this OIDC-verified
 identity approved this, cryptographically."
 
 ### Verification-endpoint responses
@@ -122,7 +124,7 @@ Derive the display identity from the DSSE envelope's signing certificate:
   - CI workflow: `"signed by github.com/org/repo workflow .github/workflows/release.yml"`
   - Human account: `"signed by alice@example.com (GitHub)"`
 - For L2 (held key): present the key's subject DN or the KMS key alias as
-  configured by the producer.  Example: `"signed by CN=kontour-release-key, O=Kontour AI"`
+  configured by the producer.  Example: `"signed by CN=release-key, O=Example Corp"`
 
 Displaying a fingerprint alongside the human-readable identity is permitted and
 encouraged for debugging.  It is not a substitute for the identity string as the
@@ -139,7 +141,7 @@ level and the consumer's required level are **transparency gaps** — structured
 annotations that feed the status function's inputs and surface as `proposed` or
 `assumed` status rather than silent hard failures.
 
-This mirrors the admissibility doctrine in ADR 0004 §4: heuristics emit issues
+The doctrine: heuristics emit issues
 for human review; they do not silently decide.  A bundle whose assurance level
 falls below a consumer's requirement is recorded and flagged; a human or an
 automated policy layer decides whether to accept, escalate, or re-request.
@@ -195,15 +197,14 @@ requirement.  The ceremony surfaces once, at the moment of consequence.
 
 ## Collection channels and media evidence
 
-Any collection channel defined in the reference implementation (see ADR 0004 in
-the reference implementation) MAY attach media evidence — for example,
+Any collection channel a producer defines MAY attach media evidence — for example,
 capture-provenance imagery conforming to C2PA — as ordinary evidence entries
 with integrity anchors.  Three rules govern such attachments:
 
 1. **Channels do not replace admissible testimony kinds.**  A photo or video of
-   a signing gesture is attached evidence, not a substitute for an `exchange` or
-   `authorized-action` block.  The admissible testimony kinds in ADR 0004 remain
-   the authoritative record; media is corroborating context.
+   a signing gesture is attached evidence, not a substitute for the producer's
+   admissible testimony records, which remain the authoritative record; media
+   is corroborating context.
 2. **Capture provenance determines evidence grade.**  Media accompanied by a
    valid C2PA manifest (or equivalent capture-provenance credential) is treated
    as integrity-anchored evidence at the level its anchor supports.  Media

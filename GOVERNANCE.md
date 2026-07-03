@@ -10,14 +10,14 @@
 
 ## Current state
 
-Hachure is currently developed by [Kontour AI](https://kontour.ai), which
+Hachure is currently developed by [Kontour AI](https://kontourai.io), which
 holds the name to protect it (README.md §"Governance intent"). In practice
 today, this means:
 
 - **`hachure-org/spec` is the canonical home** of the specification: prose,
   normative JSON Schemas, and conformance test vectors. All normative changes
   land here first.
-- **`kontourai/surface` is the reference implementation.** It runs this
+- **`@kontourai/surface` is an independent implementation maintained by Kontour AI.** It runs this
   repo's conformance vectors in its own test suite and is expected to track
   this repo's schema and semantics changes.
 - **This repo wins on conflict.** Where `hachure-org/spec`'s prose/schemas
@@ -80,8 +80,8 @@ change that; it documents it.
 ## Versioning authority
 
 Version bumps (`package.json` `version`, `schemaVersion`, `statusFunctionVersion`)
-are declared in this repo and are the authoritative source; the reference
-implementation (`@kontourai/surface`) is expected to track them, not the
+are declared in this repo and are the authoritative source; implementations
+(including `@kontourai/surface`) are expected to track them, not the
 reverse. See README.md §"Namespace and versioning" for the pre-1.0
 hard-breaking-changes policy this implies.
 
@@ -89,7 +89,7 @@ hard-breaking-changes policy this implies.
 
 The format is deliberately not named after any Kontour product (README.md
 §"What this is"). Governance of the *specification* (this document) is
-distinct from ownership of the *reference implementation package name*
-(`@kontourai/surface`, which does carry a Kontour-scoped npm namespace by
-design — reference implementations are allowed to be vendor-branded even when
-the format they implement is not).
+distinct from ownership of any *implementation package name*
+(`@kontourai/surface` carries a Kontour-scoped npm namespace by design —
+implementations are allowed to be vendor-branded even when the format they
+implement is not).

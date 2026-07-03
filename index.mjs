@@ -18,6 +18,15 @@
  *                             to. Parsed from conformance/manifest.json.
  *                             Distinct from testVectors: this describes what
  *                             passing means, testVectors is the raw fixtures.
+ *
+ * Bundled implementation (lib/) — the prose spec is normative; this code is a
+ * conforming, dependency-free implementation so the format is usable without
+ * any particular vendor's library:
+ *   deriveClaimStatus      — status-function.md, one claim → { status, policyId }
+ *   deriveStatuses         — whole bundle → { claimId: status }
+ *   mergeBundles           — merge.md §5/§6; throws on claim collisions
+ *   mergeBundlesDetailed   — merge.md; returns { bundle, collisions }
+ *   canonicalize           — RFC 8785 (JCS) serialization (merge.md §6, SECURITY.md)
  */
 
 import { readFileSync, readdirSync } from 'node:fs';
@@ -25,6 +34,10 @@ import { fileURLToPath } from 'node:url';
 import { join, dirname, basename } from 'node:path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+export { deriveClaimStatus, deriveStatuses, resolvePolicy } from './lib/derive.mjs';
+export { mergeBundles, mergeBundlesDetailed } from './lib/merge.mjs';
+export { canonicalize } from './lib/canonicalize.mjs';
 
 // ---------------------------------------------------------------------------
 // Spec-side declaration of the status function version.

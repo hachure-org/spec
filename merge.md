@@ -2,7 +2,10 @@
 
 **Function:** `mergeBundles(bundles: TrustBundle[]) → TrustBundle` /
 `mergeBundlesDetailed(bundles: TrustBundle[]) → { bundle: TrustBundle; collisions: MergeCollision[] }`
-**Source of truth:** `src/merge.ts`, `src/identity.ts`, `src/canonical.ts` in `@kontourai/surface`
+**Normative source:** this document. The bundled implementation is
+`lib/merge.mjs` (with `lib/canonicalize.mjs` for the §6 tie-break) in the
+`hachure` package, checked against `conformance/merge/` under every input
+permutation.
 **Conformance language:** MUST/SHOULD/MAY keywords in this document are to be interpreted per RFC 2119/BCP 14, as defined in [README.md's Conformance language section](README.md#conformance-language).
 
 ---
@@ -10,7 +13,7 @@
 ## 1. Principle
 
 A Trust Bundle (README §"TrustBundle") is the supply side of the ledger, from
-a single producer (ADR 0002). Multiple producers' bundles about overlapping
+a single producer. Multiple producers' bundles about overlapping
 subjects MUST be combinable into one ledger without:
 
 - silently overwriting one producer's claim with another's (never
@@ -247,8 +250,8 @@ If `deepEqual(a.value, b.value)`: the claims agree. They MUST NOT be
 collapsed into one record (§4). Agreement is informational at the merge
 layer; agreement alone does not synthesize a stronger status. A consumer that
 wants "N producers agree" as an input to a decision already has the tool for
-it without a new mechanism: an authored `DerivationRule` (ADR 0003 §5,
-`derivation-rule.schema.json`) can require `acceptedStatuses` across both
+it without a new mechanism: an authored `DerivationRule`
+(`derivation-rule.schema.json`) can require `acceptedStatuses` across both
 claim ids explicitly. This document does not add corroboration-across-producers
 as an automatic status input.
 
@@ -284,7 +287,7 @@ own single-claim fold output.
 ### 7d. Dispute resolution — no new record type
 
 When a human/authority needs to resolve a `disputed` status (from 7c's
-existing mechanisms), the spec already has the shape (ADR 0003 §8): a
+existing mechanisms), the spec already has the shape: a
 `VerificationEvent` with `resolvesDispute: true` and an optional
 `authorityRef`, gated by an active `AuthorityTrace` at decision time
 (`status-function.md` Step 1). This document does not introduce a new
@@ -328,14 +331,14 @@ claim).
   Referenced descriptively in §7b/§7c (the `contradiction` gap type already
   exists informally, per `schemas/trust-report.schema.json`'s own
   `$comment`), but this document does not add a schema for them.
-- **A canonicalization *library* shipped by this repo.** RFC 8785/JCS is
-  ratified (§6) as the normative canonicalization primitive for both the §6
-  tie-break rule and `"hash"`-kind `integrityAnchor` computation
-  (`SECURITY.md`) — that decision is now settled, not deferred. What remains
-  out of scope here is providing a canonicalization *implementation*:
-  `hachure-org/spec` ships schemas and prose, not runtime code: it is the
-  reference implementation's (`@kontourai/surface`'s) responsibility to
-  implement RFC 8785, not this repo's.
+- **A cross-language canonicalization *library*.** RFC 8785/JCS is ratified
+  (§6) as the normative canonicalization primitive for both the §6 tie-break
+  rule and `"hash"`-kind `integrityAnchor` computation (`SECURITY.md`) — that
+  decision is settled, not deferred. The `hachure` package ships a JavaScript
+  JCS implementation (`lib/canonicalize.mjs`) as part of its bundled
+  implementation; implementations in other languages are responsible for
+  their own RFC 8785 conformance (see the informative note in §6 for the
+  cross-language pitfalls).
 - **Cryptographic producer identity (DIDs, keys, transparency-log-anchored
   identity).** `producerId` (§2) is deliberately unsigned and unverified.
   Where verifiable producer identity is needed, use Assurance L1/L2
@@ -365,7 +368,13 @@ claim).
 
 ---
 
-## Reference implementation notes (for implementers)
+## Implementation notes (informative)
+
+The bundled implementation (`lib/merge.mjs` in the `hachure` package)
+satisfies §5, §6 (order independence and the JCS tie-break, exercised under
+every input permutation by `test/merge.conformance.test.mjs`), and §8. The
+notes below track one *other* known implementation, `@kontourai/surface`, and
+are informative only:
 
 | Normative rule (this document) | Where it lands in `@kontourai/surface` `src/` | Status |
 |---|---|---|

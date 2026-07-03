@@ -2,14 +2,16 @@
 
 **Function:** `status = f(claim, evidence, events, policy, authorityTrace, now)`
 **Version constant:** `statusFunctionVersion` (currently `"2"`)
-**Source of truth:** `src/status.ts` in `@kontourai/surface`
+**Normative source:** this document. The bundled implementation is
+`lib/derive.mjs` in the `hachure` package; it and every other conforming
+implementation are checked against the same `conformance/` vectors.
 **Conformance language:** MUST/SHOULD/MAY keywords in this document are to be interpreted per RFC 2119/BCP 14, as defined in [README.md's Conformance language section](README.md#conformance-language).
 
 ---
 
 ## Principle
 
-Claim status is a pure, versioned, deterministic function (ADR 0003 §7). Given the
+Claim status is a pure, versioned, deterministic function. Given the
 same inputs and the same status function version, any conforming implementation
 must derive the same status. There is no stored status field that overrides
 computation; the derived status is always recomputed from the input bundle at
@@ -224,8 +226,12 @@ report.
 
 ## Status ordering (for ceiling purposes)
 
-From weakest to strongest: `unknown` < `rejected` < `superseded` < `disputed` <
-`stale` < `assumed` < `proposed` < `verified`.
+From weakest to strongest: `revoked` < `unknown` < `rejected` < `superseded` <
+`disputed` < `stale` < `assumed` < `proposed` < `verified`.
+
+`revoked` appears here as a raw status for ceiling and rollup purposes (see
+README §"Status semantics"); single-claim derivation folds it to `stale` in
+Step 2 unless a later verification event re-asserts the claim.
 
 ---
 
@@ -238,12 +244,13 @@ From weakest to strongest: `unknown` < `rejected` < `superseded` < `disputed` <
 
 ## Versioning
 
-`statusFunctionVersion` is a string exported by `@kontourai/surface`. It is
-incremented when the algorithm changes in a way that could produce different outputs
-for the same inputs. `InquiryRecord.statusFunctionVersion` captures which version
+`statusFunctionVersion` is a string exported by the `hachure` package (and
+declared by every conforming implementation). It is incremented when the
+algorithm changes in a way that could produce different outputs for the same
+inputs. `InquiryRecord.statusFunctionVersion` captures which version
 was active at resolution time, enabling re-evaluation when the algorithm version
 changes.
 
 Conforming implementations must declare which status function version value they
-implement. Implementations claiming version `"1"` must satisfy all conformance
-cases in `spec/conformance/`.
+implement. Implementations claiming version `"2"` must satisfy all conformance
+cases in `conformance/`.

@@ -372,3 +372,48 @@ test('AC1/AC2: a schemaVersion:5 bundle whose claim carries `facet` validates cl
   const valid = validateBundle(bundle);
   assert.equal(valid, true, JSON.stringify(validateBundle.errors));
 });
+
+// ---------------------------------------------------------------------------
+// schemaVersion 6: optional `proof` block (assurance.md / interop-in-toto.md /
+// verification-endpoint.md all reference it; before schemaVersion 6 it was
+// rejected by additionalProperties — the contradiction this addition resolves).
+// ---------------------------------------------------------------------------
+
+test('proof: a schemaVersion:6 bundle with a transparency_log proof anchor validates', () => {
+  const validateBundle = compileRoot('trust-bundle.schema.json');
+  const bundle = buildBaseBundle(6, buildBaseClaim());
+  bundle.proof = {
+    anchors: [
+      {
+        id: 'anchor.rekor.entry',
+        kind: 'transparency_log',
+        algorithm: 'rekor',
+        value: '24296fb24b8ad77a-example-log-entry-uuid',
+        sourceRef: 'https://rekor.sigstore.dev/api/v1/log/entries/...',
+      },
+    ],
+  };
+  const valid = validateBundle(bundle);
+  assert.equal(valid, true, JSON.stringify(validateBundle.errors));
+});
+
+test('proof: a schemaVersion:5 bundle without proof remains valid (5 stays a valid floor under 6)', () => {
+  const validateBundle = compileRoot('trust-bundle.schema.json');
+  const bundle = buildBaseBundle(5, buildBaseClaim());
+  const valid = validateBundle(bundle);
+  assert.equal(valid, true, JSON.stringify(validateBundle.errors));
+});
+
+test('proof: unknown keys inside the proof block are rejected', () => {
+  const validateBundle = compileRoot('trust-bundle.schema.json');
+  const bundle = buildBaseBundle(6, buildBaseClaim());
+  bundle.proof = { signature: 'raw-signatures-do-not-live-here' };
+  const valid = validateBundle(bundle);
+  assert.equal(valid, false);
+  assert.ok(
+    validateBundle.errors.some(
+      (e) => e.keyword === 'additionalProperties' && e.params.additionalProperty === 'signature',
+    ),
+    JSON.stringify(validateBundle.errors),
+  );
+});

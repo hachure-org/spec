@@ -1,10 +1,13 @@
 {
   "name": "hachure",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "statusFunctionVersion": "2",
-  "description": "Hachure — canonical distribution of the open trust format: normative JSON schemas, conformance test vectors, and spec constants.",
+  "description": "Hachure — canonical distribution of the open trust format: normative JSON schemas, conformance test vectors, spec constants, and a bundled dependency-free implementation (status derivation, merge, CLI).",
   "type": "module",
   "main": "./index.mjs",
+  "bin": {
+    "hachure": "./bin/hachure.mjs"
+  },
   "exports": {
     ".": "./index.mjs",
     "./schemas/*.json": "./schemas/*.json",
@@ -13,6 +16,8 @@
   "files": [
     "schemas",
     "conformance",
+    "lib",
+    "bin",
     "index.mjs",
     "README.md",
     "status-function.md",
@@ -23,7 +28,8 @@
     "SECURITY.md"
   ],
   "scripts": {
-    "test": "node --test test/*.test.mjs"
+    "test": "node --test test/*.test.mjs",
+    "trust-bundle": "node scripts/self-trust-bundle.mjs"
   },
   "devDependencies": {
     "ajv": "^8"

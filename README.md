@@ -1,24 +1,47 @@
 # Hachure — an open trust format
 
 **Namespace:** `hachure.org/v1`
-**Reference implementation:** `@kontourai/surface`
 **Status:** pre-1.0, hard versioning, no compatibility promises yet
-**Originally developed by:** [Kontour AI](https://kontour.ai)
+**Originally developed by:** [Kontour AI](https://kontourai.io)
 
 ---
 
 ## Install
 
 ```sh
-npm i -D hachure
+npm i hachure
 ```
 
-The package ships the normative JSON schemas, conformance test vectors, and the
+The package ships the normative JSON schemas, conformance test vectors, the
 `statusFunctionVersion` constant that ties implementations to a specific
-algorithm revision.
+algorithm revision, and a bundled, dependency-free implementation of status
+derivation and merge — so you can produce, validate, merge, and evaluate
+Hachure records with nothing but this package:
+
+```js
+import { deriveStatuses, mergeBundles, canonicalize } from 'hachure';
+
+const merged = mergeBundles([bundleFromScanner, bundleFromCI]);
+const statusByClaimId = deriveStatuses(merged, new Date());
+```
+
+Or from the command line:
+
+```sh
+npx hachure validate bundle.json     # schema-validate a TrustBundle
+npx hachure derive bundle.json       # derive per-claim statuses
+npx hachure merge a.json b.json      # merge producer bundles
+npx hachure vectors                  # run the conformance vectors
+```
+
+The prose specification is normative; the bundled code is a conforming
+implementation of it (proven in-repo by running every conformance vector),
+not a privileged one.
 
 **Claiming conformance:** run the test vectors from `testVectors` against your
-implementation. For each vector, call your status-derivation function with
+implementation (`testVectors` covers the status-derivation vectors; the L3 merge
+vectors ship separately under `conformance/merge/` and via the
+`./conformance/*.json` export path). For each vector, call your status-derivation function with
 `vector.input` and `vector.now`, then assert that the derived status for every
 claim ID matches `vector.expect.statusByClaimId`. Passing all vectors for a given
 status function version is the bar for a conforming implementation.
@@ -49,32 +72,84 @@ steepness of terrain. This format does the same for trust: it shows the contours
 of what is supported, what is stale, what is disputed, and what is simply
 asserted.
 
-The format is deliberately not named after any company or product.
-`@kontourai/surface` is its reference implementation. Producers outside the
-Kontour suite can emit and consume these records without adopting a vendor name
-into their wire format.
+The format is deliberately not named after any company or product, and depends on
+no vendor's software: the `hachure` package alone produces, validates, merges, and
+evaluates records. Known conforming implementations are listed under
+[Implementations](#implementations); anyone can add one by passing the conformance
+vectors.
 
 **Governance intent:** Hachure is currently developed by Kontour AI, which holds
 the name to protect it. We intend to move the specification to neutral
 governance as adoption warrants.
 
-The Kontour products build on top: Survey emits Trust Bundles, Veritas authors claims
-through it, Flow consumes Surface-shaped evidence at gates, and Console operates across
-all of them. Each product stands alone; the format requires none of them.
+---
+
+## Why this exists
+
+Every system that verifies anything — CI pipelines, security scanners, compliance
+reviews, data-quality checks, human sign-offs — stores its conclusion in its own
+database. The moment that conclusion crosses a boundary (vendor to customer, tool
+to dashboard, agent to deployment gate), it degrades into a boolean, a badge, or a
+PDF: the evidence is gone, there is no expiry, and the receiver has no way to
+re-check the reasoning. You either trust the summary or redo the work.
+
+Hachure keeps the whole picture together and portable. A claim travels with its
+evidence, the policy it was judged against, and the append-only event history —
+and the status is not an opinion stored in a field, it is a pure, versioned
+function of that data (`status = f(claim, evidence, events, policy, authority,
+now)`). Any receiver can recompute it, watch it go `stale` on its own as evidence
+ages, and merge bundles from producers that disagree without one silently
+overwriting the other: conflicts are preserved as contradiction gaps, never
+resolved by last-write-wins.
+
+The defaults are deliberately honest about trust: an unsigned bundle is a valid
+bundle (Assurance L0), because most trust state inside an organization never
+needed a signature — it needed structure. Signing is a dial you turn up
+([assurance.md](assurance.md)) when records cross a boundary where identity
+matters.
+
+### Where you might use it
+
+- **AI agent gates.** An agent (or CI job) may act only when specific claims are
+  `verified` and fresh: express the gate as a [DerivationRule](#derivationrule)
+  ("deploy allowed if `test-suite-passes` and `security-scan-clean` are both in
+  `acceptedStatuses: [verified]`"), and record every decision as an
+  [InquiryRecord](#inquiryrecord) — an audit receipt that says exactly what was
+  knowable, from which claims, under which `statusFunctionVersion`, at the moment
+  the agent acted. This is the difference between "the agent said it checked" and
+  a replayable record of what it checked.
+- **Vendor assurance without the PDF.** Instead of a static compliance answer, a
+  vendor publishes a TrustBundle and serves the
+  [verification endpoint](verification-endpoint.md). The customer re-derives
+  statuses themselves; when the pen-test evidence passes its policy's validity
+  window, the claim goes `stale` on the customer's side automatically — no
+  annual-questionnaire lag.
+- **Release provenance with living status.** Signatures (in-toto, SLSA) freeze
+  what was true at signing time. Wrap a bundle in a DSSE envelope
+  ([interop-in-toto.md](interop-in-toto.md)) to anchor the release moment, then
+  keep serving event deltas so a consumer can see that a claim verified at
+  release has since been disputed or revoked. hachure.org's own
+  [/trust](https://hachure.org/trust) page runs this pattern live.
+- **Merging scanners that disagree.** Two security tools scan the same artifact
+  and reach different conclusions. Merge both bundles ([merge.md](merge.md)):
+  both claims survive under their producers, the disagreement surfaces as a
+  `contradiction` transparency gap, and a human (or an authority-gated
+  resolution event) settles it on the record instead of the louder tool winning.
 
 ---
 
 ## Namespace and versioning
 
-All core trust-format records use `apiVersion: hachure.org/v1` in the Kontour
-Resource Shape envelope. Product-specific records use product-scoped namespaces
-(`surface.kontour.ai/v1alpha1`, `survey.kontour.ai/v1alpha1`, etc.).
+All core trust-format records use the `hachure.org/v1` namespace. Producers
+that define extension records outside this specification use their own
+product-scoped namespaces (a domain the producer controls), never
+`hachure.org/*`.
 
 Pre-1.0: the format uses hard breaking changes rather than compatibility aliases.
 No forward or backward compatibility guarantees are made across versions. Version
 bumps are reflected in `schemaVersion` (an integer field in TrustBundle, currently
-`5`) and in the status function version (a string exported by the reference
-implementation as `statusFunctionVersion`, currently `"2"`).
+`6`) and in the status function version (a string exported by this package and by
+every conforming implementation as `statusFunctionVersion`, currently `"2"`).
 
 Schema version `4` adds optional claim freshness fields (`expiresAt` /
 `ttlSeconds`) and an optional invalidation event vocabulary (event `status:
@@ -91,6 +166,16 @@ under this release: their `surface` field is rejected by `claim.schema.json`'s
 `additionalProperties: false`. Producers MUST re-emit as `facet` and self-declare
 `schemaVersion: 5`. See `merge.md` §4 for `facet`'s (unchanged) treatment in claim
 identity.
+
+Schema version `6` adds an optional TrustBundle `proof` block (an object holding
+integrity anchors — e.g. a `transparency_log` anchor with a Rekor entry UUID),
+resolving the previous contradiction where [assurance.md](assurance.md),
+[interop-in-toto.md](interop-in-toto.md), and
+[verification-endpoint.md](verification-endpoint.md) referenced a `proof` field
+the schema rejected. The addition is optional: every bundle valid at
+`schemaVersion` `5` remains valid (the schema enum accepts both `5` and `6`), and
+`proof` never changes status derivation — signing remains an out-of-band
+assurance concern.
 
 ---
 
@@ -116,9 +201,10 @@ in the format; none requires a specific producer or product to instantiate.
 
 The central wire record. A portable, point-in-time package of trust state from a
 single producer: claims, evidence, policies, verification events, and optional identity
-links, claim groups, and authority traces.
+links, claim groups, authority traces, and a `proof` block (signing anchors — see
+[assurance.md](assurance.md)).
 
-Plain-language definition (ADR 0002):
+Plain-language definition:
 
 > A Trust Bundle is a portable, point-in-time package of trust state from a single
 > producer — claims, the evidence and verification events behind them, and the policies
@@ -195,7 +281,8 @@ never updated; they accumulate as a ledger. The most recent event of a given kin
 shapes the derived status via the fold described in [Status Derivation](status-function.md).
 
 A verification event may carry `resolvesDispute: true` and an `authorityRef` to
-indicate it is an authority-gated dispute-resolution decision (ADR 0003 §8).
+indicate it is an authority-gated dispute-resolution decision (see
+[status-function.md](status-function.md) Step 1).
 
 ### AuthorityTrace
 
@@ -208,7 +295,7 @@ at the decision timestamp. Fields: `actorRef`, `authorityType`, `authorityRef`,
 ### InquiryRecord
 
 An append-only record capturing the resolution of a consumer-side question (Inquiry)
-against the ledger (ADR 0003 §6). An InquiryRecord carries the original question, the
+against the ledger. An InquiryRecord carries the original question, the
 resolution path (matched claim or named derivation rule plus input claims), the answer
 with its status at evaluation time, a frozen snapshot of input claim statuses, the
 `statusFunctionVersion` used, and the `resolvedAt` timestamp.
@@ -219,11 +306,12 @@ re-evaluation if the derivation algorithm changes.
 
 ### DerivationRule
 
-A named, versioned rule that derives a boolean answer from existing claims (ADR 0003 §5).
+A named, versioned rule that derives a boolean answer from existing claims.
 Rules compose claims using value predicates (`eq`, `neq`, `gt`, `gte`, `lt`, `lte`, `in`, `exists`)
-and status predicates (`acceptedStatuses`), combined with `"all"` or `"any"`. Rules
-are promoted from Flow's gate-expectation language. The weakest-link confidence ceiling
-propagates through rule evaluation unchanged.
+and status predicates (`acceptedStatuses`), combined with `"all"` or `"any"` — the
+portable expression of gate-style checks ("proceed only if these claims hold these
+statuses"). The weakest-link confidence ceiling propagates through rule evaluation
+unchanged.
 
 ---
 
@@ -319,31 +407,67 @@ when a consumer needs it.
 
 ---
 
+## Relationship to IETF SCITT
+
+[SCITT](https://datatracker.ietf.org/wg/scitt/about/) (Supply Chain Integrity,
+Transparency, and Trust) is the closest prior art to Hachure's problem space:
+issuers sign statements about artifacts (COSE-signed), register them on
+append-only transparency services, and receive receipts proving registration.
+It is worth being precise about the split, because the two compose rather than
+compete:
+
+- **SCITT answers "who said this, and is it on the record?"** It provides
+  non-repudiable, tamper-evident registration of *frozen signed statements*.
+  It deliberately does not define what a statement means, how evidence
+  relates to a claim, what policy governs verification, or how a statement's
+  standing changes as new facts arrive.
+- **Hachure answers "what is the standing of this claim right now?"** Claims
+  travel with evidence, policy, and an append-only event ledger, and status
+  is recomputed — `verified` decays to `stale`, gets `disputed` by blocking
+  evidence, or is `revoked` by a later event — without ever editing the
+  original record.
+
+Composition is the natural shape: a TrustBundle (or its DSSE envelope per
+[interop-in-toto.md](interop-in-toto.md)) can be registered as a SCITT signed
+statement, and the resulting receipt belongs in the bundle's `proof` block as
+a `transparency_log` anchor. SCITT then guarantees the bundle existed and who
+registered it; Hachure keeps answering what its claims are worth as time
+passes. As with DIDs above, none of this is required: SCITT registration is
+an Assurance-layer dial, not a precondition for a valid record.
+
+---
+
 ## Out of scope: future extension profiles
 
 The following producer domains are explicitly out of scope for this core specification.
 Each is a candidate for a future extension profile that imports the core record shapes
 and adds domain-specific vocabulary:
 
-- **Survey chains** — the source → extraction → candidate → review → claim provenance
-  path that Survey uses to build trust bundles. Survey emits bundles conforming to
-  this spec; the review-trail records above it are Survey-scoped.
-- **Veritas standards** — repo-area claims, per-run evidence collection, merge-gate
-  integration, and the `ClaimReviewRecord` pattern from the Kontour Resource Shape.
-- **Flow gates** — gate-expectation language, run-scoped views, gate results, and
-  the `GateRun` resource shape.
+- **Extraction/review provenance chains** — the source → extraction → candidate →
+  review → claim pipeline a producer runs *before* a claim lands in a bundle. The
+  bundle is the output boundary; the review trail above it is producer-scoped.
+- **Repository/codebase standards** — per-repo claim vocabularies, per-run evidence
+  collection conventions, and merge-gate integration records.
+- **Gate/run records** — gate-expectation vocabularies, run-scoped views, and
+  gate-result record shapes built on top of `DerivationRule` and `InquiryRecord`.
 
 Extension profiles reference this spec as their foundation and declare any additional
-fields or constraints. They do not modify the core record shapes.
+fields or constraints. They do not modify the core record shapes. (Kontour AI's
+product suite defines profiles in each of these domains; they carry product-scoped
+namespaces and no special status in this specification.)
 
 ---
 
 ## Executable conformance
 
-`spec/conformance/` contains test vector bundles and expected per-claim statuses at a
-fixed `now`. The test at `tests/spec-conformance.test.ts` loads every test vector and
-asserts that the reference implementation derives the expected statuses, making this
-specification executable.
+[`conformance/`](conformance/) contains test vector bundles and expected per-claim
+statuses at a fixed `now`. The specification is executable in-repo: this package's
+suite runs every status-derivation vector against the bundled implementation
+(`test/derive.conformance.test.mjs`) and every merge vector — under every
+permutation of the input bundles — against the bundled merge
+(`test/merge.conformance.test.mjs`). `npx hachure vectors` runs the same check
+from the command line. Independent implementations prove conformance by running
+the same vectors via the `testVectors` export.
 
 See [conformance/README.md](conformance/README.md) for the test vector inventory, and
 [conformance/manifest.json](conformance/manifest.json) (also exported as
@@ -366,6 +490,8 @@ status-derivation vectors, L3 merge vectors).
   and what "neutral governance" is expected to mean when the project moves
   toward it. Expands the "Governance intent" paragraph above; does not
   contradict it. *(Draft — see the banner in that file.)*
+- **[ROADMAP.md](ROADMAP.md)** — what "1.0" will mean and the explicit exit
+  criteria for declaring it; near-term profile candidates.
 - **[LICENSE](LICENSE)** — MIT, matching `package.json`'s `"license"` field.
 
 ---
@@ -373,8 +499,20 @@ status-derivation vectors, L3 merge vectors).
 ## Canonical home
 
 This repository (`hachure-org/spec`) is the canonical home of the Hachure
-specification: prose, normative JSON Schemas, and conformance test vectors.
-The reference implementation lives at
-[`kontourai/surface`](https://github.com/kontourai/surface), which runs these
-test vectors in its suite. Until the extraction settles, changes land here and
-in the reference implementation together; this repo wins on conflict.
+specification: prose, normative JSON Schemas, conformance test vectors, and the
+bundled implementation. On any conflict between an implementation and this
+repository, this repository wins.
+
+## Implementations
+
+Conformance is claimed by passing the conformance vectors
+([manifest](conformance/manifest.json)), not by appearing in this list. Known
+implementations:
+
+| Implementation | Maintainer | Notes |
+|---|---|---|
+| `hachure` (this package, `lib/`) | hachure-org | Bundled with the spec; dependency-free; runs all vectors in-repo. |
+| [`@kontourai/surface`](https://github.com/kontourai/surface) | Kontour AI | Independent implementation; runs these vectors in its own suite. |
+
+To add an implementation, open a PR that links to your public conformance-vector
+run.

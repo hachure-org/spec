@@ -1,7 +1,9 @@
 # in-toto Interop: TrustBundle as an in-toto Statement v1
 
-**Module:** `@kontourai/surface` — `src/interop/in-toto.ts`
-**Public exports:** `toInTotoStatement`, `toDsseEnvelope`, `buildPaeBytes`, `parseDssePayload`
+**Normative source:** this document. Helper names below
+(`toInTotoStatement`, `toDsseEnvelope`, `buildPaeBytes`, `parseDssePayload`)
+describe the operations any implementation provides; the code sample uses one
+implementation's exports for illustration.
 **Conformance language:** MUST/SHOULD/MAY keywords in this document are to be interpreted per RFC 2119/BCP 14, as defined in [README.md's Conformance language section](README.md#conformance-language).
 
 ---
@@ -36,8 +38,8 @@ cryptographic operations are injected via a caller-supplied `Signer`.
 | Field | Value | Note |
 |---|---|---|
 | `_type` | `https://in-toto.io/Statement/v1` | Fixed; identifies the in-toto spec version. |
-| `subject` | caller-supplied `[{ name, digest }]` | At least one required. The producer knows which artifact digests are relevant; Surface does not infer them. |
-| `predicateType` | `https://hachure.org/v1/bundle` | Stable URI identifying Kontour trust bundles. |
+| `subject` | caller-supplied `[{ name, digest }]` | At least one required. The producer knows which artifact digests are relevant; the wrapper does not infer them. |
+| `predicateType` | `https://hachure.org/v1/bundle` | Stable URI identifying Hachure trust bundles. |
 | `predicate` | the TrustBundle | The full bundle becomes the predicate; no fields are stripped or remapped. |
 
 The `predicateType` URI is stable for the lifetime of `hachure.org/v1`.  If the
@@ -75,6 +77,7 @@ verify the pre-image independently or pass it directly to a WebCrypto
 ### Injecting a signer
 
 ```ts
+// Example — one implementation's exports; any conforming implementation works.
 import { toInTotoStatement, toDsseEnvelope } from "@kontourai/surface/interop/in-toto";
 
 const signer = {
@@ -104,8 +107,9 @@ The DSSE envelope produced by this module is structurally compatible with
 
 2. **Upload to Rekor directly** — Use the Rekor `hashedrekord` or `dsse` entry type
    with the DSSE envelope JSON.  Once uploaded, Rekor returns a `LogEntry` UUID that
-   can be stored in a `TrustBundle.proof` field (Kontour Resource Shape) as an
-   `IntegrityAnchor` of kind `transparency_log`.
+   can be stored in the bundle's optional `proof` block
+   (`trust-bundle.schema.json`, `schemaVersion` 6) as an `IntegrityAnchor` of kind
+   `transparency_log`.
 
 3. **Verify** — Retrieve the envelope from Rekor, decode `payload` from base64,
    reconstruct PAE via `buildPaeBytes`, verify the signature against the signer's
@@ -113,22 +117,22 @@ The DSSE envelope produced by this module is structurally compatible with
 
 ---
 
-## What Kontour adds on top of a frozen attestation
+## What a living bundle adds on top of a frozen attestation
 
 An in-toto Statement is a **frozen attestation**: it captures a point-in-time
 assertion and anchors it cryptographically.  That is exactly what the DSSE envelope
 provides.
 
-A Kontour `TrustBundle` adds **living status** on top:
+A Hachure `TrustBundle` adds **living status** on top:
 
-| Frozen attestation (in-toto envelope) | Living bundle (Surface) |
+| Frozen attestation (in-toto envelope) | Living bundle (Hachure) |
 |---|---|
-| Status is sealed at signing time. | Status is recomputed from events at query time: `f(claim, events, policy, now)`. |
+| Status is sealed at signing time. | Status is recomputed from events at query time: `f(claim, evidence, events, policy, authority, now)`. |
 | Tamper-evident; content cannot change. | Append-only; new events and evidence accumulate. |
 | Verifier trusts the signer's identity. | Verifier trusts the derivation algorithm (`statusFunctionVersion`). |
 | Useful for supply-chain audits and legal holds. | Useful for operational dashboards, gates, and consumer inquiries. |
 
 The two are complementary: embed the bundle in an in-toto envelope to
 *anchor what was known at release time*; continue querying the live bundle to track
-*what is true now*.  An `InquiryRecord` (ADR 0003 §6) records the live status at
+*what is true now*.  An `InquiryRecord` records the live status at
 inquiry time, linking the frozen and living views.
