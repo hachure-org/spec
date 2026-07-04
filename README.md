@@ -93,14 +93,24 @@ to dashboard, agent to deployment gate), it degrades into a boolean, a badge, or
 PDF: the evidence is gone, there is no expiry, and the receiver has no way to
 re-check the reasoning. You either trust the summary or redo the work.
 
-Hachure keeps the whole picture together and portable. A claim travels with its
+The standards world has solved *portable attestation* — signed, frozen,
+point-in-time statements (SCITT receipts, RATS passports, in-toto/DSSE
+envelopes, Verifiable Credentials). What none of them standardize is the step
+after: every one of them delegates "what is this claim worth *now*?" to
+verifier-specific judgment. SCITT leaves registration policy to each
+transparency-service operator; EAT (RFC 9711) states its verifier rules "are a
+matter of local policy"; VC 2.0 says verification "does not imply evaluation
+of the truth of claims." The status decision is always someone's unpublished
+local policy.
+
+Hachure's core move is to publish that function. A claim travels with its
 evidence, the policy it was judged against, and the append-only event history —
 and the status is not an opinion stored in a field, it is a pure, versioned
 function of that data (`status = f(claim, evidence, events, policy, authority,
 now)`). Any receiver can recompute it, watch it go `stale` on its own as evidence
 ages, and merge bundles from producers that disagree without one silently
 overwriting the other: conflicts are preserved as contradiction gaps, never
-resolved by last-write-wins.
+resolved by last-write-wins. Not portable trust — **recomputable** trust.
 
 The defaults are deliberately honest about trust: an unsigned bundle is a valid
 bundle (Assurance L0), because most trust state inside an organization never
@@ -135,6 +145,13 @@ matters.
   both claims survive under their producers, the disagreement surfaces as a
   `contradiction` transparency gap, and a human (or an authority-gated
   resolution event) settles it on the record instead of the louder tool winning.
+- **Third-party enrichment.** An external feed (a vulnerability database, a
+  license scanner, an end-of-life tracker) watches subjects it knows about and
+  emits its own bundles about them — ordinary Evidence and claims under its own
+  `producerId`, merged into the ledger like any producer. This is the certifier
+  pattern that aggregation services (e.g. GUAC) run inside a deployed server,
+  expressed as portable records instead: the enrichment travels with the state,
+  and any consumer re-derives the effect.
 
 ---
 
@@ -185,7 +202,8 @@ The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**,
 **SHOULD**, **SHOULD NOT**, **RECOMMENDED**, **MAY**, and **OPTIONAL** in this
 document and in every other normative document in this repository
 (`merge.md`, `assurance.md`, `verification-endpoint.md`,
-`status-function.md`, `interop-in-toto.md`, `SECURITY.md`) are to be
+`status-function.md`, `interop-in-toto.md`, `evidence-ingestion.md`,
+`SECURITY.md`) are to be
 interpreted as described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119)
 and clarified by [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174) (BCP 14),
 only when they appear in all capitals, as shown here.
@@ -365,7 +383,8 @@ a profile requires no changes to core record shapes or the status function.
 
 | Profile | File | What it covers |
 |---|---|---|
-| in-toto interop | [interop-in-toto.md](interop-in-toto.md) | Wrapping a TrustBundle as a signed in-toto Statement v1 / DSSE envelope. |
+| in-toto interop | [interop-in-toto.md](interop-in-toto.md) | Wrapping a TrustBundle as a signed in-toto Statement v1 / DSSE envelope (export direction). |
+| Evidence ingestion | [evidence-ingestion.md](evidence-ingestion.md) | Importing existing attestations — in-toto/SLSA, EAT, SCITT statements, VCs — as Evidence on Hachure claims (import direction). |
 | Verification endpoint | [verification-endpoint.md](verification-endpoint.md) | Producer-served HTTP endpoint for receivers to fetch post-export event deltas. |
 | Assurance | [assurance.md](assurance.md) | Signing as a dial: L0/L1/L2 assurance levels, identity presentation, consumer policy, and human signing ceremony. |
 
@@ -434,6 +453,14 @@ a `transparency_log` anchor. SCITT then guarantees the bundle existed and who
 registered it; Hachure keeps answering what its claims are worth as time
 passes. As with DIDs above, none of this is required: SCITT registration is
 an Assurance-layer dial, not a precondition for a valid record.
+
+Worth stating plainly: SCITT *deliberately* left registration policy and
+relying-party status decisions unstandardized (an earlier standardized policy
+mechanism was dropped from the final architecture). Hachure's versioned status
+function is a natural candidate to fill exactly that vacated niche — a
+published, recomputable policy a transparency service or relying party can
+adopt instead of writing bespoke local rules. A SCITT profile making this
+concrete is the top interop item on the [roadmap](ROADMAP.md).
 
 ---
 

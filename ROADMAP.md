@@ -54,13 +54,31 @@ Declaring 1.0 commits the format to:
 
 ## Near-term (0.x) candidates
 
-- **SCITT profile** — registering bundles/envelopes as SCITT signed
-  statements and carrying receipts as `transparency_log` proof anchors
-  (README §"Relationship to IETF SCITT").
-- **VC envelope profile** — mapping records into a W3C VC envelope for
-  VC-native ecosystems (README §"Relationship to W3C Verifiable
-  Credentials").
-- **Verification-endpoint replay mitigation** — the honest gap named in
-  SECURITY.md; likely a nonce/freshness token in the endpoint profile.
-- **Producer tooling** — a CI action that turns any test/scan run into a
-  TrustBundle, lowering the cost of criterion 2.
+Ordered — the SCITT profile is deliberately first. Landscape research
+(2026-07) confirmed the niche: every adjacent standard delegates status
+decisions to unstandardized "local policy," and SCITT explicitly dropped its
+standardized registration-policy mechanism. Hachure's versioned status
+function is a natural candidate to fill that vacated niche rather than
+compete with the registry layer.
+
+1. **SCITT profile** — registering bundles/envelopes as SCITT signed
+   statements, carrying receipts as `transparency_log` proof anchors
+   (README §"Relationship to IETF SCITT"), and — the strategic half —
+   expressing the status function as a reusable registration/appraisal
+   policy a transparency service or relying party can adopt. Open design
+   question to resolve in the profile: can a bundle be losslessly
+   round-tripped to/from a SCITT statement sequence about the same subject?
+2. **Verification-endpoint replay mitigation** — the honest gap named in
+   SECURITY.md; likely a nonce/freshness token in the endpoint profile.
+3. **VC envelope profile** — mapping records into a W3C VC envelope for
+   VC-native ecosystems (README §"Relationship to W3C Verifiable
+   Credentials").
+4. **Producer tooling** — grow the CI action
+   ([hachure-org/hachure-action](https://github.com/hachure-org/hachure-action))
+   and ingestion tooling for the formats in
+   [evidence-ingestion.md](evidence-ingestion.md), lowering the cost of
+   criterion 2.
+
+Shipped from this list: evidence-ingestion profile (in-toto/EAT/SCITT/VC →
+Evidence) and the AR4SI tier projection (status-function.md §"Interop
+mapping") — both landed 0.10.x.

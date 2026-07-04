@@ -21,6 +21,12 @@ evaluation time.
 A caller that wants a point-in-time view fixes `now` before evaluating; there are
 no clock-tick events and no background expiry.
 
+This treatment of freshness has standards lineage: RATS (RFC 9334 §10) defines
+freshness/epoch mechanisms precisely because a signed attestation result is
+fixed at signing time and decays afterward. Hachure resolves the same concern
+structurally — rather than attaching freshness handshakes to a frozen
+artifact, staleness is part of the derivation itself, parameterised by `now`.
+
 Reproducibility guarantee: if two independent implementations receive the same
 `(claim, evidence, events, policies, authorityTrace, now)` and the same
 status function version, they must return the same `TrustStatus`.
@@ -239,6 +245,32 @@ Step 2 unless a later verification event re-asserts the claim.
 
 `deriveClaimStatus` returns `{ status: TrustStatus; policyId: string | undefined }`.
 `policyId` is the `id` of the resolved policy, or `undefined` if none was found.
+
+---
+
+## Interop mapping: AR4SI trustworthiness tiers (informative)
+
+RATS Attestation Results for Secure Interactions
+([draft-ietf-rats-ar4si](https://datatracker.ietf.org/doc/draft-ietf-rats-ar4si/))
+is the closest standardized artifact to a trust-status vocabulary: verifier-
+assigned *trustworthiness tiers* — None, Affirming, Warning, Contraindicated.
+Its tiers are assigned by a Verifier at appraisal time; Hachure statuses are
+recomputed by any consumer. For consumers that speak AR4SI, the recommended
+projection of a derived Hachure status is:
+
+| Hachure status | AR4SI tier | Rationale |
+|---|---|---|
+| `verified` | Affirming | Policy-satisfying, fresh, affirmed by events. |
+| `assumed`, `proposed` | None (no verdict) | Operationally present but not appraised to affirmation. |
+| `unknown` | None (no claim) | Nothing to appraise. |
+| `stale` | Warning | Previously affirmed; freshness lapsed. |
+| `disputed` | Warning | Contradicting testimony present; not yet terminal. |
+| `superseded`, `rejected`, `revoked` | Contraindicated | Terminal negative standing. |
+
+The projection is lossy by design (nine states → four tiers) and one-way:
+an AR4SI tier MUST NOT be imported as a Hachure status (see
+[evidence-ingestion.md](evidence-ingestion.md) §"What ingestion is not") —
+it arrives as evidence content, and derivation produces the status.
 
 ---
 

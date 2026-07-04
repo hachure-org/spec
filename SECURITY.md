@@ -32,6 +32,22 @@ consumer that needs a mitigation below must pull the dial itself, by
 requiring L1/L2 in its `VerificationPolicy`; the format does not do it for
 them.
 
+**This is an outlier position, held deliberately.** Every adjacent standard
+mandates signing at the unit level: SCITT registers only COSE_Sign1 messages,
+EAT (RFC 9711) requires authenticity and integrity protection, in-toto's
+envelope makes `signatures` a required field, and a VC 2.0 document is
+non-conforming without a securing mechanism. Those formats answer "who said
+this?" — for them, an unsigned record is worthless. Hachure answers a
+different question — "what is this claim worth, given this evidence, under
+this policy, right now?" — and that computation is equally meaningful over an
+internal CI result on a trusted channel and a countersigned vendor
+attestation. Requiring key infrastructure before the first record exists
+would price out the majority of trust state, which lives *inside* trust
+boundaries. The rule that keeps this honest: **assurance level caps trust in
+provenance, never in derivation** — a consumer must treat L0 identity claims
+as channel-trust-only (the three risks below), but the derived status of a
+bundle is exactly as recomputable, and exactly as auditable, at L0 as at L2.
+
 ### 1. Source / producerId spoofing (L0)
 
 `TrustBundle.source` (`schemas/trust-bundle.schema.json`) is free text, and

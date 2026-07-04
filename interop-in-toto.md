@@ -15,6 +15,16 @@ attestation by wrapping it in the in-toto Statement v1 format and optionally env
 it in DSSE (Dead Simple Signing Envelope).  It adds no new crypto dependency: all
 cryptographic operations are injected via a caller-supplied `Signer`.
 
+> **Naming note — "TrustBundle" vs in-toto's "Bundle".** The in-toto
+> Attestation Framework defines its own fourth layer called a *Bundle*
+> (`application/vnd.in-toto.bundle`, `.intoto.jsonl`): a JSON-Lines grouping of
+> multiple attestations, not authenticated as a whole — each attestation is
+> individually authenticated. A Hachure **TrustBundle** is unrelated: a single
+> structured record (claims + evidence + policies + events) that is itself the
+> `predicate` of *one* in-toto Statement under this profile. When both terms
+> appear in the same pipeline, say "in-toto bundle" and "Hachure TrustBundle"
+> in full.
+
 ---
 
 ## Statement shape
