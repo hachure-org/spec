@@ -1,6 +1,6 @@
 {
   "name": "hachure",
-  "version": "0.10.2",
+  "version": "0.11.0",
   "statusFunctionVersion": "2",
   "description": "Hachure — canonical distribution of the open trust format: normative JSON schemas, conformance test vectors, spec constants, and a bundled dependency-free implementation (status derivation, merge, CLI).",
   "type": "module",
@@ -24,6 +24,8 @@
     "merge.md",
     "interop-in-toto.md",
     "evidence-ingestion.md",
+    "scitt.md",
+    "oscal.md",
     "verification-endpoint.md",
     "assurance.md",
     "SECURITY.md"

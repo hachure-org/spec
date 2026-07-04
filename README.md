@@ -30,6 +30,7 @@ Or from the command line:
 ```sh
 npx hachure validate bundle.json     # schema-validate a TrustBundle
 npx hachure derive bundle.json       # derive per-claim statuses
+npx hachure diff before.json after.json  # status transitions as evidence arrives
 npx hachure merge a.json b.json      # merge producer bundles
 npx hachure vectors                  # run the conformance vectors
 ```
@@ -203,7 +204,7 @@ The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**,
 document and in every other normative document in this repository
 (`merge.md`, `assurance.md`, `verification-endpoint.md`,
 `status-function.md`, `interop-in-toto.md`, `evidence-ingestion.md`,
-`SECURITY.md`) are to be
+`scitt.md`, `oscal.md`, `SECURITY.md`) are to be
 interpreted as described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119)
 and clarified by [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174) (BCP 14),
 only when they appear in all capitals, as shown here.
@@ -385,6 +386,8 @@ a profile requires no changes to core record shapes or the status function.
 |---|---|---|
 | in-toto interop | [interop-in-toto.md](interop-in-toto.md) | Wrapping a TrustBundle as a signed in-toto Statement v1 / DSSE envelope (export direction). |
 | Evidence ingestion | [evidence-ingestion.md](evidence-ingestion.md) | Importing existing attestations — in-toto/SLSA, EAT, SCITT statements, VCs — as Evidence on Hachure claims (import direction). |
+| SCITT | [scitt.md](scitt.md) | Registering bundles on transparency services (RFC 9943): receipts as `proof` anchors, and the status function as a published registration/appraisal policy. |
+| OSCAL | [oscal.md](oscal.md) | Assessment-results mapping: observation↔Evidence, finding↔Claim, result-expiry↔`expiresAt`; projection of derived state into OSCAL AR documents. |
 | Verification endpoint | [verification-endpoint.md](verification-endpoint.md) | Producer-served HTTP endpoint for receivers to fetch post-export event deltas. |
 | Assurance | [assurance.md](assurance.md) | Signing as a dial: L0/L1/L2 assurance levels, identity presentation, consumer policy, and human signing ceremony. |
 
@@ -428,8 +431,8 @@ when a consumer needs it.
 
 ## Relationship to IETF SCITT
 
-[SCITT](https://datatracker.ietf.org/wg/scitt/about/) (Supply Chain Integrity,
-Transparency, and Trust) is the closest prior art to Hachure's problem space:
+[SCITT](https://www.rfc-editor.org/rfc/rfc9943) (Supply Chain Integrity,
+Transparency, and Trust — RFC 9943, June 2026) is the closest prior art to Hachure's problem space:
 issuers sign statements about artifacts (COSE-signed), register them on
 append-only transparency services, and receive receipts proving registration.
 It is worth being precise about the split, because the two compose rather than
@@ -459,8 +462,9 @@ relying-party status decisions unstandardized (an earlier standardized policy
 mechanism was dropped from the final architecture). Hachure's versioned status
 function is a natural candidate to fill exactly that vacated niche — a
 published, recomputable policy a transparency service or relying party can
-adopt instead of writing bespoke local rules. A SCITT profile making this
-concrete is the top interop item on the [roadmap](ROADMAP.md).
+adopt instead of writing bespoke local rules. The [SCITT profile](scitt.md)
+makes this concrete: registration mapping, receipts as `proof` anchors, and
+the status function as a declared appraisal policy.
 
 ---
 

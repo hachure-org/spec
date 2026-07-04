@@ -61,24 +61,22 @@ standardized registration-policy mechanism. Hachure's versioned status
 function is a natural candidate to fill that vacated niche rather than
 compete with the registry layer.
 
-1. **SCITT profile** — registering bundles/envelopes as SCITT signed
-   statements, carrying receipts as `transparency_log` proof anchors
-   (README §"Relationship to IETF SCITT"), and — the strategic half —
-   expressing the status function as a reusable registration/appraisal
-   policy a transparency service or relying party can adopt. Open design
-   question to resolve in the profile: can a bundle be losslessly
-   round-tripped to/from a SCITT statement sequence about the same subject?
-2. **Verification-endpoint replay mitigation** — the honest gap named in
-   SECURITY.md; likely a nonce/freshness token in the endpoint profile.
-3. **VC envelope profile** — mapping records into a W3C VC envelope for
+1. **SCITT round-trip conformance vectors** — [scitt.md](scitt.md) §5
+   analyzes bundle ↔ statement-sequence reconstruction; formalize it as a
+   vector family (snapshot sequence → expected merged bundle).
+2. **VC envelope profile** — mapping records into a W3C VC envelope for
    VC-native ecosystems (README §"Relationship to W3C Verifiable
    Credentials").
+3. **OSCAL POA&M mapping** — extend [oscal.md](oscal.md) beyond assessment
+   results (open POA&M items ↔ disputed/proposed claims).
 4. **Producer tooling** — grow the CI action
    ([hachure-org/hachure-action](https://github.com/hachure-org/hachure-action))
    and ingestion tooling for the formats in
    [evidence-ingestion.md](evidence-ingestion.md), lowering the cost of
    criterion 2.
 
-Shipped from this list: evidence-ingestion profile (in-toto/EAT/SCITT/VC →
-Evidence) and the AR4SI tier projection (status-function.md §"Interop
-mapping") — both landed 0.10.x.
+Shipped from this list: evidence-ingestion profile and AR4SI tier projection
+(0.10.x); SCITT profile ([scitt.md](scitt.md)) with the status function as a
+declared registration/appraisal policy, OSCAL assessment-results profile
+([oscal.md](oscal.md)), verification-endpoint replay-resistance nonce, and
+the `hachure diff` transition command (0.11.0).

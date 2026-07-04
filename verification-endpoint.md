@@ -103,6 +103,7 @@ block. The bundle carries:
   | `requestedRefs` | string[] | yes | The full list of refs from the request, in order. |
   | `unknownRefs` | string[] | yes | Refs from the request that matched nothing. Must be present even if empty. |
   | `evaluatedAt` | `"response"` \| `"generation"` | no | When omitted or `"response"`, the producer evaluated claims dynamically at response time. `"generation"` indicates the producer cannot evaluate dynamically (e.g. static file serving) and the `statusFunctionVersion` reflects the version recorded when the bundle was originally generated. |
+  | `nonce` | string | conditional | Echo of the request's `nonce`, byte-for-byte, when one was supplied (see "Replay resistance" below). MUST be present when the request carried a nonce; MUST be omitted when it did not. |
 
 Unknown refs are reported in `unknownRefs` honestly. A producer MUST NOT silently
 omit a ref it does not recognise; it MUST include it in `unknownRefs` so the
@@ -147,6 +148,38 @@ applies here: until key-management infrastructure exists, signing is OPTIONAL an
 unsigned responses are valid.
 
 ---
+
+## Replay resistance (nonce)
+
+A receiver MAY include an opaque `nonce` with a query — GET `?nonce=<value>`
+or POST `{"refs": [...], "nonce": "<value>"}`. Rules:
+
+- The nonce is an opaque string, 1–128 characters. Producers MUST NOT
+  interpret it.
+- A producer that supports this extension MUST echo the nonce byte-for-byte
+  at `metadata.nonce` and MUST NOT cache a nonce-bearing response body across
+  requests (each nonce-bearing response is assembled per request, with a
+  fresh `respondedAt`).
+- A receiver that sent a nonce MUST reject a response whose `metadata.nonce`
+  is missing or differs, and SHOULD reject a response whose `respondedAt`
+  falls outside its own freshness window.
+- Backward compatibility: the extension is optional in both directions. A
+  request without a nonce is unchanged; a producer that does not implement
+  the extension simply never emits `metadata.nonce`, and receivers that
+  require replay resistance treat that as "extension unsupported" and fall
+  back to their own policy (accept at channel trust, or decline).
+
+**Honest limits.** What the echo proves depends on the assurance level. Over
+plain HTTPS (L0), the nonce binds a response to a request only as strongly as
+the channel does — it defeats *cross-receiver* replay (a captured response
+cannot satisfy a different receiver's nonce) but adds nothing against an
+attacker who controls the channel itself. Real replay resistance arrives when
+the response is signed (a DSSE-enveloped response per
+[interop-in-toto.md](interop-in-toto.md), or a SCITT-registered response per
+[scitt.md](scitt.md)): the nonce inside the signed payload then binds the
+producer's signature to this specific request, and a replayed prior response
+fails the nonce check no matter what the channel did. The dial metaphor holds:
+the nonce is the mechanism; signing decides how much it proves.
 
 ## Receiver rules
 
@@ -194,6 +227,11 @@ unsigned responses are valid.
 ---
 
 ## Changelog
+
+**Replay-resistance extension (0.11.0).** Added the optional `nonce`
+request/echo mechanism and the reserved `metadata.nonce` key, closing the
+replay gap SECURITY.md previously documented as unmitigated. Optional and
+backward-compatible in both directions.
 
 **Amended after first independent implementation — hachure.org site function.**
 Five ambiguities resolved: (1) corrected claim integrity field names to schema

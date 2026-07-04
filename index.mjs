@@ -38,6 +38,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 export { deriveClaimStatus, deriveStatuses, resolvePolicy } from './lib/derive.mjs';
 export { mergeBundles, mergeBundlesDetailed } from './lib/merge.mjs';
 export { canonicalize } from './lib/canonicalize.mjs';
+export { diffStatuses } from './lib/diff.mjs';
 
 // ---------------------------------------------------------------------------
 // Spec-side declaration of the status function version.

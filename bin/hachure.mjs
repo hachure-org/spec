@@ -25,6 +25,7 @@ import {
   schemas,
   testVectors,
   deriveStatuses,
+  diffStatuses,
   mergeBundles,
   mergeBundlesDetailed,
 } from '../index.mjs';
@@ -70,6 +71,31 @@ switch (command) {
         2
       )
     );
+    break;
+  }
+
+  case 'diff': {
+    const nowArg = takeFlag(args, '--now');
+    const [beforePath, afterPath] = args;
+    if (!beforePath || !afterPath) fail('usage: hachure diff <before.json> <after.json> [--now <ISO timestamp>]');
+    const now = nowArg ? new Date(nowArg) : new Date();
+    if (Number.isNaN(now.getTime())) fail(`invalid --now value: ${nowArg}`);
+    const { transitions, unchanged } = diffStatuses(readJson(beforePath), readJson(afterPath), now);
+    const changed = Object.keys(transitions).length;
+    for (const [claimId, { from, to }] of Object.entries(transitions)) {
+      console.error(`  ${claimId}: ${from ?? '(absent)'} -> ${to ?? '(absent)'}`);
+    }
+    console.log(
+      JSON.stringify(
+        { statusFunctionVersion, evaluatedAt: now.toISOString(), transitions, unchanged },
+        null,
+        2
+      )
+    );
+    console.error(changed === 0 ? `no transitions (${unchanged} unchanged)` : `${changed} transition(s), ${unchanged} unchanged`);
+    // Exit 3 on transitions so the command works as a scriptable gate;
+    // 0 means "nothing changed", like diff(1)'s 0-means-same convention.
+    if (changed > 0) process.exit(3);
     break;
   }
 
@@ -140,8 +166,9 @@ switch (command) {
 
   default:
     console.error(
-      'usage: hachure <derive|merge|validate|vectors> [...]\n' +
+      'usage: hachure <derive|diff|merge|validate|vectors> [...]\n' +
         '  derive <bundle.json> [--now <ISO>]           derive per-claim statuses\n' +
+        '  diff <before.json> <after.json> [--now <ISO>] report status transitions (exit 3 if any)\n' +
         '  merge <a.json> <b.json> [...] [--detailed]   merge producer bundles\n' +
         '  validate <bundle.json>                       schema-validate a bundle\n' +
         '  vectors                                      run conformance vectors'

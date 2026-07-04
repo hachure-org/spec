@@ -79,33 +79,31 @@ as authoritative.
 
 [verification-endpoint.md](verification-endpoint.md) defines a pull-based
 delta-fetch channel (`GET/POST .well-known/hachure/verify`) for a receiver to
-ask a producer "what has changed since this bundle was issued?" As of this
-writing, that profile defines no nonce, freshness token, or monotonic cursor
-in either the request or the response. A response is authenticated only by
-whatever transport-level authentication the producer chooses to require
-(profile text: "Producers MAY require authentication before serving a
-response") and, optionally, by a DSSE signature over the response bundle
-(`verification-endpoint.md` §"Assurance levels").
+ask a producer "what has changed since this bundle was issued?" The profile
+defines an optional replay-resistance extension
+(`verification-endpoint.md` §"Replay resistance (nonce)"): a receiver sends an
+opaque `nonce`, the producer echoes it byte-for-byte at `metadata.nonce`, and
+the receiver rejects any response whose echo is missing or differs.
 
-This means: an unsigned verification-endpoint response carries no
-cryptographic freshness guarantee. A response captured and replayed later by
-a party sitting on the transport path (or by a compromised intermediate
-cache) is not distinguishable, at the profile level, from a fresh response —
-the profile's own `respondedAt` metadata field is producer-asserted, not
-verified. This is named here as an explicit, currently-unmitigated gap in the
-profile, not as a solved problem being restated: no existing
-freshness-handling language exists in `verification-endpoint.md` today, and
-this document does not silently invent one.
+What the echo proves depends on the assurance level, and that limit is stated
+rather than papered over. Over plain HTTPS (L0), the nonce defeats
+cross-receiver replay — a captured response cannot satisfy a different
+receiver's nonce — but adds nothing against an attacker who controls the
+channel itself; `respondedAt` remains producer-asserted. Genuine replay
+resistance arrives when the response is signed (Assurance L1/L2, DSSE per
+`interop-in-toto.md` or SCITT registration per `scitt.md`): the nonce inside
+the signed payload binds the producer's signature to this specific request,
+and any replayed prior response fails the check regardless of the channel.
 
-**Mitigation:** treat every verification-endpoint response — signed or not —
-as advisory testimony, per the profile's own framing ("It is testimony with a
-timestamp... It is never a verdict the receiver is expected to obey,"
-`verification-endpoint.md` §"Problem"). Receivers that need replay resistance
-should (a) require a signed response (Assurance L1/L2) *and* (b) layer their
-own freshness handling on top — for example, rejecting a response whose
-`respondedAt` is older than a receiver-chosen staleness bound, or pinning
-expected `respondedAt` monotonicity per producer host — since the core
-profile does not provide either mechanism itself.
+**Receiver rules:** treat every verification-endpoint response — signed or
+not — as advisory testimony, per the profile's own framing ("It is testimony
+with a timestamp... It is never a verdict the receiver is expected to obey").
+Receivers that need replay resistance MUST send a nonce and require a signed
+response, and SHOULD additionally reject responses whose `respondedAt` falls
+outside a receiver-chosen staleness bound. The residual L0 exposure — a
+channel-controlling attacker replaying within the same receiver's session —
+is a channel-security problem, mitigated by the channel (TLS), not by this
+format.
 
 ### 3. Whole-bundle substitution
 
@@ -185,9 +183,10 @@ dial a consumer pulls when any of this matters.** L0 (the default, unsigned)
 carries none of these guarantees and is not pretending to. L1/L2 (DSSE
 signing, per [interop-in-toto.md](interop-in-toto.md)) closes the producer-identity
 and bundle-substitution gaps together, because they are the same mechanism.
-The verification-endpoint replay gap additionally needs receiver-side
-freshness handling that the format does not currently specify — named here
-explicitly rather than left implicit.
+The verification-endpoint replay gap is addressed by the nonce extension
+(`verification-endpoint.md` §"Replay resistance (nonce)") combined with
+signed responses; the honest residual limits at L0 are stated in item 2
+above.
 
 A consumer that needs any of these properties expresses that need as a
 `VerificationPolicy` acceptance criterion requiring a minimum assurance
