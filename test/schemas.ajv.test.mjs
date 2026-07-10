@@ -45,6 +45,7 @@ test('all schema files are present', () => {
     'evidence.schema.json',
     'inquiry-record.schema.json',
     'trust-bundle.schema.json',
+    'trust-report-waivers.schema.json',
     'trust-report.schema.json',
     'verification-event.schema.json',
     'verification-policy.schema.json',
@@ -232,6 +233,80 @@ test('AC2: a TrustReport-shaped object is rejected by trust-bundle.schema.json\'
   const validateBundle = compileRoot('trust-bundle.schema.json');
   const report = buildTrustReportFixture();
   const valid = validateBundle(report);
+  assert.equal(valid, false);
+});
+
+// ---------------------------------------------------------------------------
+// Waivers extension (trust-report-waivers.schema.json) — #128 / Option B
+//
+// The core trust-report schema was restructured into an OPEN $defs/core building
+// block closed at the top level by unevaluatedProperties:false. These tests lock
+// in three properties: (1) the restructure is behaviour-preserving for core-only
+// validation; (2) core still REJECTS the additive waiver-validity fields; and
+// (3) the extension schema accepts exactly core + the two waiver fields.
+// ---------------------------------------------------------------------------
+function buildWaiverReportFixture() {
+  const report = buildTrustReportFixture();
+  report.waiverValidityFunctionVersion = '1';
+  // Built via JSON so "__proto__" is a real OWN key (as in a deserialized
+  // report), not the JS object-literal prototype setter.
+  report.waiverValidityByClaimId = JSON.parse(
+    '{"claim.access.grant":{"verdict":"bare-assumed","approverAuthenticated":false},' +
+      '"__proto__":{"verdict":"complete-waiver","approverAuthenticated":false,' +
+      '"waiver":{"reason":"deferred","approved_by":"lead","approved_at":"2026-06-01T00:00:00.000Z"}}}',
+  );
+  return report;
+}
+
+test('waivers-ext: the restructured core still validates the documented TrustReport fixture (behaviour-preserving)', () => {
+  const validateReport = compileRoot('trust-report.schema.json');
+  const valid = validateReport(buildTrustReportFixture());
+  assert.equal(valid, true, JSON.stringify(validateReport.errors));
+});
+
+test('waivers-ext: core trust-report REJECTS a report carrying waiver-validity fields (stays strict/neutral)', () => {
+  const validateReport = compileRoot('trust-report.schema.json');
+  const valid = validateReport(buildWaiverReportFixture());
+  assert.equal(valid, false);
+  assert.ok(
+    validateReport.errors.some((e) => e.keyword === 'unevaluatedProperties'),
+    JSON.stringify(validateReport.errors),
+  );
+});
+
+test('waivers-ext: a waiver-bearing report validates against trust-report-waivers.schema.json (incl. a "__proto__" claim-id key)', () => {
+  const validateExt = compileRoot('trust-report-waivers.schema.json');
+  const report = buildWaiverReportFixture();
+  assert.ok(Object.hasOwn(report.waiverValidityByClaimId, '__proto__'));
+  const valid = validateExt(report);
+  assert.equal(valid, true, JSON.stringify(validateExt.errors));
+});
+
+test('waivers-ext: a core-only report (no waiver fields) still validates against the extension schema', () => {
+  const validateExt = compileRoot('trust-report-waivers.schema.json');
+  const valid = validateExt(buildTrustReportFixture());
+  assert.equal(valid, true, JSON.stringify(validateExt.errors));
+});
+
+test('waivers-ext: the extension schema still rejects an unknown top-level field', () => {
+  const validateExt = compileRoot('trust-report-waivers.schema.json');
+  const report = { ...buildWaiverReportFixture(), someUnknownField: 123 };
+  const valid = validateExt(report);
+  assert.equal(valid, false);
+  assert.ok(
+    validateExt.errors.some((e) => e.keyword === 'unevaluatedProperties'),
+    JSON.stringify(validateExt.errors),
+  );
+});
+
+test('waivers-ext: the extension schema rejects an out-of-vocabulary verdict', () => {
+  const validateExt = compileRoot('trust-report-waivers.schema.json');
+  const report = buildTrustReportFixture();
+  report.waiverValidityFunctionVersion = '1';
+  report.waiverValidityByClaimId = {
+    'claim.access.grant': { verdict: 'totally-authorized', approverAuthenticated: false },
+  };
+  const valid = validateExt(report);
   assert.equal(valid, false);
 });
 

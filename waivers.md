@@ -150,6 +150,22 @@ The following is guidance for consumers projecting the typed waiver shape
 into an application-level verdict; it is non-normative and does not add
 requirements to producers or to the status function.
 
+A consumer that derives a per-claim verdict typically distinguishes at least
+these outcomes (the vocabulary the optional
+[report extension schema](#report-extension-schema-optional) encodes):
+
+- `not-applicable` — the claim is not `assumed` and not a waiver-bearing
+  `stale`/`revoked` claim, so waiver validity is not a meaningful question.
+- `bare-assumed` — `assumed` with no `metadata.waiver` at all; never defaults
+  to an acceptable verdict.
+- `complete-waiver` — `assumed` with a `metadata.waiver` whose `reason`,
+  `approved_by`, and `approved_at` are all well-formed.
+- `incomplete-waiver` — a `metadata.waiver` is present but at least one of the
+  three fields is missing or malformed.
+- `stale-or-revoked-waiver` — the claim's derived status is `stale`/`revoked`
+  and a `metadata.waiver` is (still) attached.
+- `command-backed-waiver-rejection` — see below.
+
 A command-backed check — evidence whose `evidenceType` is `test_output`
 (`evidence.schema.json`) — is, by construction, re-runnable: its truth is
 established (or refuted) by executing the command again, not by human
@@ -168,14 +184,45 @@ command-backed check in the first place, as `kontourai/flow-agents` ADR 0020
 §3 also documents) achieves it earlier, before the waiver ever reaches a
 bundle.
 
+## Report extension schema (optional)
+
+A consumer that projects waiver validity onto a `TrustReport` — attaching a
+per-claim verdict map — has an optional strict validation surface:
+[`schemas/trust-report-waivers.schema.json`](schemas/trust-report-waivers.schema.json).
+It references the neutral core report field set
+([`trust-report.schema.json#/$defs/core`](schemas/trust-report.schema.json))
+and adds exactly two fields — `waiverValidityByClaimId` (a map of claim id to
+`{ verdict, approverAuthenticated, waiver?, incompleteFields? }`, where
+`verdict` is one of the [consumer-derived verdicts](#consumer-derived-verdicts-informative)
+above) and `waiverValidityFunctionVersion` (the derivation-algorithm version,
+mirroring `statusFunctionVersion`). A report that carries these fields
+validates against the extension schema; the core `trust-report.schema.json`
+rejects them as unknown, so a consumer chooses the surface matching what it
+expects.
+
+This is additive and optional. The core `trust-report.schema.json` was
+restructured to expose its field set as an open `$defs/core` building block so
+that extension profiles can reference and extend it; validating a report
+against the core schema alone remains exactly as strict as before (any field
+outside the core set is still rejected). `approverAuthenticated` is typed as a
+boolean rather than a constant `false` so that a future identity-binding
+profile (see [Residuals](#residuals)) can set it true without a breaking
+schema change, even though the waivers profile as defined here always leaves
+it `false`.
+
 ---
 
 ## Non-goals
 
-- **Core-format changes.** No core record schema is altered by this profile.
+- **Core-format changes.** No core record schema (claim, evidence, event,
+  policy, bundle) is altered by this profile, and the `TrustReport` core field
+  set and its strictness are unchanged — `trust-report.schema.json` was
+  refactored to expose that field set as a referenceable `$defs/core` block for
+  extension, a behaviour-preserving change, not a new or altered core field.
   Adopting the waivers profile requires no schema migration and no changes
   to the status derivation function. `claim.metadata.waiver` is one
-  convention living inside an already-free-form field.
+  convention living inside an already-free-form field; the report extension
+  fields live only in the optional extension schema.
 - **A new identity or signing mechanism.** This profile does not define how
   to authenticate `approved_by`. That closing mechanism is
   [assurance.md](assurance.md), adopted on top of this profile, not a new
