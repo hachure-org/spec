@@ -233,7 +233,7 @@ request/echo mechanism and the reserved `metadata.nonce` key, closing the
 replay gap SECURITY.md previously documented as unmitigated. Optional and
 backward-compatible in both directions.
 
-**Amended after first independent implementation — hachure.org site function.**
+**Amended after first from-scratch implementation — hachure.org site function.**
 Five ambiguities resolved: (1) corrected claim integrity field names to schema
 truth (`currentIntegrityRef`, `currentIntegrityAnchor`) and noted authority-trace
 and evidence fields (`integrityRef`, `integrityAnchor`); (2) defined ref resolution

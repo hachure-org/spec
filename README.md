@@ -35,6 +35,34 @@ npx hachure merge a.json b.json      # merge producer bundles
 npx hachure vectors                  # run the conformance vectors
 ```
 
+**Worked example.** `conformance/sf-reference-bundle-snapshot.json` is a
+`{ now, input, expect }` vector fixture; write its `input` bundle to a file and
+derive it at the vector's own `now`:
+
+```sh
+node -e "const v=require('./conformance/sf-reference-bundle-snapshot.json'); \
+  require('fs').writeFileSync('/tmp/bundle.json', JSON.stringify(v.input))"
+npx hachure derive /tmp/bundle.json --now "2026-06-10T00:00:00.000Z"
+```
+
+```json
+{
+  "statusFunctionVersion": "2",
+  "evaluatedAt": "2026-06-10T00:00:00.000Z",
+  "statusByClaimId": {
+    "claim.repo-governance.api-proof": "verified",
+    "claim.field-attested-records.registration-status": "stale",
+    "claim.fact-resolution.w2-wages": "verified",
+    "claim.roadmap.future-service": "unknown"
+  }
+}
+```
+
+`claim.field-attested-records.registration-status` folds to `stale` because its
+verification event's freshness window (per its `verificationPolicyId`) has
+expired by the given `now` — the staleness step of the fold in
+[status-function.md](status-function.md), not a missing-evidence gap.
+
 The prose specification is normative; the bundled code is a conforming
 implementation of it (proven in-repo by running every conformance vector),
 not a privileged one.
@@ -107,7 +135,7 @@ local policy.
 Hachure's core move is to publish that function. A claim travels with its
 evidence, the policy it was judged against, and the append-only event history —
 and the status is not an opinion stored in a field, it is a pure, versioned
-function of that data (`status = f(claim, evidence, events, policy, authority,
+function of that data (`status = f(claim, evidence, events, policy, authorityTrace,
 now)`). Any receiver can recompute it, watch it go `stale` on its own as evidence
 ages, and merge bundles from producers that disagree without one silently
 overwriting the other: conflicts are preserved as contradiction gaps, never
@@ -543,7 +571,7 @@ implementations:
 | Implementation | Maintainer | Notes |
 |---|---|---|
 | `hachure` (this package, `lib/`) | hachure-org | Bundled with the spec; dependency-free; runs all vectors in-repo. |
-| [`@kontourai/surface`](https://github.com/kontourai/surface) | Kontour AI | Independent implementation; runs these vectors in its own suite. |
+| [`@kontourai/surface`](https://github.com/kontourai/surface) | Kontour AI | Separate (first-party) implementation, maintained by Kontour AI; runs these vectors in its own suite. Does not yet satisfy ROADMAP.md's exit criterion 1, which requires an implementation not maintained by Kontour AI or hachure-org. |
 
 To add an implementation, open a PR that links to your public conformance-vector
 run.

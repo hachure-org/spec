@@ -137,7 +137,7 @@ A Hachure `TrustBundle` adds **living status** on top:
 
 | Frozen attestation (in-toto envelope) | Living bundle (Hachure) |
 |---|---|
-| Status is sealed at signing time. | Status is recomputed from events at query time: `f(claim, evidence, events, policy, authority, now)`. |
+| Status is sealed at signing time. | Status is recomputed from events at query time: `f(claim, evidence, events, policy, authorityTrace, now)`. |
 | Tamper-evident; content cannot change. | Append-only; new events and evidence accumulate. |
 | Verifier trusts the signer's identity. | Verifier trusts the derivation algorithm (`statusFunctionVersion`). |
 | Useful for supply-chain audits and legal holds. | Useful for operational dashboards, gates, and consumer inquiries. |
