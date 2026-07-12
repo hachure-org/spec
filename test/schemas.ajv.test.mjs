@@ -423,6 +423,56 @@ test('AC1: a claim carrying the legacy `surface` key is rejected by claim.schema
   );
 });
 
+// ---------------------------------------------------------------------------
+// derivationEdges.sensitivity — a quantitative edge carries a range, never a
+// bare number (kontourai/surface#24).
+// ---------------------------------------------------------------------------
+test('sensitivity: a derivationEdge carrying a {low,high,basis} sensitivity range validates', () => {
+  const validateClaim = compileRoot('claim.schema.json');
+  const claim = {
+    ...buildBaseClaim(),
+    derivationEdges: [
+      {
+        inputClaimId: 'claim.pretax-income',
+        method: 'rule-application',
+        sensitivity: { low: 210000, high: 290000, basis: '5% of pretax income, ±$40K' },
+      },
+    ],
+  };
+  const valid = validateClaim(claim);
+  assert.equal(valid, true, JSON.stringify(validateClaim.errors));
+});
+
+test('sensitivity: a derivationEdge omitting sensitivity still validates (optional, backward-compatible)', () => {
+  const validateClaim = compileRoot('claim.schema.json');
+  const claim = { ...buildBaseClaim(), derivationEdges: [{ inputClaimId: 'claim.x', method: 'sum' }] };
+  const valid = validateClaim(claim);
+  assert.equal(valid, true, JSON.stringify(validateClaim.errors));
+});
+
+test('sensitivity: a partial sensitivity (missing basis) is rejected', () => {
+  const validateClaim = compileRoot('claim.schema.json');
+  const claim = {
+    ...buildBaseClaim(),
+    derivationEdges: [{ inputClaimId: 'claim.x', sensitivity: { low: 1, high: 2 } }],
+  };
+  assert.equal(validateClaim(claim), false);
+});
+
+test('sensitivity: a non-numeric bound or unknown key inside sensitivity is rejected', () => {
+  const validateClaim = compileRoot('claim.schema.json');
+  const badType = {
+    ...buildBaseClaim(),
+    derivationEdges: [{ inputClaimId: 'claim.x', sensitivity: { low: '1', high: 2, basis: 'b' } }],
+  };
+  assert.equal(validateClaim(badType), false);
+  const extraKey = {
+    ...buildBaseClaim(),
+    derivationEdges: [{ inputClaimId: 'claim.x', sensitivity: { low: 1, high: 2, basis: 'b', midpoint: 1.5 } }],
+  };
+  assert.equal(validateClaim(extraKey), false);
+});
+
 test('AC2: a schemaVersion:4 bundle whose claim carries `surface` is rejected on both the schemaVersion enum and the claim\'s additionalProperties', () => {
   const validateBundle = compileRoot('trust-bundle.schema.json');
   const claim = { ...buildBaseClaim(), surface: 'legacy-value' };
