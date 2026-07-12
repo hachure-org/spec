@@ -542,3 +542,44 @@ test('proof: unknown keys inside the proof block are rejected', () => {
     JSON.stringify(validateBundle.errors),
   );
 });
+
+// ---------------------------------------------------------------------------
+// conclusionConfidence — calibrated conclusion confidence + comfort zone
+// (Surface #25). Carried, not produced; method/reason are free-form.
+// ---------------------------------------------------------------------------
+test('conclusionConfidence: a claim carrying calibrated confidence + comfort zone validates', () => {
+  const validateClaim = compileRoot('claim.schema.json');
+  const claim = {
+    ...buildBaseClaim(),
+    conclusionConfidence: {
+      value: 0.82,
+      method: 'ensemble-disagreement',
+      interval: { low: 0.71, high: 0.9 },
+      comfortZone: { within: false, reason: 'out-of-distribution' },
+    },
+  };
+  assert.equal(validateClaim(claim), true, JSON.stringify(validateClaim.errors));
+});
+
+test('conclusionConfidence: value outside [0,1] is rejected', () => {
+  const validateClaim = compileRoot('claim.schema.json');
+  const claim = { ...buildBaseClaim(), conclusionConfidence: { value: 1.5 } };
+  assert.equal(validateClaim(claim), false);
+});
+
+test('conclusionConfidence: comfortZone requires `within`', () => {
+  const validateClaim = compileRoot('claim.schema.json');
+  const claim = { ...buildBaseClaim(), conclusionConfidence: { comfortZone: { reason: 'x' } } };
+  assert.equal(validateClaim(claim), false);
+});
+
+test('conclusionConfidence: unknown extra keys are rejected', () => {
+  const validateClaim = compileRoot('claim.schema.json');
+  const claim = { ...buildBaseClaim(), conclusionConfidence: { value: 0.5, confidence: 0.9 } };
+  const valid = validateClaim(claim);
+  assert.equal(valid, false);
+  assert.ok(
+    validateClaim.errors.some((e) => e.keyword === 'additionalProperties'),
+    JSON.stringify(validateClaim.errors),
+  );
+});
