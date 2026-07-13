@@ -497,6 +497,34 @@ the status function as a declared appraisal policy.
 
 ---
 
+## Relationship to policy engines (OPA/Rego, Cedar, CEL)
+
+General-purpose policy engines — Open Policy Agent's Rego, AWS Cedar, Google's
+CEL — *do* recompute decisions deterministically as `decision = f(input, policy)`,
+which makes "isn't Hachure's status function just a Rego policy?" a fair question.
+It is the closest challenger by mechanism, so the distinction is worth stating
+precisely:
+
+- **A policy engine is a language and a runtime.** It evaluates *whatever policy
+  an author writes*, deterministically. There is no canonical trust-status policy
+  in Rego or Cedar; "portable and reproducible" means the *engine* is
+  side-effect-free, not that two parties compute the *same appraisal*. The
+  policy is the author's, private, and unversioned across organizations.
+- **Hachure ships the function, not the engine.** `status = f(claim, evidence,
+  events, policy, authorityTrace, now)` is a *specific, published, versioned*
+  algorithm — pinned by `statusFunctionVersion` and held to
+  [conformance vectors](#executable-conformance) that prove independent
+  implementations derive byte-identical statuses. Any consumer recomputes the
+  *same* standing from the same inputs; that cross-party agreement is the point,
+  and it is exactly what a general engine does not provide.
+
+The two compose cleanly: the engine is substrate, the status function is the
+standardized artifact. A conforming Hachure deriver could be *implemented on* OPA,
+Cedar, or CEL — the engine is plumbing; the published, versioned function is what
+travels with the record and makes the verdict reproducible by everyone.
+
+---
+
 ## Out of scope: future extension profiles
 
 The following producer domains are explicitly out of scope for this core specification.
