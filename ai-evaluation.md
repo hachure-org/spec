@@ -97,6 +97,59 @@ agent-action record — merge into one derived standing. Disagreements are prese
 as contradiction gaps ([merge.md]), never resolved by last-write-wins, which is
 exactly what multi-evaluator assurance needs.
 
+## Recommended evidence convention
+
+To keep eval evidence interoperable across producers — so two evaluators' results
+are comparable and mergeable rather than degrading to incomparable numbers — the
+evidence that binds a conclusion to its computation SHOULD use consistent field
+names. This convention is **recommended, not normative**: it is guidance carried
+in evidence `metadata` (no schema change), and it deliberately aligns with
+prevailing eval-log field names rather than minting a competing vocabulary. Harden
+it toward normative only when a concrete integration demonstrates the shape.
+
+Two evaluation kinds recur; both bind a conclusion to *what produced it*:
+
+**Model / benchmark evaluations** — the conclusion is a score against a threshold.
+Recommended evidence `metadata`:
+
+- `model`, `modelVersion` — the evaluated model and its version.
+- `dataset`, `datasetRevision` — the eval set and its revision.
+- `harness`, `harnessVersion` — the eval tool and version (align field names with
+  prevailing eval-log formats, e.g. an Inspect-style `.eval` log's task/model/
+  package fields, so an existing eval run maps in rather than being re-modelled).
+- `decoding` — `{ temperature, maxTokens, seed }` and any other generation params.
+- `threshold` — the pass/fail boundary applied.
+- `sampleTraceRef` — a reference to the sample-level trace, so a consumer can drill
+  from the aggregate to the transcript.
+
+**Review / extraction evaluations** — the conclusion is an extracted value or a
+reviewed judgement. Recommended evidence `metadata`:
+
+- `sourceRef` + `integrityRef` — the source and its content hash.
+- a verbatim `excerpt` — the exact span the value was drawn from.
+- `inferenceType` — whether the value was `explicit` in the source or `inferred`.
+- the reviewer identity and review outcome (as an `attestation`/event).
+- the gated confidence value the producer decided against.
+
+### Mapping to `conclusionConfidence`
+
+A producer that already computes a numeric confidence and an
+in/out-of-competence signal SHOULD surface them in the first-class
+`conclusionConfidence` field rather than only in ad-hoc metadata: the numeric
+confidence maps to `value` (with `method` naming how it was derived), and a
+within/outside-of-distribution judgement maps to `comfortZone { within, reason }`.
+This is what makes the calibration portable and comparable across the boundary
+instead of buried in producer-specific keys.
+
+### Contamination as a policy input
+
+For benchmark evaluations, benchmark contamination (train/test overlap) is a
+first-class trust input, not a footnote: a policy MAY require a contamination
+tolerance in its `acceptanceCriteria`, and a detected contamination effect is a
+`comfortZone.reason` or a staleness event that moves the conclusion — because "how
+much of this score survives decontamination?" is exactly the kind of question a
+bare number cannot answer.
+
 ## Conclusion freshness vs signature freshness
 
 This profile means **conclusion freshness**: whether the *appraisal* still holds
