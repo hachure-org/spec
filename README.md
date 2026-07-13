@@ -418,6 +418,7 @@ a profile requires no changes to core record shapes or the status function.
 | OSCAL | [oscal.md](oscal.md) | Assessment-results mapping: observation↔Evidence, finding↔Claim, result-expiry↔`expiresAt`; projection of derived state into OSCAL AR documents. |
 | Verification endpoint | [verification-endpoint.md](verification-endpoint.md) | Producer-served HTTP endpoint for receivers to fetch post-export event deltas. |
 | Assurance | [assurance.md](assurance.md) | Signing as a dial: L0/L1/L2 assurance levels, identity presentation, consumer policy, and human signing ceremony. |
+| AI evaluation | [ai-evaluation.md](ai-evaluation.md) | Eval results, model claims, and agent outcomes as recomputable trust: eval evidence that survives the boundary, calibrated `conclusionConfidence` + comfort-zone, conclusion-freshness vs signature-freshness, composing with model-signing / AI-BOMs / DID-VC as evidence. |
 | Waivers | [waivers.md](waivers.md) | Typed `claim.metadata.waiver` shape for documenting an accepted `assumed` gap (reason/approver/timestamp), with no status-function or schema change. |
 
 ---
