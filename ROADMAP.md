@@ -74,9 +74,19 @@ compete with the registry layer.
    and ingestion tooling for the formats in
    [evidence-ingestion.md](evidence-ingestion.md), lowering the cost of
    criterion 2.
+5. **AI-evaluation evidence sub-schema** — deepen [ai-evaluation.md](ai-evaluation.md)
+   with a recommended evidence sub-schema for eval runs (model/dataset/harness
+   versions, decoding params, seed, threshold, sample-trace refs), aligned with
+   prevailing eval-log field conventions for interop, plus contamination-survival
+   as a first-class policy input. Landscape research (2026-07) found the
+   eval-*conclusion* sub-lane genuinely unserved — every adopted AI attestation
+   format seals a statement/inventory; none carries a portable, recomputable
+   eval conclusion with a calibrated confidence + comfort-zone.
 
 Shipped from this list: evidence-ingestion profile and AR4SI tier projection
 (0.10.x); SCITT profile ([scitt.md](scitt.md)) with the status function as a
 declared registration/appraisal policy, OSCAL assessment-results profile
 ([oscal.md](oscal.md)), verification-endpoint replay-resistance nonce, and
-the `hachure diff` transition command (0.11.0).
+the `hachure diff` transition command (0.11.0); the optional
+`conclusionConfidence` claim field (0.14.0) and the AI-evaluation profile
+([ai-evaluation.md](ai-evaluation.md)) that leads with it.

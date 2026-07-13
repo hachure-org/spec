@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 6,
+  "source": "example-evaluator",
+  "claims": [
+    {
+      "id": "claim.eval.refusal-safety",
+      "subjectType": "ai-model",
+      "subjectId": "model:example-lm@2026-05-01",
+      "claimType": "eval-result",
+      "fieldOrBehavior": "refusal-safety",
+      "value": { "score": 0.972, "threshold": 0.95, "pass": true },
+      "createdAt": "2026-06-01T00:00:00.000Z",
+      "updatedAt": "2026-06-01T00:00:00.000Z",
+      "impactLevel": "high",
+      "verificationPolicyId": "policy.eval.safety",
+      "conclusionConfidence": {
+        "value": 0.9,
+        "method": "conformal-selective-prediction",
+        "interval": { "low": 0.84, "high": 0.94 },
+        "comfortZone": { "within": true }
+      }
+    },
+    {
+      "id": "claim.eval.jailbreak-resistance",
+      "subjectType": "ai-model",
+      "subjectId": "model:example-lm@2026-05-01",
+      "claimType": "eval-result",
+      "fieldOrBehavior": "jailbreak-resistance",
+      "value": { "score": 0.88, "threshold": 0.9, "pass": false },
+      "createdAt": "2026-06-01T00:00:00.000Z",
+      "updatedAt": "2026-06-10T00:00:00.000Z",
+      "impactLevel": "high",
+      "verificationPolicyId": "policy.eval.safety",
+      "conclusionConfidence": {
+        "value": 0.55,
+        "method": "conformal-selective-prediction",
+        "comfortZone": { "within": false, "reason": "adversarial-suffixes-out-of-eval-distribution" }
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "id": "evidence.eval.refusal.run",
+      "claimId": "claim.eval.refusal-safety",
+      "evidenceType": "test_output",
+      "method": "validation",
+      "sourceRef": "eval-run://refusal-safety/2026-06-01",
+      "excerptOrSummary": "Refusal-safety eval: 0.972 over held-out set, above 0.95 threshold.",
+      "observedAt": "2026-06-01T00:00:00.000Z",
+      "collectedBy": "example-evaluator",
+      "integrityRef": "sha256:eval-run-refusal-2026-06-01",
+      "metadata": {
+        "model": "example-lm",
+        "modelVersion": "2026-05-01",
+        "dataset": "refusal-bench",
+        "datasetRevision": "v3.2",
+        "harness": "example-harness",
+        "harnessVersion": "1.4.0",
+        "decoding": { "temperature": 0.0, "maxTokens": 512, "seed": 7 },
+        "threshold": 0.95,
+        "sampleTraceRef": "eval-run://refusal-safety/2026-06-01/samples",
+        "signedModelAnchor": "oms:sigstore:example-lm@2026-05-01"
+      }
+    },
+    {
+      "id": "evidence.eval.refusal.corroboration",
+      "claimId": "claim.eval.refusal-safety",
+      "evidenceType": "test_output",
+      "method": "corroboration",
+      "sourceRef": "eval-run://refusal-safety/independent/2026-06-02",
+      "excerptOrSummary": "Independent second evaluator reproduces refusal-safety pass (0.968).",
+      "observedAt": "2026-06-02T00:00:00.000Z",
+      "collectedBy": "independent-evaluator"
+    },
+    {
+      "id": "evidence.eval.jailbreak.run",
+      "claimId": "claim.eval.jailbreak-resistance",
+      "evidenceType": "test_output",
+      "method": "validation",
+      "sourceRef": "eval-run://jailbreak/2026-06-01",
+      "excerptOrSummary": "Jailbreak-resistance eval: 0.88, below 0.90 threshold.",
+      "observedAt": "2026-06-01T00:00:00.000Z",
+      "collectedBy": "example-evaluator",
+      "metadata": {
+        "model": "example-lm",
+        "modelVersion": "2026-05-01",
+        "dataset": "jailbreak-bench",
+        "datasetRevision": "v1.0",
+        "harness": "example-harness",
+        "harnessVersion": "1.4.0",
+        "threshold": 0.9
+      }
+    },
+    {
+      "id": "evidence.eval.jailbreak.redteam",
+      "claimId": "claim.eval.jailbreak-resistance",
+      "evidenceType": "human_attestation",
+      "method": "validation",
+      "sourceRef": "redteam://adversarial-suffix/2026-06-10",
+      "excerptOrSummary": "Independent red team found a reproducible adversarial-suffix bypass after initial eval.",
+      "observedAt": "2026-06-10T00:00:00.000Z",
+      "collectedBy": "red-team",
+      "passing": false,
+      "blocking": true
+    }
+  ],
+  "policies": [
+    {
+      "id": "policy.eval.safety",
+      "claimType": "eval-result",
+      "requiredEvidence": ["test_output"],
+      "requiredMethods": ["validation"],
+      "requiresCorroboration": true,
+      "acceptanceCriteria": [
+        "held-out evaluation set",
+        "independent second evaluator reproduces the result",
+        "no reproducible adversarial bypass",
+        "contamination effect below tolerance"
+      ],
+      "reviewAuthority": "operator",
+      "validityRule": { "kind": "duration", "durationDays": 365 },
+      "stalenessTriggers": [
+        "model version change",
+        "eval dataset revision",
+        "benchmark contamination detected"
+      ],
+      "conflictRules": [],
+      "impactLevel": "high"
+    }
+  ],
+  "events": [
+    {
+      "id": "event.refusal.verified",
+      "claimId": "claim.eval.refusal-safety",
+      "status": "verified",
+      "actor": "operator",
+      "method": "attestation",
+      "evidenceIds": ["evidence.eval.refusal.run", "evidence.eval.refusal.corroboration"],
+      "createdAt": "2026-06-02T00:00:00.000Z",
+      "verifiedAt": "2026-06-02T00:00:00.000Z"
+    },
+    {
+      "id": "event.jailbreak.verified",
+      "claimId": "claim.eval.jailbreak-resistance",
+      "status": "verified",
+      "actor": "operator",
+      "method": "attestation",
+      "evidenceIds": ["evidence.eval.jailbreak.run"],
+      "createdAt": "2026-06-01T00:00:00.000Z",
+      "verifiedAt": "2026-06-01T00:00:00.000Z"
+    }
+  ]
+}
