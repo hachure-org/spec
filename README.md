@@ -194,7 +194,7 @@ product-scoped namespaces (a domain the producer controls), never
 Pre-1.0: the format uses hard breaking changes rather than compatibility aliases.
 No forward or backward compatibility guarantees are made across versions. Version
 bumps are reflected in `schemaVersion` (an integer field in TrustBundle, currently
-`6`) and in the status function version (a string exported by this package and by
+`7`) and in the status function version (a string exported by this package and by
 every conforming implementation as `statusFunctionVersion`, currently `"2"`).
 
 Schema version `4` adds optional claim freshness fields (`expiresAt` /
@@ -222,6 +222,13 @@ the schema rejected. The addition is optional: every bundle valid at
 `schemaVersion` `5` remains valid (the schema enum accepts both `5` and `6`), and
 `proof` never changes status derivation — signing remains an out-of-band
 assurance concern.
+
+Schema version `7` adds the `runtime_observation` Evidence type and an optional
+`execution.environment` field (`test`, `staging`, or `production`). The addition
+is additive: every bundle valid at `schemaVersion` `6` remains valid. The status
+function's existing required-evidence step consults `runtime_observation` when a
+policy requires it, so older validators reject bundles that use the new value;
+`statusFunctionVersion` remains `"2"` because no fold step changed.
 
 ---
 
@@ -306,6 +313,16 @@ item can cause a `disputed` status outcome.
 `supportStrength` (default `"entails"`) distinguishes full entailment from citation:
 only `"entails"` evidence feeds policy requirement checks. `"cited"` evidence is
 contextual but does not satisfy required-evidence policies.
+
+Use `test_output` for results produced in an isolated or pre-deployment test
+context, `runtime_observation` for behavior observed from a running system (in
+any environment — record which via `execution.environment`), and
+`crawl_observation` for facts extracted by crawling an external resource. When
+evidence has an `execution` block, its
+optional `environment` (`test`, `staging`, or `production`) records where that
+execution occurred; policies that specifically require live/deployed evidence
+SHOULD require `runtime_observation` rather than inferring it from method or
+execution metadata.
 
 ### VerificationPolicy
 

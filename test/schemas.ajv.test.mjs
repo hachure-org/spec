@@ -313,7 +313,7 @@ test('waivers-ext: the extension schema rejects an out-of-vocabulary verdict', (
 // ---------------------------------------------------------------------------
 // AC4 — evidenceType/requiredEvidence enum alignment
 // ---------------------------------------------------------------------------
-test('AC4: requiredEvidence/evidenceType enums are identical 8-value lists across files', () => {
+test('AC4: requiredEvidence/evidenceType enums are identical 9-value lists across files', () => {
   const policyEnum = schemaFiles['verification-policy.schema.json'].properties.requiredEvidence.items.enum;
   const evidenceEnum = schemaFiles['evidence.schema.json'].properties.evidenceType.enum;
   const bundleEnum =
@@ -321,8 +321,9 @@ test('AC4: requiredEvidence/evidenceType enums are identical 8-value lists acros
 
   assert.deepEqual([...policyEnum].sort(), [...evidenceEnum].sort());
   assert.deepEqual([...policyEnum].sort(), [...bundleEnum].sort());
-  assert.equal(policyEnum.length, 8);
+  assert.equal(policyEnum.length, 9);
   assert.ok(policyEnum.includes('attestation'));
+  assert.ok(policyEnum.includes('runtime_observation'));
 });
 
 // ---------------------------------------------------------------------------
