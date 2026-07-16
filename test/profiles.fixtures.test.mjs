@@ -1,10 +1,11 @@
 /**
- * Worked-example fixtures for the SCITT (scitt.md §3) and OSCAL (oscal.md §2)
- * profiles: each profile's example bundle must be schema-valid and must
+ * Worked-example fixtures for profile documents: each profile's example
+ * bundle must be schema-valid and must
  * derive the statuses its prose promises. Run: node --test test/profiles.fixtures.test.mjs
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import Ajv2020 from 'ajv/dist/2020.js';
 
 import { schemas, deriveStatuses } from '../index.mjs';
@@ -14,6 +15,46 @@ for (const schema of schemas.values()) ajv.addSchema(schema);
 const validateBundle = ajv.getSchema(schemas.get('trust-bundle').$id);
 
 const NOW = new Date('2026-07-04T00:00:00.000Z');
+
+// --- Contract-claims profile worked example (contract-claims.md) -----------
+
+const contractBundle = JSON.parse(
+  readFileSync(new URL('../examples/contract-claim-env-passthrough.json', import.meta.url), 'utf8'),
+);
+
+test('Contract-claims worked example is schema-valid and uses the profile vocabulary', () => {
+  assert.equal(validateBundle(contractBundle), true, JSON.stringify(validateBundle.errors));
+  assert.deepEqual(contractBundle.claims[0].qualifiers, {
+    provider: 'compose.env',
+    consumer: 'app.oauth',
+    contract: 'GOOGLE_CLIENT_ID reaches process env',
+  });
+  const receipt = contractBundle.evidence.find((item) => item.evidenceType === 'runtime_observation');
+  assert.equal(receipt.method, 'observation');
+  assert.equal(receipt.execution.environment, 'production');
+  assert.equal(receipt.execution.exitCode, 0);
+});
+
+test('Contract-claims live env-passthrough receipt derives verified', () => {
+  const derived = deriveStatuses(contractBundle, NOW);
+  assert.equal(derived['claim.contract.compose-env-to-app-oauth'], 'verified');
+});
+
+// --- AI-evaluation profile worked example (ai-evaluation.md) ---------------
+
+const aiEvaluationBundle = JSON.parse(
+  readFileSync(new URL('../examples/ai-evaluation-bundle.json', import.meta.url), 'utf8'),
+);
+
+test('AI-evaluation worked example is schema-valid', () => {
+  assert.equal(validateBundle(aiEvaluationBundle), true, JSON.stringify(validateBundle.errors));
+});
+
+test('AI-evaluation worked example derives its documented verified and disputed statuses', () => {
+  const derived = deriveStatuses(aiEvaluationBundle, NOW);
+  assert.equal(derived['claim.eval.refusal-safety'], 'verified');
+  assert.equal(derived['claim.eval.jailbreak-resistance'], 'disputed');
+});
 
 // --- SCITT profile worked example (scitt.md §3) -----------------------------
 // A registered bundle carrying its transparency-service receipt as a proof
