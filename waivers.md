@@ -166,15 +166,18 @@ these outcomes (the vocabulary the optional
   and a `metadata.waiver` is (still) attached.
 - `command-backed-waiver-rejection` — see below.
 
-A command-backed check — evidence whose `evidenceType` is `test_output`
-(`evidence.schema.json`) — is, by construction, re-runnable: its truth is
-established (or refuted) by executing the command again, not by human
+A command-backed check is evidence whose `evidenceType` is `test_output`, or
+`runtime_observation` evidence whose `execution` block carries an integer
+`exitCode` (`evidence.schema.json`). It is, by construction, re-runnable: its
+truth is established (or refuted) by executing the command again, not by human
 judgment. A waiver documents an accepted gap in something that was *not*
 re-runnably verified; attaching one to a claim that a command already could
 have verified does not accept a gap, it bypasses a check that was available.
 Consumers MAY treat `assumed` status + `evidence.some(e => e.evidenceType ===
-"test_output")` + a present `metadata.waiver` as a distinct rejection
-verdict rather than folding it into an ordinary "waived" outcome — Surface's
+"test_output" || (e.evidenceType === "runtime_observation" &&
+Number.isInteger(e.execution?.exitCode)))` + a present `metadata.waiver` as a
+distinct rejection verdict rather than folding it into an ordinary "waived"
+outcome — Surface's
 `deriveWaiverValidity` projection does exactly this, returning
 `command-backed-waiver-rejection` for that combination. This is a consumer-
 side policy choice this profile documents as a recommended pattern, not a

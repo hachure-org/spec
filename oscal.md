@@ -45,6 +45,8 @@ This profile maps between the two so that:
 directly evidence the finding's objective; `"cited"` for contextual
 observations. `evidenceType`: `human_attestation` for INTERVIEW-method,
 `test_output` for TEST-method, `source_excerpt` otherwise.
+OSCAL TEST-method observations from live assessments MAY map to
+`runtime_observation` rather than `test_output`.
 
 ### 2.2 OSCAL `finding` ↔ Hachure `Claim`
 

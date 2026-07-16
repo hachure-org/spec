@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 
 import { testVectors, deriveStatuses, deriveClaimStatus } from '../index.mjs';
 
-assert.ok(testVectors.length >= 8, 'expected the full status-derivation vector set');
+assert.ok(testVectors.length >= 9, 'expected the full status-derivation vector set');
 
 for (const { name, vector } of testVectors) {
   test(`vector ${name}: bundled deriver matches expected statuses`, () => {

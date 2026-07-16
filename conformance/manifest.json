@@ -2,7 +2,7 @@
   "$schemaComment": "Machine-readable conformance manifest for the Hachure trust format. Not a JSON Schema itself — a structured index of what an implementation must pass to claim conformance at each level. Additive to, not a replacement for, index.mjs's `testVectors` export (which lists raw vectors, not levels/pass-criteria).",
   "manifestVersion": 1,
   "appliesTo": {
-    "schemaVersion": [5],
+    "schemaVersion": [5, 7],
     "statusFunctionVersion": "2"
   },
   "levels": [
@@ -36,7 +36,7 @@
         "kind": "test-vectors",
         "vectorDir": "conformance",
         "vectorFilePattern": "sf-*.json",
-        "vectorCount": 8,
+        "vectorCount": 9,
         "specRef": "status-function.md",
         "howToRun": "For each vector file, call your status-derivation function with vector.input and new Date(vector.now), then assert the derived status for every claim id matches vector.expect.statusByClaimId. All vectors must pass for the statusFunctionVersion declared in appliesTo.statusFunctionVersion."
       }
