@@ -239,7 +239,8 @@ The key words **MUST**, **MUST NOT**, **REQUIRED**, **SHALL**, **SHALL NOT**,
 document and in every other normative document in this repository
 (`merge.md`, `assurance.md`, `verification-endpoint.md`,
 `status-function.md`, `interop-in-toto.md`, `evidence-ingestion.md`,
-`scitt.md`, `oscal.md`, `SECURITY.md`) are to be
+`scitt.md`, `oscal.md`, `ai-evaluation.md`, `contract-claims.md`, `waivers.md`,
+`SECURITY.md`) are to be
 interpreted as described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119)
 and clarified by [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174) (BCP 14),
 only when they appear in all capitals, as shown here.
@@ -436,6 +437,7 @@ a profile requires no changes to core record shapes or the status function.
 | Verification endpoint | [verification-endpoint.md](verification-endpoint.md) | Producer-served HTTP endpoint for receivers to fetch post-export event deltas. |
 | Assurance | [assurance.md](assurance.md) | Signing as a dial: L0/L1/L2 assurance levels, identity presentation, consumer policy, and human signing ceremony. |
 | AI evaluation | [ai-evaluation.md](ai-evaluation.md) | Eval results, model claims, and agent outcomes as recomputable trust: eval evidence that survives the boundary, calibrated `conclusionConfidence` + comfort-zone, conclusion-freshness vs signature-freshness, composing with model-signing / AI-BOMs / DID-VC as evidence. |
+| Contract claims | [contract-claims.md](contract-claims.md) | End-to-end contracts between providers and consumers: a `contract` claim qualifier convention plus live `runtime_observation` receipts that keep test-only integration assertions at a gap. |
 | Waivers | [waivers.md](waivers.md) | Typed `claim.metadata.waiver` shape for documenting an accepted `assumed` gap (reason/approver/timestamp), with no status-function or schema change. |
 
 ---
