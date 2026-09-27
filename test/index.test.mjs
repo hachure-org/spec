@@ -5,7 +5,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
+import { readFileSync } from 'node:fs';
+
 import { statusFunctionVersion, schemas, testVectors } from '../index.mjs';
+
+const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 
 // ---------------------------------------------------------------------------
 // statusFunctionVersion
@@ -15,8 +19,12 @@ test('statusFunctionVersion is a non-empty string', () => {
   assert.ok(statusFunctionVersion.length > 0);
 });
 
-test('statusFunctionVersion is "2"', () => {
-  assert.equal(statusFunctionVersion, '2');
+test('statusFunctionVersion is "3"', () => {
+  assert.equal(statusFunctionVersion, '3');
+});
+
+test('statusFunctionVersion matches package.json', () => {
+  assert.equal(statusFunctionVersion, pkg.statusFunctionVersion);
 });
 
 // ---------------------------------------------------------------------------

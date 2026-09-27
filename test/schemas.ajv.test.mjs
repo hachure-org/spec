@@ -5,13 +5,18 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync, readdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { join, dirname } from 'node:path';
 
 import Ajv2020 from 'ajv/dist/2020.js';
 
+import { validateConclusionConfidence } from '../index.mjs';
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const CLI = join(__dirname, '..', 'bin', 'hachure.mjs');
 const schemasDir = join(__dirname, '..', 'schemas');
 const conformanceDir = join(__dirname, '..', 'conformance');
 
@@ -583,4 +588,97 @@ test('conclusionConfidence: unknown extra keys are rejected', () => {
     validateClaim.errors.some((e) => e.keyword === 'additionalProperties'),
     JSON.stringify(validateClaim.errors),
   );
+});
+
+// ---------------------------------------------------------------------------
+// conclusionConfidence.calibration (schemaVersion 8): `value` names the
+// versioned calibration table that produced it.
+// ---------------------------------------------------------------------------
+const CALIBRATION = { tableRef: 'calibration://example/table', tableVersion: '2026-05-15' };
+
+test('calibration: schemaVersion 8 rejects a conclusionConfidence.value without calibration', () => {
+  const validateBundle = compileRoot('trust-bundle.schema.json');
+  const claim = { ...buildBaseClaim(), conclusionConfidence: { value: 0.8 } };
+  assert.equal(validateBundle(buildBaseBundle(8, claim)), false);
+  assert.ok(
+    validateBundle.errors.some((e) => e.keyword === 'dependentRequired' && e.params.missingProperty === 'calibration'),
+    JSON.stringify(validateBundle.errors),
+  );
+});
+
+test('calibration: schemaVersion 8 accepts value with calibration, and comfortZone alone', () => {
+  const validateBundle = compileRoot('trust-bundle.schema.json');
+  const withTable = { ...buildBaseClaim(), conclusionConfidence: { value: 0.8, calibration: CALIBRATION } };
+  assert.equal(validateBundle(buildBaseBundle(8, withTable)), true, JSON.stringify(validateBundle.errors));
+  const comfortOnly = { ...buildBaseClaim(), conclusionConfidence: { comfortZone: { within: true } } };
+  assert.equal(validateBundle(buildBaseBundle(8, comfortOnly)), true, JSON.stringify(validateBundle.errors));
+});
+
+test('calibration: schemaVersion 7 still accepts value without calibration (SHOULD, not MUST)', () => {
+  const validateBundle = compileRoot('trust-bundle.schema.json');
+  const claim = { ...buildBaseClaim(), conclusionConfidence: { value: 0.8 } };
+  assert.equal(validateBundle(buildBaseBundle(7, claim)), true, JSON.stringify(validateBundle.errors));
+});
+
+test('calibration: a calibration reference must name both table and version', () => {
+  const validateClaim = compileRoot('claim.schema.json');
+  for (const calibration of [{ tableRef: 'x' }, { tableVersion: '1' }, { tableRef: '', tableVersion: '1' }]) {
+    const claim = { ...buildBaseClaim(), conclusionConfidence: { value: 0.8, calibration } };
+    assert.equal(validateClaim(claim), false, JSON.stringify(calibration));
+  }
+});
+
+test('calibration: schemaVersion 8 rejects interval bounds outside [0,1]', () => {
+  const validateBundle = compileRoot('trust-bundle.schema.json');
+  const claim = {
+    ...buildBaseClaim(),
+    conclusionConfidence: { value: 0.8, calibration: CALIBRATION, interval: { low: 7, high: -3 } },
+  };
+  assert.equal(validateBundle(buildBaseBundle(8, claim)), false);
+  const paths = validateBundle.errors.map((e) => e.instancePath);
+  assert.ok(paths.includes('/claims/0/conclusionConfidence/interval/low'), JSON.stringify(validateBundle.errors));
+  assert.ok(paths.includes('/claims/0/conclusionConfidence/interval/high'), JSON.stringify(validateBundle.errors));
+});
+
+test('calibration: schemaVersion 7 validates an out-of-range interval as before (additive change)', () => {
+  const validateBundle = compileRoot('trust-bundle.schema.json');
+  const claim = { ...buildBaseClaim(), conclusionConfidence: { value: 0.8, interval: { low: 7, high: -3 } } };
+  assert.equal(validateBundle(buildBaseBundle(7, claim)), true, JSON.stringify(validateBundle.errors));
+});
+
+// Cross-field rules JSON Schema cannot express: checked in code for schema 8.
+test('validateConclusionConfidence: low > high and value outside interval are reported at schemaVersion 8 only', () => {
+  const cc = (conclusionConfidence) => ({ ...buildBaseClaim(), conclusionConfidence });
+  const inverted = cc({ calibration: CALIBRATION, interval: { low: 0.9, high: 0.2 } });
+  const outside = cc({ value: 0.95, calibration: CALIBRATION, interval: { low: 0.1, high: 0.5 } });
+  const below = cc({ value: 0.05, calibration: CALIBRATION, interval: { low: 0.1, high: 0.5 } });
+  const ok = cc({ value: 0.3, calibration: CALIBRATION, interval: { low: 0.1, high: 0.5 } });
+
+  assert.deepEqual(validateConclusionConfidence(buildBaseBundle(8, inverted)).map((e) => e.instancePath), [
+    '/claims/0/conclusionConfidence/interval',
+  ]);
+  assert.match(validateConclusionConfidence(buildBaseBundle(8, outside))[0].message, /must be <= interval.high/);
+  assert.match(validateConclusionConfidence(buildBaseBundle(8, below))[0].message, /must be >= interval.low/);
+  assert.deepEqual(validateConclusionConfidence(buildBaseBundle(8, ok)), []);
+  for (const claim of [inverted, outside, below]) {
+    assert.deepEqual(validateConclusionConfidence(buildBaseBundle(7, claim)), []);
+  }
+});
+
+test('hachure validate exits 1 on a schema-valid v8 bundle whose value lies outside its interval', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'hachure-cc-'));
+  const claim = {
+    ...buildBaseClaim(),
+    conclusionConfidence: { value: 0.95, calibration: CALIBRATION, interval: { low: 0.1, high: 0.5 } },
+  };
+  const bad = join(dir, 'bad.json');
+  writeFileSync(bad, JSON.stringify(buildBaseBundle(8, claim)));
+  const r = spawnSync(process.execPath, [CLI, 'validate', bad], { encoding: 'utf8' });
+  assert.equal(r.status, 1, r.stdout + r.stderr);
+  assert.match(r.stderr, /\/claims\/0\/conclusionConfidence\/value value \(0.95\) must be <= interval.high/);
+
+  const good = join(dir, 'good.json');
+  writeFileSync(good, JSON.stringify(buildBaseBundle(8, { ...claim, conclusionConfidence: { ...claim.conclusionConfidence, value: 0.3 } })));
+  const ok = spawnSync(process.execPath, [CLI, 'validate', good], { encoding: 'utf8' });
+  assert.equal(ok.status, 0, ok.stdout + ok.stderr);
 });

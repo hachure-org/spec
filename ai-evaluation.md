@@ -29,7 +29,8 @@ original record.
 
 Nothing in this profile is required for a valid Hachure record. It is a set of
 conventions over the existing core shapes plus the optional `conclusionConfidence`
-field; it introduces no schema change and no `statusFunctionVersion` change.
+field (whose `calibration` reference was added at `schemaVersion` 8); it
+introduces no `statusFunctionVersion` change.
 
 ## The shape: evaluation trust in core records
 
@@ -81,14 +82,54 @@ prose.
 ### Calibrated conclusion confidence (lead with this)
 
 The optional `conclusionConfidence` field (README `Claim`) carries a **calibrated
-probability the conclusion is correct** (`value`), how it was calibrated
-(`method`, free-form), and a **comfort-zone** signal (`comfortZone: { within,
+probability the conclusion is correct** (`value`), the calibration table that
+produced it (`calibration`), how it was calibrated (`method`, free-form), an
+optional `interval`, and a **comfort-zone** signal (`comfortZone: { within,
 reason }`) stating whether the conclusion is in or out of the evaluator's
 competence / distribution. This is the sharpest thing this profile carries that
 no inventory or attestation format does: a calibrated confidence and an
 in/out-of-distribution signal *on the conclusion itself*, portable across the
 boundary. `method` and `comfortZone.reason` are free-form, producer-owned
 vocabulary — never enumerated here.
+
+**What "calibrated" means.** A confidence value is *calibrated* when, over the
+population of conclusions it is applied to, conclusions assigned value *p* turn
+out to be correct with frequency *p* (within the table's stated bounds). That
+is a property of a mapping measured against outcomes, not of a single number:
+it can only be established by comparing assigned values with **labelled
+outcomes** — conclusions whose correctness was later determined independently
+of the score.
+
+- A **calibration table** is a versioned mapping from a producer's score (or
+  score bins) to such a probability, fit on labelled outcomes. It is
+  identified by a `tableRef` and a `tableVersion`; any refit is a new
+  `tableVersion`.
+- A **calibrator** is the step that applies a calibration table to a
+  producer's score for one conclusion and writes the result.
+
+Rules:
+
+- `conclusionConfidence.value` MUST be written only by a calibrator applying a
+  calibration table, and the record MUST identify that table in
+  `conclusionConfidence.calibration` (`tableRef`, `tableVersion`; optionally
+  `method`, `sampleSize` — the number of labelled outcomes the table was fit
+  on — and `boundMethod`, how `interval` was computed). From `schemaVersion` 8
+  the schema requires `calibration` whenever `value` is present; for bundles at
+  earlier schema versions it is a SHOULD.
+- A producer's raw or self-reported score — a model's stated confidence, a
+  classifier logit or softmax, an agreement or affirmation rate over a group —
+  MUST NOT be written to `value`. It belongs in the claim's `confidenceBasis`
+  or in evidence `metadata`, where a calibrator can read it.
+- When present, `interval` MUST satisfy `0 <= low <= high <= 1`, and
+  `low <= value <= high` when both `interval` and `value` are present. For
+  `schemaVersion` 8 bundles the schema enforces the `[0, 1]` range and
+  `hachure validate` checks the ordering in code (JSON Schema cannot compare
+  two fields); earlier schema versions carry these as a SHOULD.
+- `comfortZone` MAY be populated by the producer directly; it is a
+  within/outside-of-distribution judgement, not a probability, and needs no
+  calibration table.
+- A consumer SHOULD treat a `value` with no `calibration` reference as
+  uncalibrated.
 
 ### Merge composes evaluators
 
@@ -131,15 +172,15 @@ reviewed judgement. Recommended evidence `metadata`:
 - the reviewer identity and review outcome (as an `attestation`/event).
 - the gated confidence value the producer decided against.
 
-### Mapping to `conclusionConfidence`
+### Where a producer's confidence goes
 
-A producer that already computes a numeric confidence and an
-in/out-of-competence signal SHOULD surface them in the first-class
-`conclusionConfidence` field rather than only in ad-hoc metadata: the numeric
-confidence maps to `value` (with `method` naming how it was derived), and a
-within/outside-of-distribution judgement maps to `comfortZone { within, reason }`.
-This is what makes the calibration portable and comparable across the boundary
-instead of buried in producer-specific keys.
+A producer that already computes a numeric confidence records it as a raw
+signal — in `confidenceBasis` or evidence `metadata` — not in
+`conclusionConfidence.value`. That number becomes a `conclusionConfidence.value`
+only when a calibrator maps it through a versioned calibration table
+(§"Calibrated conclusion confidence" above), and the record names that table.
+A within/outside-of-distribution judgement the producer already makes MAY go
+straight into `comfortZone { within, reason }`.
 
 ### Contamination as a policy input
 
@@ -189,13 +230,15 @@ claim, and is cited rather than competed with:
 - **No agent identity or authorization scheme.** See composition above.
 - **No new signing or transparency mechanism.** Signing is the [Assurance](assurance.md)
   dial; transparency-log registration is [SCITT](scitt.md).
-- **No core-format change.** This profile is conventions over existing records
-  plus the optional `conclusionConfidence` field.
+- **No core-format change beyond `conclusionConfidence`.** This profile is
+  conventions over existing records plus the optional `conclusionConfidence`
+  field and its `calibration` reference.
 
 ## Status
 
-Draft profile. It introduces no schema change and no `statusFunctionVersion`
-change; it layers naming conventions and evidence/policy guidance over the core
+Draft profile. It introduces no `statusFunctionVersion` change; its only schema
+addition is the `conclusionConfidence.calibration` reference (`schemaVersion` 8).
+It layers naming conventions and evidence/policy guidance over the core
 records and the `conclusionConfidence` field. A worked example bundle accompanies
 this profile in `examples/ai-evaluation-bundle.json` — two eval conclusions on
 one model (one `verified` and corroborated with an in-comfort-zone calibrated

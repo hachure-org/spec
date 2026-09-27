@@ -1,0 +1,80 @@
+{
+  "now": "2026-06-10T00:00:00.000Z",
+  "statusFunctionVersions": [
+    "3"
+  ],
+  "input": {
+    "schemaVersion": 7,
+    "source": "spec-conformance:v3-blocking-before-requirements",
+    "claims": [
+      {
+        "id": "claim.blocking-before-requirements",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "software-evidence",
+        "fieldOrBehavior": "blocking-before-requirements",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.two-types"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "evidence.claim.blocking-before-requirements",
+        "claimId": "claim.blocking-before-requirements",
+        "evidenceType": "test_output",
+        "passing": false,
+        "method": "validation",
+        "sourceRef": "ci:run-1",
+        "excerptOrSummary": "test_output for claim.blocking-before-requirements",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "ci"
+      }
+    ],
+    "policies": [
+      {
+        "id": "policy.two-types",
+        "claimType": "software-evidence",
+        "requiredEvidence": [
+          "test_output",
+          "source_excerpt"
+        ],
+        "requiredMethods": [
+          "validation"
+        ],
+        "requiresCorroboration": false,
+        "acceptanceCriteria": [
+          "check passes"
+        ],
+        "reviewAuthority": "repo policy",
+        "validityRule": {
+          "kind": "historical"
+        },
+        "stalenessTriggers": [],
+        "conflictRules": [],
+        "impactLevel": "high"
+      }
+    ],
+    "events": [
+      {
+        "id": "event.claim.blocking-before-requirements.verified",
+        "claimId": "claim.blocking-before-requirements",
+        "status": "verified",
+        "actor": "ci",
+        "method": "npm test",
+        "evidenceIds": [
+          "evidence.claim.blocking-before-requirements"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "2026-06-01T00:00:00.000Z"
+      }
+    ]
+  },
+  "expect": {
+    "statusByClaimId": {
+      "claim.blocking-before-requirements": "disputed"
+    }
+  }
+}

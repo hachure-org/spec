@@ -398,7 +398,7 @@ notes below track one *other* known implementation, `@kontourai/surface`
 
 ## Versioning
 
-This document introduces no change to `statusFunctionVersion` (stays `"2"`).
+This document introduces no change to `statusFunctionVersion`.
 `schemaVersion` itself has moved since this document's `producerId` addition
 first shipped: it is now `5` (README.md's Namespace and versioning section is
 the single source of truth for the current value), reflecting the unrelated

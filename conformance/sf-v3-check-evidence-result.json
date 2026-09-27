@@ -1,0 +1,183 @@
+{
+  "now": "2026-06-10T00:00:00.000Z",
+  "statusFunctionVersions": [
+    "3"
+  ],
+  "input": {
+    "schemaVersion": 7,
+    "source": "spec-conformance:v3-check-evidence-result",
+    "claims": [
+      {
+        "id": "claim.check.no-result",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "software-evidence",
+        "fieldOrBehavior": "no-result",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.check.historical"
+      },
+      {
+        "id": "claim.check.non-blocking-failure",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "software-evidence",
+        "fieldOrBehavior": "non-blocking-failure",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.check.historical"
+      },
+      {
+        "id": "claim.check.corroboration",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "corroborated-check",
+        "fieldOrBehavior": "corroboration",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.check.corroborated"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "evidence.claim.check.no-result",
+        "claimId": "claim.check.no-result",
+        "evidenceType": "test_output",
+        "method": "validation",
+        "sourceRef": "ci:run-1",
+        "excerptOrSummary": "test_output for claim.check.no-result",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "ci"
+      },
+      {
+        "id": "evidence.claim.check.non-blocking-failure",
+        "claimId": "claim.check.non-blocking-failure",
+        "evidenceType": "test_output",
+        "passing": false,
+        "method": "validation",
+        "sourceRef": "ci:run-1",
+        "excerptOrSummary": "test_output for claim.check.non-blocking-failure",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "ci",
+        "blocking": false
+      },
+      {
+        "id": "evidence.claim.check.corroboration.pass",
+        "claimId": "claim.check.corroboration",
+        "evidenceType": "test_output",
+        "passing": true,
+        "method": "validation",
+        "sourceRef": "ci:run-1",
+        "excerptOrSummary": "test_output for claim.check.corroboration",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "ci"
+      },
+      {
+        "id": "evidence.claim.check.corroboration.no-result",
+        "claimId": "claim.check.corroboration",
+        "evidenceType": "test_output",
+        "method": "validation",
+        "sourceRef": "ci:run-2",
+        "excerptOrSummary": "test_output for claim.check.corroboration",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "ci"
+      }
+    ],
+    "policies": [
+      {
+        "id": "policy.check.historical",
+        "claimType": "software-evidence",
+        "requiredEvidence": [
+          "test_output"
+        ],
+        "requiredMethods": [
+          "validation"
+        ],
+        "requiresCorroboration": false,
+        "acceptanceCriteria": [
+          "check passes"
+        ],
+        "reviewAuthority": "repo policy",
+        "validityRule": {
+          "kind": "historical"
+        },
+        "stalenessTriggers": [],
+        "conflictRules": [],
+        "impactLevel": "high"
+      },
+      {
+        "id": "policy.check.corroborated",
+        "claimType": "corroborated-check",
+        "requiredEvidence": [
+          "test_output"
+        ],
+        "requiredMethods": [
+          "validation"
+        ],
+        "requiresCorroboration": true,
+        "acceptanceCriteria": [
+          "check passes"
+        ],
+        "reviewAuthority": "repo policy",
+        "validityRule": {
+          "kind": "historical"
+        },
+        "stalenessTriggers": [],
+        "conflictRules": [],
+        "impactLevel": "high"
+      }
+    ],
+    "events": [
+      {
+        "id": "event.claim.check.no-result.verified",
+        "claimId": "claim.check.no-result",
+        "status": "verified",
+        "actor": "ci",
+        "method": "npm test",
+        "evidenceIds": [
+          "evidence.claim.check.no-result"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "2026-06-01T00:00:00.000Z"
+      },
+      {
+        "id": "event.claim.check.non-blocking-failure.verified",
+        "claimId": "claim.check.non-blocking-failure",
+        "status": "verified",
+        "actor": "ci",
+        "method": "npm test",
+        "evidenceIds": [
+          "evidence.claim.check.non-blocking-failure"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "2026-06-01T00:00:00.000Z"
+      },
+      {
+        "id": "event.claim.check.corroboration.verified",
+        "claimId": "claim.check.corroboration",
+        "status": "verified",
+        "actor": "ci",
+        "method": "npm test",
+        "evidenceIds": [
+          "evidence.claim.check.corroboration.pass",
+          "evidence.claim.check.corroboration.no-result"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "2026-06-01T00:00:00.000Z"
+      }
+    ]
+  },
+  "expect": {
+    "statusByClaimId": {
+      "claim.check.no-result": "proposed",
+      "claim.check.non-blocking-failure": "proposed",
+      "claim.check.corroboration": "proposed"
+    }
+  }
+}

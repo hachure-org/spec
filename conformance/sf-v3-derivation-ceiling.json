@@ -1,0 +1,385 @@
+{
+  "now": "2026-06-10T00:00:00.000Z",
+  "statusFunctionVersions": [
+    "3"
+  ],
+  "input": {
+    "schemaVersion": 7,
+    "source": "spec-conformance:v3-derivation-ceiling",
+    "claims": [
+      {
+        "id": "claim.ceiling.in.rejected",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "software-evidence",
+        "fieldOrBehavior": "rejected",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.ceiling.historical"
+      },
+      {
+        "id": "claim.ceiling.in.disputed",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "software-evidence",
+        "fieldOrBehavior": "disputed",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.ceiling.historical"
+      },
+      {
+        "id": "claim.ceiling.in.superseded",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "software-evidence",
+        "fieldOrBehavior": "superseded",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.ceiling.historical"
+      },
+      {
+        "id": "claim.ceiling.in.stale",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "software-evidence",
+        "fieldOrBehavior": "stale",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.ceiling.historical"
+      },
+      {
+        "id": "claim.ceiling.in.unknown",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "software-evidence",
+        "fieldOrBehavior": "unknown",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.ceiling.historical"
+      },
+      {
+        "id": "claim.ceiling.rejected-vs-unknown",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "software-evidence",
+        "fieldOrBehavior": "rejected-vs-unknown",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.ceiling.historical",
+        "derivedFrom": [
+          "claim.ceiling.in.unknown",
+          "claim.ceiling.in.rejected"
+        ]
+      },
+      {
+        "id": "claim.ceiling.disputed-vs-superseded",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "software-evidence",
+        "fieldOrBehavior": "disputed-vs-superseded",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.ceiling.historical",
+        "derivedFrom": [
+          "claim.ceiling.in.superseded",
+          "claim.ceiling.in.disputed"
+        ]
+      },
+      {
+        "id": "claim.ceiling.stale-vs-unknown",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "software-evidence",
+        "fieldOrBehavior": "stale-vs-unknown",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.ceiling.historical",
+        "derivedFrom": [
+          "claim.ceiling.in.unknown",
+          "claim.ceiling.in.stale"
+        ]
+      },
+      {
+        "id": "claim.ceiling.missing-input",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "software-evidence",
+        "fieldOrBehavior": "missing-input",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.ceiling.historical",
+        "derivedFrom": [
+          "claim.ceiling.not-in-bundle"
+        ]
+      },
+      {
+        "id": "claim.ceiling.transitive.mid",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "software-evidence",
+        "fieldOrBehavior": "mid",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.ceiling.historical",
+        "derivationEdges": [
+          {
+            "inputClaimId": "claim.ceiling.in.disputed"
+          }
+        ]
+      },
+      {
+        "id": "claim.ceiling.transitive.top",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "software-evidence",
+        "fieldOrBehavior": "top",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.ceiling.historical",
+        "derivationEdges": [
+          {
+            "inputClaimId": "claim.ceiling.transitive.mid"
+          }
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "id": "evidence.claim.ceiling.rejected-vs-unknown",
+        "claimId": "claim.ceiling.rejected-vs-unknown",
+        "evidenceType": "test_output",
+        "passing": true,
+        "method": "validation",
+        "sourceRef": "ci:run-1",
+        "excerptOrSummary": "test_output for claim.ceiling.rejected-vs-unknown",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "ci"
+      },
+      {
+        "id": "evidence.claim.ceiling.disputed-vs-superseded",
+        "claimId": "claim.ceiling.disputed-vs-superseded",
+        "evidenceType": "test_output",
+        "passing": true,
+        "method": "validation",
+        "sourceRef": "ci:run-1",
+        "excerptOrSummary": "test_output for claim.ceiling.disputed-vs-superseded",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "ci"
+      },
+      {
+        "id": "evidence.claim.ceiling.stale-vs-unknown",
+        "claimId": "claim.ceiling.stale-vs-unknown",
+        "evidenceType": "test_output",
+        "passing": true,
+        "method": "validation",
+        "sourceRef": "ci:run-1",
+        "excerptOrSummary": "test_output for claim.ceiling.stale-vs-unknown",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "ci"
+      },
+      {
+        "id": "evidence.claim.ceiling.missing-input",
+        "claimId": "claim.ceiling.missing-input",
+        "evidenceType": "test_output",
+        "passing": true,
+        "method": "validation",
+        "sourceRef": "ci:run-1",
+        "excerptOrSummary": "test_output for claim.ceiling.missing-input",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "ci"
+      },
+      {
+        "id": "evidence.claim.ceiling.transitive.mid",
+        "claimId": "claim.ceiling.transitive.mid",
+        "evidenceType": "test_output",
+        "passing": true,
+        "method": "validation",
+        "sourceRef": "ci:run-1",
+        "excerptOrSummary": "test_output for claim.ceiling.transitive.mid",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "ci"
+      },
+      {
+        "id": "evidence.claim.ceiling.transitive.top",
+        "claimId": "claim.ceiling.transitive.top",
+        "evidenceType": "test_output",
+        "passing": true,
+        "method": "validation",
+        "sourceRef": "ci:run-1",
+        "excerptOrSummary": "test_output for claim.ceiling.transitive.top",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "ci"
+      }
+    ],
+    "policies": [
+      {
+        "id": "policy.ceiling.historical",
+        "claimType": "software-evidence",
+        "requiredEvidence": [
+          "test_output"
+        ],
+        "requiredMethods": [
+          "validation"
+        ],
+        "requiresCorroboration": false,
+        "acceptanceCriteria": [
+          "check passes"
+        ],
+        "reviewAuthority": "repo policy",
+        "validityRule": {
+          "kind": "historical"
+        },
+        "stalenessTriggers": [],
+        "conflictRules": [],
+        "impactLevel": "high"
+      }
+    ],
+    "events": [
+      {
+        "id": "event.claim.ceiling.in.rejected",
+        "claimId": "claim.ceiling.in.rejected",
+        "status": "rejected",
+        "actor": "reviewer",
+        "method": "review",
+        "evidenceIds": [],
+        "createdAt": "2026-06-01T00:00:00.000Z"
+      },
+      {
+        "id": "event.claim.ceiling.in.disputed",
+        "claimId": "claim.ceiling.in.disputed",
+        "status": "disputed",
+        "actor": "reviewer",
+        "method": "review",
+        "evidenceIds": [],
+        "createdAt": "2026-06-01T00:00:00.000Z"
+      },
+      {
+        "id": "event.claim.ceiling.in.superseded",
+        "claimId": "claim.ceiling.in.superseded",
+        "status": "superseded",
+        "actor": "reviewer",
+        "method": "review",
+        "evidenceIds": [],
+        "createdAt": "2026-06-01T00:00:00.000Z"
+      },
+      {
+        "id": "event.claim.ceiling.in.stale",
+        "claimId": "claim.ceiling.in.stale",
+        "status": "stale",
+        "actor": "reviewer",
+        "method": "review",
+        "evidenceIds": [],
+        "createdAt": "2026-06-01T00:00:00.000Z"
+      },
+      {
+        "id": "event.claim.ceiling.rejected-vs-unknown.verified",
+        "claimId": "claim.ceiling.rejected-vs-unknown",
+        "status": "verified",
+        "actor": "ci",
+        "method": "npm test",
+        "evidenceIds": [
+          "evidence.claim.ceiling.rejected-vs-unknown"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "2026-06-01T00:00:00.000Z"
+      },
+      {
+        "id": "event.claim.ceiling.disputed-vs-superseded.verified",
+        "claimId": "claim.ceiling.disputed-vs-superseded",
+        "status": "verified",
+        "actor": "ci",
+        "method": "npm test",
+        "evidenceIds": [
+          "evidence.claim.ceiling.disputed-vs-superseded"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "2026-06-01T00:00:00.000Z"
+      },
+      {
+        "id": "event.claim.ceiling.stale-vs-unknown.verified",
+        "claimId": "claim.ceiling.stale-vs-unknown",
+        "status": "verified",
+        "actor": "ci",
+        "method": "npm test",
+        "evidenceIds": [
+          "evidence.claim.ceiling.stale-vs-unknown"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "2026-06-01T00:00:00.000Z"
+      },
+      {
+        "id": "event.claim.ceiling.missing-input.verified",
+        "claimId": "claim.ceiling.missing-input",
+        "status": "verified",
+        "actor": "ci",
+        "method": "npm test",
+        "evidenceIds": [
+          "evidence.claim.ceiling.missing-input"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "2026-06-01T00:00:00.000Z"
+      },
+      {
+        "id": "event.claim.ceiling.transitive.mid.verified",
+        "claimId": "claim.ceiling.transitive.mid",
+        "status": "verified",
+        "actor": "ci",
+        "method": "npm test",
+        "evidenceIds": [
+          "evidence.claim.ceiling.transitive.mid"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "2026-06-01T00:00:00.000Z"
+      },
+      {
+        "id": "event.claim.ceiling.transitive.top.verified",
+        "claimId": "claim.ceiling.transitive.top",
+        "status": "verified",
+        "actor": "ci",
+        "method": "npm test",
+        "evidenceIds": [
+          "evidence.claim.ceiling.transitive.top"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "2026-06-01T00:00:00.000Z"
+      }
+    ]
+  },
+  "expect": {
+    "statusByClaimId": {
+      "claim.ceiling.in.rejected": "rejected",
+      "claim.ceiling.in.disputed": "disputed",
+      "claim.ceiling.in.superseded": "superseded",
+      "claim.ceiling.in.stale": "stale",
+      "claim.ceiling.in.unknown": "unknown",
+      "claim.ceiling.rejected-vs-unknown": "rejected",
+      "claim.ceiling.disputed-vs-superseded": "disputed",
+      "claim.ceiling.stale-vs-unknown": "stale",
+      "claim.ceiling.missing-input": "unknown",
+      "claim.ceiling.transitive.mid": "disputed",
+      "claim.ceiling.transitive.top": "disputed"
+    }
+  }
+}
