@@ -13,7 +13,8 @@
  *
  *   hachure validate <bundle.json>
  *       Validate a TrustBundle against the normative schemas (requires ajv:
- *       npm i ajv).
+ *       npm i ajv), plus the schemaVersion 8 conclusionConfidence checks JSON
+ *       Schema cannot express.
  *
  *   hachure vectors
  *       Run every conformance vector against the bundled implementation and
@@ -31,6 +32,7 @@ import {
   diffStatuses,
   mergeBundles,
   mergeBundlesDetailed,
+  validateConclusionConfidence,
 } from '../index.mjs';
 
 function readJson(path) {
@@ -136,11 +138,13 @@ switch (command) {
     const ajv = new Ajv({ strict: false, allErrors: true, logger: false });
     for (const schema of schemas.values()) ajv.addSchema(schema);
     const validate = ajv.getSchema(schemas.get('trust-bundle').$id);
-    if (validate(bundle)) {
+    // Schema first, then the cross-field rules JSON Schema cannot express.
+    const errors = validate(bundle) ? validateConclusionConfidence(bundle) : validate.errors;
+    if (errors.length === 0) {
       console.log(`valid TrustBundle (schemaVersion ${bundle.schemaVersion})`);
     } else {
       console.error('invalid TrustBundle:');
-      for (const e of validate.errors) console.error(`  ${e.instancePath || '/'} ${e.message}`);
+      for (const e of errors) console.error(`  ${e.instancePath || '/'} ${e.message}`);
       process.exit(1);
     }
     break;

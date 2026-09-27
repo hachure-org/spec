@@ -238,10 +238,11 @@ Schema version `8` adds an optional `conclusionConfidence.calibration` reference
 `boundMethod`) naming the versioned calibration table that produced
 `conclusionConfidence.value` (see [ai-evaluation.md](ai-evaluation.md)). A
 bundle declaring `schemaVersion` `8` MUST carry `calibration` whenever `value`
-is present; bundles at `5`–`7` remain valid without it (SHOULD). The
-`interval` bounds are now constrained to `[0, 1]` at every schema version,
-since a probability interval outside that range was never meaningful. The
-status function never reads `conclusionConfidence`.
+is present, and its `interval` bounds MUST lie in `[0, 1]`; `hachure validate`
+also checks `low <= high` and `low <= value <= high` for such bundles, which
+JSON Schema cannot express. Bundles at `5`–`7` validate exactly as before (all
+of this is a SHOULD there). The status function never reads
+`conclusionConfidence`.
 
 Status function version `"3"` makes omission fail closed: a claim with no
 resolvable (or no non-empty) verification policy derives at most `proposed`,

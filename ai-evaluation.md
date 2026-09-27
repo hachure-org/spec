@@ -121,9 +121,10 @@ Rules:
   MUST NOT be written to `value`. It belongs in the claim's `confidenceBasis`
   or in evidence `metadata`, where a calibrator can read it.
 - When present, `interval` MUST satisfy `0 <= low <= high <= 1`, and
-  `low <= value <= high` when both `interval` and `value` are present. The
-  schema enforces the `[0, 1]` range; the ordering constraints cannot be
-  expressed in JSON Schema and are the producer's obligation.
+  `low <= value <= high` when both `interval` and `value` are present. For
+  `schemaVersion` 8 bundles the schema enforces the `[0, 1]` range and
+  `hachure validate` checks the ordering in code (JSON Schema cannot compare
+  two fields); earlier schema versions carry these as a SHOULD.
 - `comfortZone` MAY be populated by the producer directly; it is a
   within/outside-of-distribution judgement, not a probability, and needs no
   calibration table.

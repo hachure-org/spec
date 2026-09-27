@@ -1,0 +1,181 @@
+{
+  "now": "2026-06-10T00:00:00.000Z",
+  "statusFunctionVersions": [
+    "3"
+  ],
+  "input": {
+    "schemaVersion": 7,
+    "source": "spec-conformance:v3-invalidation-nonterminal",
+    "claims": [
+      {
+        "id": "claim.invalidation.verified-status",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "software-evidence",
+        "fieldOrBehavior": "verified-status",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.invalidation.historical"
+      },
+      {
+        "id": "claim.invalidation.assumed-status",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "software-evidence",
+        "fieldOrBehavior": "assumed-status",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.invalidation.historical"
+      },
+      {
+        "id": "claim.invalidation.rejected-status",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "software-evidence",
+        "fieldOrBehavior": "rejected-status",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.invalidation.historical"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "evidence.claim.invalidation.verified-status",
+        "claimId": "claim.invalidation.verified-status",
+        "evidenceType": "test_output",
+        "passing": true,
+        "method": "validation",
+        "sourceRef": "ci:run-1",
+        "excerptOrSummary": "test_output for claim.invalidation.verified-status",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "ci"
+      },
+      {
+        "id": "evidence.claim.invalidation.assumed-status",
+        "claimId": "claim.invalidation.assumed-status",
+        "evidenceType": "test_output",
+        "passing": true,
+        "method": "validation",
+        "sourceRef": "ci:run-1",
+        "excerptOrSummary": "test_output for claim.invalidation.assumed-status",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "ci"
+      },
+      {
+        "id": "evidence.claim.invalidation.rejected-status",
+        "claimId": "claim.invalidation.rejected-status",
+        "evidenceType": "test_output",
+        "passing": true,
+        "method": "validation",
+        "sourceRef": "ci:run-1",
+        "excerptOrSummary": "test_output for claim.invalidation.rejected-status",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "ci"
+      }
+    ],
+    "policies": [
+      {
+        "id": "policy.invalidation.historical",
+        "claimType": "software-evidence",
+        "requiredEvidence": [
+          "test_output"
+        ],
+        "requiredMethods": [
+          "validation"
+        ],
+        "requiresCorroboration": false,
+        "acceptanceCriteria": [
+          "check passes"
+        ],
+        "reviewAuthority": "repo policy",
+        "validityRule": {
+          "kind": "historical"
+        },
+        "stalenessTriggers": [],
+        "conflictRules": [],
+        "impactLevel": "high"
+      }
+    ],
+    "events": [
+      {
+        "id": "event.claim.invalidation.verified-status.verified",
+        "claimId": "claim.invalidation.verified-status",
+        "status": "verified",
+        "actor": "ci",
+        "method": "npm test",
+        "evidenceIds": [
+          "evidence.claim.invalidation.verified-status"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "2026-06-01T00:00:00.000Z"
+      },
+      {
+        "id": "event.claim.invalidation.verified-status.invalidation",
+        "claimId": "claim.invalidation.verified-status",
+        "status": "verified",
+        "type": "invalidation",
+        "actor": "security-review",
+        "method": "review",
+        "evidenceIds": [],
+        "createdAt": "2026-06-05T00:00:00.000Z"
+      },
+      {
+        "id": "event.claim.invalidation.assumed-status.verified",
+        "claimId": "claim.invalidation.assumed-status",
+        "status": "verified",
+        "actor": "ci",
+        "method": "npm test",
+        "evidenceIds": [
+          "evidence.claim.invalidation.assumed-status"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "2026-06-01T00:00:00.000Z"
+      },
+      {
+        "id": "event.claim.invalidation.assumed-status.invalidation",
+        "claimId": "claim.invalidation.assumed-status",
+        "status": "assumed",
+        "type": "invalidation",
+        "actor": "security-review",
+        "method": "review",
+        "evidenceIds": [],
+        "createdAt": "2026-06-05T00:00:00.000Z"
+      },
+      {
+        "id": "event.claim.invalidation.rejected-status.verified",
+        "claimId": "claim.invalidation.rejected-status",
+        "status": "verified",
+        "actor": "ci",
+        "method": "npm test",
+        "evidenceIds": [
+          "evidence.claim.invalidation.rejected-status"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "2026-06-01T00:00:00.000Z"
+      },
+      {
+        "id": "event.claim.invalidation.rejected-status.invalidation",
+        "claimId": "claim.invalidation.rejected-status",
+        "status": "rejected",
+        "type": "invalidation",
+        "actor": "security-review",
+        "method": "review",
+        "evidenceIds": [],
+        "createdAt": "2026-06-05T00:00:00.000Z"
+      }
+    ]
+  },
+  "expect": {
+    "statusByClaimId": {
+      "claim.invalidation.verified-status": "stale",
+      "claim.invalidation.assumed-status": "stale",
+      "claim.invalidation.rejected-status": "rejected"
+    }
+  }
+}

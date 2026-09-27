@@ -19,6 +19,8 @@ computation; the derived status is always recomputed from the input bundle at
 evaluation time.
 
 `now` is an explicit input so that time-based staleness checks are reproducible.
+Under version `"3"` an implementation MUST refuse to evaluate with a `now` that
+is not a valid instant, rather than let every freshness comparison fail open.
 A caller that wants a point-in-time view fixes `now` before evaluating; there are
 no clock-tick events and no background expiry.
 
@@ -159,9 +161,12 @@ If `latestEvent` exists and its `status` is one of `"rejected"`, `"disputed"`,
 `"superseded"`, `"stale"`, or `"revoked"` — return that status. These are
 terminal: they are not overridden by evidence inspection. An event with
 `type: "invalidation"` is always terminal in this step regardless of its
-`status` (it asserts the claim is no longer good); `"revoked"` derives `stale`
-(treated as an explicit, event-driven staleness) unless a later verification
-event re-asserts the claim.
+`status` (it asserts the claim is no longer good): it returns its `status` when
+that status is one of the terminal statuses above, and **`stale`** otherwise
+(an invalidation carrying `verified`, `assumed`, `proposed`, or `unknown`
+cannot make the claim good). `"revoked"` derives `stale` (treated as an
+explicit, event-driven staleness) unless a later verification event re-asserts
+the claim.
 
 > **Schema-version note (`statusFunctionVersion` `"2"`, `schemaVersion` `4`):**
 > the `"revoked"` event status and `type: "invalidation"` classifier are new.
@@ -186,7 +191,7 @@ present. Let `verifiedTime = Date.parse(latestEvent.verifiedAt ?? latestEvent.cr
   or when `claim.expiresAt` cannot be parsed.
 - Else if `claim.ttlSeconds` is set, the claim is stale when
   `now > verifiedTime + claim.ttlSeconds * 1000`, or when `verifiedTime` cannot
-  be parsed or `ttlSeconds` is not a finite number.
+  be parsed or `ttlSeconds` is not a finite non-negative number.
 - **Precedence:** `expiresAt` wins over `ttlSeconds` when both are present.
   When neither is present, fall through to the policy validity rule below.
 
@@ -356,9 +361,11 @@ document with the following differences, and no others:
    policy is present.
 4. **Step 4a.** A `commit` rule with no `claim.currentIntegrityRef` is not
    stale. No policy means not stale. The spec text does not define the result
-   for an unparseable timestamp, a missing `durationDays`, or an unknown
-   `kind`; the bundled implementation derives stale for a missing
-   `durationDays` and not stale for the others.
+   for an unparseable timestamp, a missing, negative or non-finite
+   `durationDays` or `ttlSeconds`, or a missing or unknown `kind`. The bundled
+   implementation derives stale for a missing `durationDays`, compares a
+   negative window numerically, and treats an unparseable or non-finite
+   value, or an unknown `kind`, as not stale.
 5. **Step 4 order.** The requirement check runs before the blocking failure
    check (`proposed` is returned before `disputed` is considered), and when no
    policy is present the requirement check is skipped, so a verified event
@@ -370,24 +377,33 @@ document with the following differences, and no others:
    before the fold"; the ordering is `revoked` < `unknown` < `rejected` <
    `superseded` < `disputed` < `stale` < `assumed` < `proposed` < `verified`.
    The bundled implementation does not apply the ceiling under version `"2"`.
+8. **Step 2 and `now`.** An invalidation event returns its own `status`
+   whatever it is, so an invalidation carrying `verified` derives `verified`.
+   An invalid `now` is not refused.
 
 ### Migrating from version 2
 
 A bundle derives a different status under version `"3"` exactly when one of
-the following holds for a claim whose latest event is `verified` (or an
-authority-gated resolution to `verified`):
+the following rows applies to a claim. Rows marked *verified path* apply when
+the claim's latest event is `verified` (or, where stated, an authority-gated
+resolution to `verified`).
 
 | Bundle shape | v2 | v3 | Why |
 |---|---|---|---|
-| No policy resolves for the claim | `verified` | `proposed` | Nothing defines what verified requires. |
-| `verificationPolicyId` names a policy not in the bundle | policy by `claimType` | `proposed` | A named policy that is absent is an omission, not a hint to look elsewhere. |
-| Resolved policy has empty `requiredEvidence` and no `requiredMethods` | `verified` | `proposed` | A policy that requires nothing is no policy. |
-| Required check evidence has `passing` absent, or `passing: false` with `blocking: false` | `verified` | `proposed` | A check with no passing result satisfies nothing. |
-| Corroboration counted check evidence without `passing: true` | `verified` | `proposed` | Only qualifying evidence corroborates. |
-| `commit` rule, no `claim.currentIntegrityRef` | `verified` | `stale` | Nothing to compare the verified evidence against. |
-| Unparseable `expiresAt`, or an unparseable verification time under `ttlSeconds` / `duration` | `verified` | `stale` | The window cannot be evaluated. |
-| Blocking failure and an unmet requirement | `proposed` | `disputed` | The failed check is the more adverse fact. |
-| Claim with `derivedFrom` / `derivationEdges` | own status | capped by inputs | The bundled implementation now applies the ceiling, with the v3 ordering. |
+| *Verified path or resolution:* no policy resolves for the claim | `verified` | `proposed` | Nothing defines what verified requires. |
+| *Verified path:* `verificationPolicyId` names a policy not in the bundle | policy by `claimType` | `proposed` | A named policy that is absent is an omission, not a hint to look elsewhere. |
+| *Verified path or resolution:* resolved policy has empty `requiredEvidence` and no `requiredMethods` | `verified` | `proposed` | A policy that requires nothing is no policy. |
+| *Verified path:* required check evidence has `passing` absent, or `passing: false` with `blocking: false` | `verified` | `proposed` | A check with no passing result satisfies nothing. |
+| *Verified path:* corroboration counted check evidence without `passing: true` | `verified` | `proposed` | Only qualifying evidence corroborates. |
+| *Verified path:* `commit` rule, no `claim.currentIntegrityRef` | `verified` | `stale` | Nothing to compare the verified evidence against. |
+| *Verified path:* `validityRule.kind` missing or not one of the four kinds | `verified` | `stale` | The rule cannot be evaluated. |
+| *Verified path:* `duration` rule with `durationDays` negative or not a finite number | `verified` or `stale` (depends on `now`) | `stale` | The window cannot be evaluated. (A missing `durationDays` was already `stale` in the bundled v2 implementation.) |
+| *Verified path:* `ttlSeconds` negative or not a finite number | `verified` or `stale` (depends on `now`) | `stale` | The window cannot be evaluated. |
+| *Verified path:* unparseable `expiresAt`, or an unparseable verification time under `ttlSeconds` / `duration` | `verified` | `stale` | The window cannot be evaluated. |
+| *Verified path:* blocking failure and an unmet requirement | `proposed` | `disputed` | The failed check is the more adverse fact. |
+| Latest event is `type: "invalidation"` with a non-terminal status (`verified`, `assumed`, `proposed`, `unknown`) | that status | `stale` | An invalidation says the claim is no longer good. |
+| Any claim with `derivedFrom` / `derivationEdges`, whatever its events | own status | capped by inputs | The bundled implementation now applies the ceiling, with the v3 ordering. |
+| Evaluation with an invalid `now` | freshness checks pass | refused (error) | No freshness comparison is possible. |
 
 Producers that emit check evidence SHOULD set `passing: true` on checks that
 passed; that single change keeps most version `"2"` bundles `verified` under

@@ -32,6 +32,8 @@
  *   mergeBundles           — merge.md §5/§6; throws on claim collisions
  *   mergeBundlesDetailed   — merge.md; returns { bundle, collisions }
  *   canonicalize           — RFC 8785 (JCS) serialization (merge.md §6, SECURITY.md)
+ *   validateConclusionConfidence — schema-8 conclusionConfidence checks JSON
+ *                             Schema cannot express (ai-evaluation.md)
  */
 
 import { readFileSync, readdirSync } from 'node:fs';
@@ -51,6 +53,7 @@ export {
 } from './lib/derive.mjs';
 export { mergeBundles, mergeBundlesDetailed } from './lib/merge.mjs';
 export { canonicalize } from './lib/canonicalize.mjs';
+export { validateConclusionConfidence } from './lib/confidence.mjs';
 export { diffStatuses } from './lib/diff.mjs';
 
 // ---------------------------------------------------------------------------

@@ -107,11 +107,42 @@ test('v3: a duration rule against an unparseable verification time is stale', ()
   assert.deepEqual(both(b), { v2: 'verified', v3: 'stale' });
 });
 
+// Negative windows end before they start, so at a `now` after verification
+// they read as stale even without the guard. Evaluating at a `now` before the
+// verification time is the case where only the guard yields `stale`.
+const BEFORE_VERIFICATION = new Date('2026-05-29T00:00:00.000Z');
+
 test('v3: a negative durationDays is unevaluable, so stale', () => {
-  // v2 reaches stale too (the window ends before it starts), so this pins
-  // the v3 result only.
   const b = bundle({ validityRule: { kind: 'duration', durationDays: -1 } });
-  assert.equal(deriveStatuses(b, NOW).c, 'stale');
+  assert.equal(deriveStatuses(b, BEFORE_VERIFICATION).c, 'stale');
+  assert.equal(deriveStatuses(b, BEFORE_VERIFICATION, { statusFunctionVersion: '2' }).c, 'verified');
+});
+
+test('v3: a non-finite durationDays is unevaluable, so stale', () => {
+  const b = bundle({ validityRule: { kind: 'duration', durationDays: 'forever' } });
+  assert.deepEqual(both(b), { v2: 'verified', v3: 'stale' });
+});
+
+test('v3: a non-finite ttlSeconds is unevaluable, so stale', () => {
+  const b = bundle({ claim: { ttlSeconds: 'forever' } });
+  assert.deepEqual(both(b), { v2: 'verified', v3: 'stale' });
+});
+
+test('v3: a negative ttlSeconds is unevaluable, so stale', () => {
+  const b = bundle({ claim: { ttlSeconds: -3600 } });
+  assert.equal(deriveStatuses(b, BEFORE_VERIFICATION).c, 'stale');
+  assert.equal(deriveStatuses(b, BEFORE_VERIFICATION, { statusFunctionVersion: '2' }).c, 'verified');
+});
+
+test('v3: an invalid now is refused; v2 keeps its old behaviour', () => {
+  const b = bundle({ validityRule: { kind: 'duration', durationDays: 1 } });
+  for (const now of [new Date('nope'), 'nope']) {
+    assert.throws(() => deriveStatuses(b, now), RangeError);
+    assert.throws(() => deriveClaimStatus(b.claims[0], b, now), RangeError);
+  }
+  // An empty bundle is refused too: the check does not depend on a claim reaching Step 4.
+  assert.throws(() => deriveStatuses({ ...b, claims: [] }, new Date('nope')), RangeError);
+  assert.equal(deriveStatuses(b, new Date('nope'), { statusFunctionVersion: '2' }).c, 'verified');
 });
 
 test('v3: a validity rule with no kind is stale', () => {
