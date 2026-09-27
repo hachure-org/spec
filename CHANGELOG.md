@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.0](https://github.com/hachure-org/spec/compare/v0.15.0...v0.16.0) (2026-09-27)
+
+
+### Features
+
+* status function v3 (omission fails closed) and calibrated conclusionConfidence (schema 8) ([#26](https://github.com/hachure-org/spec/issues/26)) ([bd4cf8b](https://github.com/hachure-org/spec/commit/bd4cf8b85d33b5a9786a95e4d442b1e58be97892))
+
 ## [0.15.0](https://github.com/hachure-org/spec/compare/v0.14.0...v0.15.0) (2026-07-16)
 
 
