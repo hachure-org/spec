@@ -584,3 +584,50 @@ test('conclusionConfidence: unknown extra keys are rejected', () => {
     JSON.stringify(validateClaim.errors),
   );
 });
+
+// ---------------------------------------------------------------------------
+// conclusionConfidence.calibration (schemaVersion 8): `value` names the
+// versioned calibration table that produced it.
+// ---------------------------------------------------------------------------
+const CALIBRATION = { tableRef: 'calibration://example/table', tableVersion: '2026-05-15' };
+
+test('calibration: schemaVersion 8 rejects a conclusionConfidence.value without calibration', () => {
+  const validateBundle = compileRoot('trust-bundle.schema.json');
+  const claim = { ...buildBaseClaim(), conclusionConfidence: { value: 0.8 } };
+  assert.equal(validateBundle(buildBaseBundle(8, claim)), false);
+  assert.ok(
+    validateBundle.errors.some((e) => e.keyword === 'dependentRequired' && e.params.missingProperty === 'calibration'),
+    JSON.stringify(validateBundle.errors),
+  );
+});
+
+test('calibration: schemaVersion 8 accepts value with calibration, and comfortZone alone', () => {
+  const validateBundle = compileRoot('trust-bundle.schema.json');
+  const withTable = { ...buildBaseClaim(), conclusionConfidence: { value: 0.8, calibration: CALIBRATION } };
+  assert.equal(validateBundle(buildBaseBundle(8, withTable)), true, JSON.stringify(validateBundle.errors));
+  const comfortOnly = { ...buildBaseClaim(), conclusionConfidence: { comfortZone: { within: true } } };
+  assert.equal(validateBundle(buildBaseBundle(8, comfortOnly)), true, JSON.stringify(validateBundle.errors));
+});
+
+test('calibration: schemaVersion 7 still accepts value without calibration (SHOULD, not MUST)', () => {
+  const validateBundle = compileRoot('trust-bundle.schema.json');
+  const claim = { ...buildBaseClaim(), conclusionConfidence: { value: 0.8 } };
+  assert.equal(validateBundle(buildBaseBundle(7, claim)), true, JSON.stringify(validateBundle.errors));
+});
+
+test('calibration: a calibration reference must name both table and version', () => {
+  const validateClaim = compileRoot('claim.schema.json');
+  for (const calibration of [{ tableRef: 'x' }, { tableVersion: '1' }, { tableRef: '', tableVersion: '1' }]) {
+    const claim = { ...buildBaseClaim(), conclusionConfidence: { value: 0.8, calibration } };
+    assert.equal(validateClaim(claim), false, JSON.stringify(calibration));
+  }
+});
+
+test('calibration: interval bounds outside [0,1] are rejected', () => {
+  const validateClaim = compileRoot('claim.schema.json');
+  const claim = { ...buildBaseClaim(), conclusionConfidence: { interval: { low: 7, high: -3 } } };
+  assert.equal(validateClaim(claim), false);
+  const paths = validateClaim.errors.map((e) => e.instancePath);
+  assert.ok(paths.includes('/conclusionConfidence/interval/low'), JSON.stringify(validateClaim.errors));
+  assert.ok(paths.includes('/conclusionConfidence/interval/high'), JSON.stringify(validateClaim.errors));
+});

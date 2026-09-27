@@ -2,8 +2,10 @@
 /**
  * hachure — CLI for the open trust format.
  *
- *   hachure derive <bundle.json> [--now <ISO timestamp>]
- *       Derive per-claim statuses from a TrustBundle (status-function.md).
+ *   hachure derive <bundle.json> [--now <ISO timestamp>] [--status-function-version <v>]
+ *       Derive per-claim statuses from a TrustBundle (status-function.md),
+ *       under the current statusFunctionVersion unless another supported one
+ *       is named.
  *
  *   hachure merge <a.json> <b.json> [...more] [--detailed]
  *       Merge bundles (merge.md). --detailed reports collisions instead of
@@ -22,6 +24,7 @@ import { readFileSync } from 'node:fs';
 
 import {
   statusFunctionVersion,
+  supportedStatusFunctionVersions,
   schemas,
   testVectors,
   deriveStatuses,
@@ -55,17 +58,21 @@ const [command, ...args] = process.argv.slice(2);
 switch (command) {
   case 'derive': {
     const nowArg = takeFlag(args, '--now');
+    const version = takeFlag(args, '--status-function-version') ?? statusFunctionVersion;
     const [path] = args;
-    if (!path) fail('usage: hachure derive <bundle.json> [--now <ISO timestamp>]');
+    if (!path) fail('usage: hachure derive <bundle.json> [--now <ISO timestamp>] [--status-function-version <v>]');
+    if (!supportedStatusFunctionVersions.includes(version)) {
+      fail(`unsupported --status-function-version ${version}; supported: ${supportedStatusFunctionVersions.join(', ')}`);
+    }
     const now = nowArg ? new Date(nowArg) : new Date();
     if (Number.isNaN(now.getTime())) fail(`invalid --now value: ${nowArg}`);
     const bundle = readJson(path);
     console.log(
       JSON.stringify(
         {
-          statusFunctionVersion,
+          statusFunctionVersion: version,
           evaluatedAt: now.toISOString(),
-          statusByClaimId: deriveStatuses(bundle, now),
+          statusByClaimId: deriveStatuses(bundle, now, { statusFunctionVersion: version }),
         },
         null,
         2
@@ -141,7 +148,14 @@ switch (command) {
 
   case 'vectors': {
     let failed = 0;
+    let run = 0;
     for (const { name, vector } of testVectors) {
+      // A vector without statusFunctionVersions holds for every version.
+      if (vector.statusFunctionVersions && !vector.statusFunctionVersions.includes(statusFunctionVersion)) {
+        console.log(`  SKIP ${name} (applies to statusFunctionVersion ${vector.statusFunctionVersions.join(', ')})`);
+        continue;
+      }
+      run++;
       const derived = deriveStatuses(vector.input, new Date(vector.now));
       const mismatches = Object.entries(vector.expect.statusByClaimId).filter(
         ([claimId, expected]) => derived[claimId] !== expected
@@ -157,7 +171,7 @@ switch (command) {
     }
     console.log(
       failed === 0
-        ? `all ${testVectors.length} vectors pass (statusFunctionVersion "${statusFunctionVersion}")`
+        ? `all ${run} applicable vectors pass (statusFunctionVersion "${statusFunctionVersion}")`
         : `${failed} vector(s) failed`
     );
     if (failed > 0) process.exit(1);
@@ -167,7 +181,8 @@ switch (command) {
   default:
     console.error(
       'usage: hachure <derive|diff|merge|validate|vectors> [...]\n' +
-        '  derive <bundle.json> [--now <ISO>]           derive per-claim statuses\n' +
+        '  derive <bundle.json> [--now <ISO>] [--status-function-version <v>]\n' +
+        '                                               derive per-claim statuses\n' +
         '  diff <before.json> <after.json> [--now <ISO>] report status transitions (exit 3 if any)\n' +
         '  merge <a.json> <b.json> [...] [--detailed]   merge producer bundles\n' +
         '  validate <bundle.json>                       schema-validate a bundle\n' +

@@ -1,0 +1,194 @@
+{
+  "now": "2026-06-10T00:00:00.000Z",
+  "statusFunctionVersions": [
+    "3"
+  ],
+  "input": {
+    "schemaVersion": 7,
+    "source": "spec-conformance:v3-unevaluable-validity",
+    "claims": [
+      {
+        "id": "claim.validity.commit-no-ref",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "software-evidence",
+        "fieldOrBehavior": "commit-no-ref",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.validity.commit"
+      },
+      {
+        "id": "claim.validity.duration-no-days",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "software-evidence",
+        "fieldOrBehavior": "duration-no-days",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.validity.duration-no-days"
+      },
+      {
+        "id": "claim.validity.historical",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "software-evidence",
+        "fieldOrBehavior": "historical",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.validity.historical"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "evidence.claim.validity.commit-no-ref",
+        "claimId": "claim.validity.commit-no-ref",
+        "evidenceType": "test_output",
+        "passing": true,
+        "method": "validation",
+        "sourceRef": "ci:run-1",
+        "excerptOrSummary": "test_output for claim.validity.commit-no-ref",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "ci",
+        "integrityRef": "commit:abc123"
+      },
+      {
+        "id": "evidence.claim.validity.duration-no-days",
+        "claimId": "claim.validity.duration-no-days",
+        "evidenceType": "test_output",
+        "passing": true,
+        "method": "validation",
+        "sourceRef": "ci:run-1",
+        "excerptOrSummary": "test_output for claim.validity.duration-no-days",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "ci"
+      },
+      {
+        "id": "evidence.claim.validity.historical",
+        "claimId": "claim.validity.historical",
+        "evidenceType": "test_output",
+        "passing": true,
+        "method": "validation",
+        "sourceRef": "ci:run-1",
+        "excerptOrSummary": "test_output for claim.validity.historical",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "ci"
+      }
+    ],
+    "policies": [
+      {
+        "id": "policy.validity.commit",
+        "claimType": "software-evidence",
+        "requiredEvidence": [
+          "test_output"
+        ],
+        "requiredMethods": [
+          "validation"
+        ],
+        "requiresCorroboration": false,
+        "acceptanceCriteria": [
+          "check passes"
+        ],
+        "reviewAuthority": "repo policy",
+        "validityRule": {
+          "kind": "commit"
+        },
+        "stalenessTriggers": [],
+        "conflictRules": [],
+        "impactLevel": "high"
+      },
+      {
+        "id": "policy.validity.duration-no-days",
+        "claimType": "software-evidence",
+        "requiredEvidence": [
+          "test_output"
+        ],
+        "requiredMethods": [
+          "validation"
+        ],
+        "requiresCorroboration": false,
+        "acceptanceCriteria": [
+          "check passes"
+        ],
+        "reviewAuthority": "repo policy",
+        "validityRule": {
+          "kind": "duration"
+        },
+        "stalenessTriggers": [],
+        "conflictRules": [],
+        "impactLevel": "high"
+      },
+      {
+        "id": "policy.validity.historical",
+        "claimType": "software-evidence",
+        "requiredEvidence": [
+          "test_output"
+        ],
+        "requiredMethods": [
+          "validation"
+        ],
+        "requiresCorroboration": false,
+        "acceptanceCriteria": [
+          "check passes"
+        ],
+        "reviewAuthority": "repo policy",
+        "validityRule": {
+          "kind": "historical"
+        },
+        "stalenessTriggers": [],
+        "conflictRules": [],
+        "impactLevel": "high"
+      }
+    ],
+    "events": [
+      {
+        "id": "event.claim.validity.commit-no-ref.verified",
+        "claimId": "claim.validity.commit-no-ref",
+        "status": "verified",
+        "actor": "ci",
+        "method": "npm test",
+        "evidenceIds": [
+          "evidence.claim.validity.commit-no-ref"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "2026-06-01T00:00:00.000Z"
+      },
+      {
+        "id": "event.claim.validity.duration-no-days.verified",
+        "claimId": "claim.validity.duration-no-days",
+        "status": "verified",
+        "actor": "ci",
+        "method": "npm test",
+        "evidenceIds": [
+          "evidence.claim.validity.duration-no-days"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "2026-06-01T00:00:00.000Z"
+      },
+      {
+        "id": "event.claim.validity.historical.verified",
+        "claimId": "claim.validity.historical",
+        "status": "verified",
+        "actor": "ci",
+        "method": "npm test",
+        "evidenceIds": [
+          "evidence.claim.validity.historical"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "2026-06-01T00:00:00.000Z"
+      }
+    ]
+  },
+  "expect": {
+    "statusByClaimId": {
+      "claim.validity.commit-no-ref": "stale",
+      "claim.validity.duration-no-days": "stale",
+      "claim.validity.historical": "verified"
+    }
+  }
+}

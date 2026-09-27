@@ -47,7 +47,7 @@ npx hachure derive /tmp/bundle.json --now "2026-06-10T00:00:00.000Z"
 
 ```json
 {
-  "statusFunctionVersion": "2",
+  "statusFunctionVersion": "3",
   "evaluatedAt": "2026-06-10T00:00:00.000Z",
   "statusByClaimId": {
     "claim.repo-governance.api-proof": "verified",
@@ -72,13 +72,16 @@ implementation (`testVectors` covers the status-derivation vectors; the L3 merge
 vectors ship separately under `conformance/merge/` and via the
 `./conformance/*.json` export path). For each vector, call your status-derivation function with
 `vector.input` and `vector.now`, then assert that the derived status for every
-claim ID matches `vector.expect.statusByClaimId`. Passing all vectors for a given
-status function version is the bar for a conforming implementation.
+claim ID matches `vector.expect.statusByClaimId`. A vector that carries a
+`statusFunctionVersions` array applies only to the versions it lists; one
+without it applies to every version. Passing every vector that applies to a
+given status function version is the bar for a conforming implementation.
 
 ```js
 import { testVectors, statusFunctionVersion } from 'hachure';
 
 for (const { name, vector } of testVectors) {
+  if (vector.statusFunctionVersions && !vector.statusFunctionVersions.includes(statusFunctionVersion)) continue;
   const results = deriveStatuses(vector.input, new Date(vector.now));
   for (const [claimId, expected] of Object.entries(vector.expect.statusByClaimId)) {
     assert.equal(results[claimId], expected, `${name} / ${claimId}`);
@@ -194,8 +197,8 @@ product-scoped namespaces (a domain the producer controls), never
 Pre-1.0: the format uses hard breaking changes rather than compatibility aliases.
 No forward or backward compatibility guarantees are made across versions. Version
 bumps are reflected in `schemaVersion` (an integer field in TrustBundle, currently
-`7`) and in the status function version (a string exported by this package and by
-every conforming implementation as `statusFunctionVersion`, currently `"2"`).
+`8`) and in the status function version (a string exported by this package and by
+every conforming implementation as `statusFunctionVersion`, currently `"3"`).
 
 Schema version `4` adds optional claim freshness fields (`expiresAt` /
 `ttlSeconds`) and an optional invalidation event vocabulary (event `status:
@@ -229,6 +232,27 @@ is additive: every bundle valid at `schemaVersion` `6` remains valid. The status
 function's existing required-evidence step consults `runtime_observation` when a
 policy requires it, so older validators reject bundles that use the new value;
 `statusFunctionVersion` remains `"2"` because no fold step changed.
+
+Schema version `8` adds an optional `conclusionConfidence.calibration` reference
+(`tableRef`, `tableVersion`, and optional `method`, `sampleSize`,
+`boundMethod`) naming the versioned calibration table that produced
+`conclusionConfidence.value` (see [ai-evaluation.md](ai-evaluation.md)). A
+bundle declaring `schemaVersion` `8` MUST carry `calibration` whenever `value`
+is present; bundles at `5`–`7` remain valid without it (SHOULD). The
+`interval` bounds are now constrained to `[0, 1]` at every schema version,
+since a probability interval outside that range was never meaningful. The
+status function never reads `conclusionConfidence`.
+
+Status function version `"3"` makes omission fail closed: a claim with no
+resolvable (or no non-empty) verification policy derives at most `proposed`,
+check evidence satisfies a requirement only with `passing: true`, an
+unevaluable validity rule derives `stale`, a blocking failure is checked before
+policy requirements, and the derivation ceiling uses a reconciled status
+ordering. Version `"2"` remains defined and the bundled implementation
+evaluates it on request (`{ statusFunctionVersion: "2" }`, or
+`hachure derive --status-function-version 2`). No schema change is involved.
+See [status-function.md](status-function.md) §"Migrating from version 2" for
+exactly which bundles change status, and the `sf-v3-*` conformance vectors.
 
 ---
 
@@ -293,7 +317,10 @@ and `subjectId` pair identifying what is being asserted, an optional `facet` (a
 producer-defined grouping or namespace for the claim — see `merge.md` §4 for why
 it's excluded from cross-producer claim identity), a `claimType`, a
 `fieldOrBehavior`, and a `value`. Claims carry optional `impactLevel`, integrity
-anchors, policy references, derivation edges, and confidence basis metadata.
+anchors, policy references, derivation edges, and confidence basis metadata, and
+an optional `conclusionConfidence` whose `value` is written only by a calibrator
+and names its calibration table in `calibration` (see
+[ai-evaluation.md](ai-evaluation.md)).
 
 Derived trust status is never stored on the claim itself as source of truth; it is
 computed from the surrounding bundle at evaluation time.

@@ -1,0 +1,74 @@
+{
+  "now": "2026-06-10T00:00:00.000Z",
+  "statusFunctionVersions": [
+    "3"
+  ],
+  "input": {
+    "schemaVersion": 7,
+    "source": "spec-conformance:v3-empty-requirement",
+    "claims": [
+      {
+        "id": "claim.empty-requirement",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "software-evidence",
+        "fieldOrBehavior": "empty-requirement",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.requires-nothing"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "evidence.claim.empty-requirement",
+        "claimId": "claim.empty-requirement",
+        "evidenceType": "test_output",
+        "passing": true,
+        "method": "validation",
+        "sourceRef": "ci:run-1",
+        "excerptOrSummary": "test_output for claim.empty-requirement",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "ci"
+      }
+    ],
+    "policies": [
+      {
+        "id": "policy.requires-nothing",
+        "claimType": "software-evidence",
+        "requiredEvidence": [],
+        "requiresCorroboration": false,
+        "acceptanceCriteria": [
+          "check passes"
+        ],
+        "reviewAuthority": "repo policy",
+        "validityRule": {
+          "kind": "historical"
+        },
+        "stalenessTriggers": [],
+        "conflictRules": [],
+        "impactLevel": "high"
+      }
+    ],
+    "events": [
+      {
+        "id": "event.claim.empty-requirement.verified",
+        "claimId": "claim.empty-requirement",
+        "status": "verified",
+        "actor": "ci",
+        "method": "npm test",
+        "evidenceIds": [
+          "evidence.claim.empty-requirement"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "2026-06-01T00:00:00.000Z"
+      }
+    ]
+  },
+  "expect": {
+    "statusByClaimId": {
+      "claim.empty-requirement": "proposed"
+    }
+  }
+}

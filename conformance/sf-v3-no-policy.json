@@ -1,0 +1,106 @@
+{
+  "now": "2026-06-10T00:00:00.000Z",
+  "statusFunctionVersions": [
+    "3"
+  ],
+  "input": {
+    "schemaVersion": 7,
+    "source": "spec-conformance:v3-no-policy",
+    "claims": [
+      {
+        "id": "claim.no-policy.verified-event",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "unpolicied-type",
+        "fieldOrBehavior": "verified-event",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high"
+      },
+      {
+        "id": "claim.no-policy.authority-resolution",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "unpolicied-type",
+        "fieldOrBehavior": "authority-resolution",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "evidence.claim.no-policy.verified-event",
+        "claimId": "claim.no-policy.verified-event",
+        "evidenceType": "test_output",
+        "passing": true,
+        "method": "validation",
+        "sourceRef": "ci:run-1",
+        "excerptOrSummary": "test_output for claim.no-policy.verified-event",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "ci"
+      },
+      {
+        "id": "evidence.claim.no-policy.authority-resolution",
+        "claimId": "claim.no-policy.authority-resolution",
+        "evidenceType": "test_output",
+        "passing": true,
+        "method": "validation",
+        "sourceRef": "ci:run-1",
+        "excerptOrSummary": "test_output for claim.no-policy.authority-resolution",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "ci"
+      }
+    ],
+    "policies": [],
+    "events": [
+      {
+        "id": "event.claim.no-policy.verified-event.verified",
+        "claimId": "claim.no-policy.verified-event",
+        "status": "verified",
+        "actor": "ci",
+        "method": "npm test",
+        "evidenceIds": [
+          "evidence.claim.no-policy.verified-event"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "2026-06-01T00:00:00.000Z"
+      },
+      {
+        "id": "event.claim.no-policy.authority-resolution.resolution",
+        "claimId": "claim.no-policy.authority-resolution",
+        "status": "verified",
+        "actor": "reviewer:alice",
+        "method": "review",
+        "evidenceIds": [
+          "evidence.claim.no-policy.authority-resolution"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "resolvesDispute": true,
+        "authorityRef": "authority.domain-expert"
+      }
+    ],
+    "authorityTrace": [
+      {
+        "id": "trace.alice",
+        "subject": {
+          "subjectType": "api",
+          "subjectId": "public-api"
+        },
+        "actorRef": "reviewer:alice",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy",
+        "observedAt": "2026-01-01T00:00:00.000Z"
+      }
+    ]
+  },
+  "expect": {
+    "statusByClaimId": {
+      "claim.no-policy.verified-event": "proposed",
+      "claim.no-policy.authority-resolution": "proposed"
+    }
+  }
+}

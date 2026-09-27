@@ -35,18 +35,33 @@ vectors via the `testVectors` export or `npx hachure vectors`.
 | `sf-revoked-event.json` | Explicit invalidation event (`status: revoked`, `type: invalidation`) → stale (schema 4) | 2026-06-10T00:00:00.000Z |
 | `sf-no-freshness-fields.json` | No freshness fields present → derives unchanged from `statusFunctionVersion` `1` | 2026-06-10T00:00:00.000Z |
 | `sf-runtime-observation-required.json` | Runtime-observation policy — test output alone leaves the requirement unmet; live observation satisfies it | 2026-06-10T00:00:00.000Z |
+| `sf-v3-no-policy.json` | v3: no resolvable policy — a verified event, and an authority-gated resolution to verified, derive `proposed` | 2026-06-10T00:00:00.000Z |
+| `sf-v3-dangling-policy-id.json` | v3: `verificationPolicyId` names no policy — no fallback to a matching `claimType` policy → `proposed` | 2026-06-10T00:00:00.000Z |
+| `sf-v3-empty-requirement.json` | v3: a policy with no `requiredEvidence` and no `requiredMethods` is no policy → `proposed` | 2026-06-10T00:00:00.000Z |
+| `sf-v3-check-evidence-result.json` | v3: check evidence with `passing` absent, or a non-blocking `passing: false`, satisfies no requirement and does not corroborate → `proposed` | 2026-06-10T00:00:00.000Z |
+| `sf-v3-unevaluable-validity.json` | v3: `commit` rule with no `currentIntegrityRef` → `stale`; `duration` rule with no `durationDays` → `stale`; `historical` stays `verified` | 2026-06-10T00:00:00.000Z |
+| `sf-v3-blocking-before-requirements.json` | v3: a blocking failure that also leaves a requirement unmet → `disputed`, not `proposed` | 2026-06-10T00:00:00.000Z |
+| `sf-v3-derivation-ceiling.json` | v3: derivation ceiling and status ordering — rejected below unknown, disputed below superseded, stale below unknown, missing input → `unknown`, transitive through `derivationEdges` | 2026-06-10T00:00:00.000Z |
 
 ## Test vector format
 
 ```json
 {
   "now": "<ISO 8601 string>",
+  "statusFunctionVersions": ["3"],
   "input": { /* TrustBundle */ },
   "expect": {
     "statusByClaimId": { "<claimId>": "<TrustStatus>" }
   }
 }
 ```
+
+`statusFunctionVersions` is optional. When present, the vector's expectations
+hold only for the listed status function versions, and an implementation of
+another version skips it. When absent, the vector holds for every version. The
+`sf-v3-*` vectors list `["3"]`; the package's own suite also checks that each of
+them derives differently under version `"2"`, so each one exercises a rule that
+changed.
 
 ## Merge conformance vectors
 

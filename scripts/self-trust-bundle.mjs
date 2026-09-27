@@ -51,13 +51,15 @@ const testSummary = (tests.output.match(/(?:tests|pass|fail) \d+/g) ?? [])
   .join(', ') || tests.output.slice(-300).trim();
 
 console.error('running conformance vectors against the bundled implementation...');
-const vectorResults = testVectors.map(({ name, vector }) => {
-  const derived = deriveStatuses(vector.input, new Date(vector.now));
-  const pass = Object.entries(vector.expect.statusByClaimId).every(
-    ([claimId, expected]) => derived[claimId] === expected
-  );
-  return { name, pass };
-});
+const vectorResults = testVectors
+  .filter(({ vector }) => (vector.statusFunctionVersions ?? [statusFunctionVersion]).includes(statusFunctionVersion))
+  .map(({ name, vector }) => {
+    const derived = deriveStatuses(vector.input, new Date(vector.now));
+    const pass = Object.entries(vector.expect.statusByClaimId).every(
+      ([claimId, expected]) => derived[claimId] === expected
+    );
+    return { name, pass };
+  });
 const vectorsPass = vectorResults.every((v) => v.pass);
 
 console.error('computing package integrity (npm pack --dry-run)...');
@@ -145,7 +147,7 @@ const bundle = {
     claim('hachure-spec.release.test-suite-passes', 'test-suite-passes', tests.ok, 'hachure-spec.policy.test'),
     claim('hachure-spec.release.conformance-self-derivation', 'bundled-implementation-derives-all-vectors', vectorsPass, 'hachure-spec.policy.conformance'),
     claim('hachure-spec.release.status-function-version', 'statusFunctionVersion', statusFunctionVersion, 'hachure-spec.policy.identity'),
-    claim('hachure-spec.release.package-identity', 'package-integrity', integrity, 'hachure-spec.policy.identity'),
+    claim('hachure-spec.release.package-identity', 'package-integrity', integrity, 'hachure-spec.policy.integrity'),
   ],
   evidence: [
     evidence('hachure-spec.evidence.test-output', 'hachure-spec.release.test-suite-passes', 'test_output', 'validation', `node --test: ${testSummary}`, tests.ok),
@@ -163,7 +165,8 @@ const bundle = {
   policies: [
     policy('hachure-spec.policy.test', ['test_output'], ['validation'], 'test suite passes for the packed content'),
     policy('hachure-spec.policy.conformance', ['test_output'], ['validation'], 'every conformance vector derives its expected statuses'),
-    policy('hachure-spec.policy.identity', [], [], 'declared constants match packed content'),
+    policy('hachure-spec.policy.identity', ['source_excerpt'], ['extraction'], 'declared constants match packed content'),
+    policy('hachure-spec.policy.integrity', ['calculation_trace'], ['anchoring'], 'package integrity is computed from packed content'),
   ],
   events: [
     event('hachure-spec.event.test', 'hachure-spec.release.test-suite-passes', ['hachure-spec.evidence.test-output']),

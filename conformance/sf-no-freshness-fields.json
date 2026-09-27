@@ -24,6 +24,7 @@
         "id": "evidence.api.rate-limit.test",
         "claimId": "claim.api.rate-limit",
         "evidenceType": "test_output",
+        "passing": true,
         "method": "validation",
         "sourceRef": "ci:1847",
         "excerptOrSummary": "Rate-limit tests passed.",

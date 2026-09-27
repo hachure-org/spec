@@ -23,6 +23,7 @@
         "id": "evidence.access.grant",
         "claimId": "claim.access.grant",
         "evidenceType": "test_output",
+        "passing": true,
         "method": "validation",
         "sourceRef": "grant issuance log",
         "excerptOrSummary": "Deploy key issued and validated.",

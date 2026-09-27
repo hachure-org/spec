@@ -23,7 +23,12 @@
  * conforming, dependency-free implementation so the format is usable without
  * any particular vendor's library:
  *   deriveClaimStatus      — status-function.md, one claim → { status, policyId }
- *   deriveStatuses         — whole bundle → { claimId: status }
+ *                             (before the derivation ceiling)
+ *   deriveStatuses         — whole bundle → { claimId: status }; both take an
+ *                             optional { statusFunctionVersion } ("3" default,
+ *                             "2" still supported, anything else throws)
+ *   supportedStatusFunctionVersions — the versions lib/derive.mjs evaluates
+ *   statusOrder, weakerStatus — status-function.md §"Status ordering" (v3)
  *   mergeBundles           — merge.md §5/§6; throws on claim collisions
  *   mergeBundlesDetailed   — merge.md; returns { bundle, collisions }
  *   canonicalize           — RFC 8785 (JCS) serialization (merge.md §6, SECURITY.md)
@@ -35,17 +40,18 @@ import { join, dirname, basename } from 'node:path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-export { deriveClaimStatus, deriveStatuses, resolvePolicy } from './lib/derive.mjs';
+export {
+  deriveClaimStatus,
+  deriveStatuses,
+  resolvePolicy,
+  statusFunctionVersion,
+  supportedStatusFunctionVersions,
+  statusOrder,
+  weakerStatus,
+} from './lib/derive.mjs';
 export { mergeBundles, mergeBundlesDetailed } from './lib/merge.mjs';
 export { canonicalize } from './lib/canonicalize.mjs';
 export { diffStatuses } from './lib/diff.mjs';
-
-// ---------------------------------------------------------------------------
-// Spec-side declaration of the status function version.
-// Any implementation claiming conformance at this version must produce the
-// same status outputs as the test vectors for all cases in conformance/.
-// ---------------------------------------------------------------------------
-export const statusFunctionVersion = '2';
 
 // ---------------------------------------------------------------------------
 // Schemas — Map of record name (filename without .schema.json) → parsed JSON.
