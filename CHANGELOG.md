@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.18.0](https://github.com/hachure-org/spec/compare/v0.17.0...v0.18.0) (2026-10-01)
+
+
+### Features
+
+* **status:** status function version 4, now the default — RFC 3339 timestamps compared exactly; unevaluable times fail closed in the authority step ([#31](https://github.com/hachure-org/spec/issues/31)) ([cdd6f30](https://github.com/hachure-org/spec/commit/cdd6f308c13c1285eb7c8b245599142f976f1fbc)), closes [#30](https://github.com/hachure-org/spec/issues/30)
+
 ## [0.17.0](https://github.com/hachure-org/spec/compare/v0.16.0...v0.17.0) (2026-10-01)
 
 
