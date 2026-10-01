@@ -1,0 +1,164 @@
+{
+  "now": "2026-06-10T00:00:00.000Z",
+  "input": {
+    "schemaVersion": 5,
+    "source": "spec-conformance:unparseable-event-time",
+    "claims": [
+      {
+        "id": "claim.event-time.unparseable-listed-first",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.event-time.unparseable-listed-first",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "unparseable-listed-first",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.event-time.unparseable-listed-last",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.event-time.unparseable-listed-last",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "unparseable-listed-last",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.event-time.unparseable-only",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.event-time.unparseable-only",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "unparseable-only",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "evidence.claim.event-time.unparseable-listed-first",
+        "claimId": "claim.event-time.unparseable-listed-first",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.event-time.unparseable-listed-last",
+        "claimId": "claim.event-time.unparseable-listed-last",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.event-time.unparseable-only",
+        "claimId": "claim.event-time.unparseable-only",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      }
+    ],
+    "policies": [
+      {
+        "id": "policy.public-data-field.basic",
+        "claimType": "public-data-field",
+        "requiredEvidence": [
+          "source_excerpt"
+        ],
+        "requiredMethods": [
+          "observation"
+        ],
+        "requiresCorroboration": false,
+        "acceptanceCriteria": [
+          "field verified from source"
+        ],
+        "reviewAuthority": "operator",
+        "validityRule": {
+          "kind": "historical"
+        },
+        "stalenessTriggers": [],
+        "conflictRules": [],
+        "impactLevel": "medium"
+      }
+    ],
+    "events": [
+      {
+        "id": "event.first.unparseable",
+        "claimId": "claim.event-time.unparseable-listed-first",
+        "status": "verified",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.event-time.unparseable-listed-first"
+        ],
+        "createdAt": "not-a-timestamp"
+      },
+      {
+        "id": "event.first.rejected",
+        "claimId": "claim.event-time.unparseable-listed-first",
+        "status": "rejected",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.event-time.unparseable-listed-first"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z"
+      },
+      {
+        "id": "event.last.rejected",
+        "claimId": "claim.event-time.unparseable-listed-last",
+        "status": "rejected",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.event-time.unparseable-listed-last"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z"
+      },
+      {
+        "id": "event.last.unparseable",
+        "claimId": "claim.event-time.unparseable-listed-last",
+        "status": "verified",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.event-time.unparseable-listed-last"
+        ],
+        "createdAt": "not-a-timestamp"
+      },
+      {
+        "id": "event.only.unparseable",
+        "claimId": "claim.event-time.unparseable-only",
+        "status": "rejected",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.event-time.unparseable-only"
+        ],
+        "createdAt": "not-a-timestamp"
+      }
+    ]
+  },
+  "expect": {
+    "statusByClaimId": {
+      "claim.event-time.unparseable-listed-first": "rejected",
+      "claim.event-time.unparseable-listed-last": "rejected",
+      "claim.event-time.unparseable-only": "rejected"
+    }
+  }
+}

@@ -1,0 +1,455 @@
+{
+  "now": "2026-06-10T00:00:00.000Z",
+  "input": {
+    "schemaVersion": 5,
+    "source": "spec-conformance:authority-window-instants",
+    "claims": [
+      {
+        "id": "claim.revoked-at.no-millis-equal",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.revoked-at.no-millis-equal",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "no-millis-equal",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.revoked-at.offset-later",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.revoked-at.offset-later",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "offset-later",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.valid-until.offset-earlier",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.valid-until.offset-earlier",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "offset-earlier",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.valid-until.event-no-millis-equal",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.valid-until.event-no-millis-equal",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "event-no-millis-equal",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.valid-from.offset-earlier",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.valid-from.offset-earlier",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "offset-earlier",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.valid-from.no-millis-equal",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.valid-from.no-millis-equal",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "no-millis-equal",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.valid-from.offset-later",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.valid-from.offset-later",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "offset-later",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "evidence.claim.revoked-at.no-millis-equal",
+        "claimId": "claim.revoked-at.no-millis-equal",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.revoked-at.offset-later",
+        "claimId": "claim.revoked-at.offset-later",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.valid-until.offset-earlier",
+        "claimId": "claim.valid-until.offset-earlier",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.valid-until.event-no-millis-equal",
+        "claimId": "claim.valid-until.event-no-millis-equal",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.valid-from.offset-earlier",
+        "claimId": "claim.valid-from.offset-earlier",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.valid-from.no-millis-equal",
+        "claimId": "claim.valid-from.no-millis-equal",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.valid-from.offset-later",
+        "claimId": "claim.valid-from.offset-later",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      }
+    ],
+    "policies": [
+      {
+        "id": "policy.public-data-field.basic",
+        "claimType": "public-data-field",
+        "requiredEvidence": [
+          "source_excerpt"
+        ],
+        "requiredMethods": [
+          "observation"
+        ],
+        "requiresCorroboration": false,
+        "acceptanceCriteria": [
+          "field verified from source"
+        ],
+        "reviewAuthority": "operator",
+        "validityRule": {
+          "kind": "historical"
+        },
+        "stalenessTriggers": [],
+        "conflictRules": [],
+        "impactLevel": "medium"
+      }
+    ],
+    "events": [
+      {
+        "id": "event.revoked-at.no-millis-equal.resolution",
+        "claimId": "claim.revoked-at.no-millis-equal",
+        "status": "verified",
+        "actor": "reviewer:revoked-at.no-millis-equal",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.revoked-at.no-millis-equal"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.revoked-at.no-millis-equal.later-dispute",
+        "claimId": "claim.revoked-at.no-millis-equal",
+        "status": "disputed",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.revoked-at.no-millis-equal"
+        ],
+        "createdAt": "2026-05-03T00:00:00.000Z"
+      },
+      {
+        "id": "event.revoked-at.offset-later.resolution",
+        "claimId": "claim.revoked-at.offset-later",
+        "status": "verified",
+        "actor": "reviewer:revoked-at.offset-later",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.revoked-at.offset-later"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.revoked-at.offset-later.later-dispute",
+        "claimId": "claim.revoked-at.offset-later",
+        "status": "disputed",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.revoked-at.offset-later"
+        ],
+        "createdAt": "2026-05-03T00:00:00.000Z"
+      },
+      {
+        "id": "event.valid-until.offset-earlier.resolution",
+        "claimId": "claim.valid-until.offset-earlier",
+        "status": "verified",
+        "actor": "reviewer:valid-until.offset-earlier",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.valid-until.offset-earlier"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.valid-until.offset-earlier.later-dispute",
+        "claimId": "claim.valid-until.offset-earlier",
+        "status": "disputed",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.valid-until.offset-earlier"
+        ],
+        "createdAt": "2026-05-03T00:00:00.000Z"
+      },
+      {
+        "id": "event.valid-until.event-no-millis-equal.resolution",
+        "claimId": "claim.valid-until.event-no-millis-equal",
+        "status": "verified",
+        "actor": "reviewer:valid-until.event-no-millis-equal",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.valid-until.event-no-millis-equal"
+        ],
+        "createdAt": "2026-05-02T00:00:00Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.valid-until.event-no-millis-equal.later-dispute",
+        "claimId": "claim.valid-until.event-no-millis-equal",
+        "status": "disputed",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.valid-until.event-no-millis-equal"
+        ],
+        "createdAt": "2026-05-03T00:00:00.000Z"
+      },
+      {
+        "id": "event.valid-from.offset-earlier.resolution",
+        "claimId": "claim.valid-from.offset-earlier",
+        "status": "verified",
+        "actor": "reviewer:valid-from.offset-earlier",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.valid-from.offset-earlier"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.valid-from.offset-earlier.later-dispute",
+        "claimId": "claim.valid-from.offset-earlier",
+        "status": "disputed",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.valid-from.offset-earlier"
+        ],
+        "createdAt": "2026-05-03T00:00:00.000Z"
+      },
+      {
+        "id": "event.valid-from.no-millis-equal.resolution",
+        "claimId": "claim.valid-from.no-millis-equal",
+        "status": "verified",
+        "actor": "reviewer:valid-from.no-millis-equal",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.valid-from.no-millis-equal"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.valid-from.no-millis-equal.later-dispute",
+        "claimId": "claim.valid-from.no-millis-equal",
+        "status": "disputed",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.valid-from.no-millis-equal"
+        ],
+        "createdAt": "2026-05-03T00:00:00.000Z"
+      },
+      {
+        "id": "event.valid-from.offset-later.resolution",
+        "claimId": "claim.valid-from.offset-later",
+        "status": "verified",
+        "actor": "reviewer:valid-from.offset-later",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.valid-from.offset-later"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.valid-from.offset-later.later-dispute",
+        "claimId": "claim.valid-from.offset-later",
+        "status": "disputed",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.valid-from.offset-later"
+        ],
+        "createdAt": "2026-05-03T00:00:00.000Z"
+      }
+    ],
+    "authorityTrace": [
+      {
+        "id": "trace.revoked-at.no-millis-equal",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.revoked-at.no-millis-equal"
+        },
+        "actorRef": "reviewer:revoked-at.no-millis-equal",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z",
+        "revokedAt": "2026-05-02T00:00:00Z"
+      },
+      {
+        "id": "trace.revoked-at.offset-later",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.revoked-at.offset-later"
+        },
+        "actorRef": "reviewer:revoked-at.offset-later",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z",
+        "revokedAt": "2026-05-01T23:30:00-02:00"
+      },
+      {
+        "id": "trace.valid-until.offset-earlier",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.valid-until.offset-earlier"
+        },
+        "actorRef": "reviewer:valid-until.offset-earlier",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z",
+        "validUntil": "2026-05-02T01:00:00.000+02:00"
+      },
+      {
+        "id": "trace.valid-until.event-no-millis-equal",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.valid-until.event-no-millis-equal"
+        },
+        "actorRef": "reviewer:valid-until.event-no-millis-equal",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z",
+        "validUntil": "2026-05-02T00:00:00.000Z"
+      },
+      {
+        "id": "trace.valid-from.offset-earlier",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.valid-from.offset-earlier"
+        },
+        "actorRef": "reviewer:valid-from.offset-earlier",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z",
+        "validFrom": "2026-05-02T00:30:00.000+01:00"
+      },
+      {
+        "id": "trace.valid-from.no-millis-equal",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.valid-from.no-millis-equal"
+        },
+        "actorRef": "reviewer:valid-from.no-millis-equal",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z",
+        "validFrom": "2026-05-02T00:00:00Z"
+      },
+      {
+        "id": "trace.valid-from.offset-later",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.valid-from.offset-later"
+        },
+        "actorRef": "reviewer:valid-from.offset-later",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z",
+        "validFrom": "2026-05-01T23:30:00.000-01:00"
+      }
+    ]
+  },
+  "expect": {
+    "statusByClaimId": {
+      "claim.revoked-at.no-millis-equal": "disputed",
+      "claim.revoked-at.offset-later": "verified",
+      "claim.valid-until.offset-earlier": "disputed",
+      "claim.valid-until.event-no-millis-equal": "verified",
+      "claim.valid-from.offset-earlier": "verified",
+      "claim.valid-from.no-millis-equal": "verified",
+      "claim.valid-from.offset-later": "disputed"
+    }
+  }
+}

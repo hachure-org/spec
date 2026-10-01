@@ -105,7 +105,7 @@ policy**:
 ```jsonc
 {
   "policy": "hachure.org/v1/status-appraisal",
-  "statusFunctionVersion": "3",
+  "statusFunctionVersion": "4",
   "acceptedStatuses": ["verified"],          // derived status must be in this set
   "evaluate": "payload",                     // the registered bundle is the input
   "now": "registration-time"                 // or "query-time" for relying parties

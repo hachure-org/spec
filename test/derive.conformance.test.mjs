@@ -15,7 +15,7 @@ import {
   supportedStatusFunctionVersions,
 } from '../index.mjs';
 
-assert.ok(testVectors.length >= 19, 'expected the full status-derivation vector set');
+assert.ok(testVectors.length >= 25, 'expected the full status-derivation vector set');
 
 // A vector without statusFunctionVersions holds for every version.
 const versionsOf = (vector) => vector.statusFunctionVersions ?? supportedStatusFunctionVersions;
@@ -57,10 +57,17 @@ for (const { name, vector } of testVectors) {
   }
 }
 
-test('every sf-v3-* vector is restricted to version 3', () => {
+test('every sf-v3-* vector applies from version 3, and every sf-v4-* vector to version 4 only', () => {
   const v3 = testVectors.filter(({ name }) => name.startsWith('sf-v3-'));
   assert.equal(v3.length, 8);
-  for (const { name, vector } of v3) assert.deepEqual(vector.statusFunctionVersions, ['3'], name);
+  for (const { name, vector } of v3) assert.deepEqual(vector.statusFunctionVersions, ['3', '4'], name);
+  const v4 = testVectors.filter(({ name }) => name.startsWith('sf-v4-'));
+  assert.equal(v4.length, 3);
+  for (const { name, vector } of v4) assert.deepEqual(vector.statusFunctionVersions, ['4'], name);
+});
+
+test('the supported versions are 2, 3 and 4', () => {
+  assert.deepEqual([...supportedStatusFunctionVersions], ['2', '3', '4']);
 });
 
 // Basis fields (schemaVersion 9 evidence fields and the basis-annotations

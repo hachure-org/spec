@@ -1,0 +1,1246 @@
+{
+  "now": "2026-06-10T00:00:00.000Z",
+  "statusFunctionVersions": [
+    "4"
+  ],
+  "input": {
+    "schemaVersion": 5,
+    "source": "spec-conformance:v4-authority-window",
+    "claims": [
+      {
+        "id": "claim.bound.unparseable-revoked-at",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.bound.unparseable-revoked-at",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "unparseable-revoked-at",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.bound.unparseable-valid-until",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.bound.unparseable-valid-until",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "unparseable-valid-until",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.bound.unparseable-valid-from",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.bound.unparseable-valid-from",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "unparseable-valid-from",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.resolution.unparseable-time-bounded-trace",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.resolution.unparseable-time-bounded-trace",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "unparseable-time-bounded-trace",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.resolution.unparseable-time-unbounded-trace",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.resolution.unparseable-time-unbounded-trace",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "unparseable-time-unbounded-trace",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.failure.unparseable-observed-at",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.failure.unparseable-observed-at",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "unparseable-observed-at",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.failure.observed-before-resolution",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.failure.observed-before-resolution",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "observed-before-resolution",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.traces.unevaluable-plus-active",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.traces.unevaluable-plus-active",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "unevaluable-plus-active",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.traces.unevaluable-plus-revoked",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.traces.unevaluable-plus-revoked",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "unevaluable-plus-revoked",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.strengthens.refused-rejection",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.strengthens.refused-rejection",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "refused-rejection",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.control.unbounded",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.control.unbounded",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "unbounded",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.bound.date-only-valid-until",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.bound.date-only-valid-until",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "date-only-valid-until",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.resolution.date-only-time",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.resolution.date-only-time",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "date-only-time",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.failure.date-only-observed-at",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.failure.date-only-observed-at",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "date-only-observed-at",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.bound.offset-out-of-range",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.bound.offset-out-of-range",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "offset-out-of-range",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.failure.non-blocking-unparseable-observed-at",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.failure.non-blocking-unparseable-observed-at",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "non-blocking-unparseable-observed-at",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.evidence.supporting-unparseable-observed-at",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.evidence.supporting-unparseable-observed-at",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "supporting-unparseable-observed-at",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.bound.leap-second-valid-until",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.bound.leap-second-valid-until",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "leap-second-valid-until",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.bound.leap-second-revoked-at",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.bound.leap-second-revoked-at",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "leap-second-revoked-at",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.bound.leap-second-valid-from",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.bound.leap-second-valid-from",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "leap-second-valid-from",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "evidence.claim.bound.unparseable-revoked-at",
+        "claimId": "claim.bound.unparseable-revoked-at",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.bound.unparseable-valid-until",
+        "claimId": "claim.bound.unparseable-valid-until",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.bound.unparseable-valid-from",
+        "claimId": "claim.bound.unparseable-valid-from",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.resolution.unparseable-time-bounded-trace",
+        "claimId": "claim.resolution.unparseable-time-bounded-trace",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.resolution.unparseable-time-unbounded-trace",
+        "claimId": "claim.resolution.unparseable-time-unbounded-trace",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.failure.unparseable-observed-at",
+        "claimId": "claim.failure.unparseable-observed-at",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.failure.unparseable-observed-at",
+        "claimId": "claim.failure.unparseable-observed-at",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Source now shows a different value.",
+        "observedAt": "not-a-timestamp",
+        "collectedBy": "crawler",
+        "passing": false,
+        "blocking": true
+      },
+      {
+        "id": "evidence.claim.failure.observed-before-resolution",
+        "claimId": "claim.failure.observed-before-resolution",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.failure.observed-before-resolution",
+        "claimId": "claim.failure.observed-before-resolution",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Source showed a different value before review.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler",
+        "passing": false,
+        "blocking": true
+      },
+      {
+        "id": "evidence.claim.traces.unevaluable-plus-active",
+        "claimId": "claim.traces.unevaluable-plus-active",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.traces.unevaluable-plus-revoked",
+        "claimId": "claim.traces.unevaluable-plus-revoked",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.strengthens.refused-rejection",
+        "claimId": "claim.strengthens.refused-rejection",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.control.unbounded",
+        "claimId": "claim.control.unbounded",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.bound.date-only-valid-until",
+        "claimId": "claim.bound.date-only-valid-until",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.resolution.date-only-time",
+        "claimId": "claim.resolution.date-only-time",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.failure.date-only-observed-at",
+        "claimId": "claim.failure.date-only-observed-at",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.failure.date-only-observed-at",
+        "claimId": "claim.failure.date-only-observed-at",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Source showed a different value.",
+        "observedAt": "2026-04-01",
+        "collectedBy": "crawler",
+        "passing": false,
+        "blocking": true
+      },
+      {
+        "id": "evidence.claim.bound.offset-out-of-range",
+        "claimId": "claim.bound.offset-out-of-range",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.failure.non-blocking-unparseable-observed-at",
+        "claimId": "claim.failure.non-blocking-unparseable-observed-at",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.failure.non-blocking-unparseable-observed-at",
+        "claimId": "claim.failure.non-blocking-unparseable-observed-at",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Advisory check failed.",
+        "observedAt": "not-a-timestamp",
+        "collectedBy": "crawler",
+        "passing": false,
+        "blocking": false
+      },
+      {
+        "id": "evidence.claim.evidence.supporting-unparseable-observed-at",
+        "claimId": "claim.evidence.supporting-unparseable-observed-at",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.evidence.supporting-unparseable-observed-at",
+        "claimId": "claim.evidence.supporting-unparseable-observed-at",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "not-a-timestamp",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.bound.leap-second-valid-until",
+        "claimId": "claim.bound.leap-second-valid-until",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.bound.leap-second-revoked-at",
+        "claimId": "claim.bound.leap-second-revoked-at",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.bound.leap-second-valid-from",
+        "claimId": "claim.bound.leap-second-valid-from",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      }
+    ],
+    "policies": [
+      {
+        "id": "policy.public-data-field.basic",
+        "claimType": "public-data-field",
+        "requiredEvidence": [
+          "source_excerpt"
+        ],
+        "requiredMethods": [
+          "observation"
+        ],
+        "requiresCorroboration": false,
+        "acceptanceCriteria": [
+          "field verified from source"
+        ],
+        "reviewAuthority": "operator",
+        "validityRule": {
+          "kind": "historical"
+        },
+        "stalenessTriggers": [],
+        "conflictRules": [],
+        "impactLevel": "medium"
+      }
+    ],
+    "events": [
+      {
+        "id": "event.bound.unparseable-revoked-at.resolution",
+        "claimId": "claim.bound.unparseable-revoked-at",
+        "status": "verified",
+        "actor": "reviewer:bound.unparseable-revoked-at",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.bound.unparseable-revoked-at"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.bound.unparseable-revoked-at.later",
+        "claimId": "claim.bound.unparseable-revoked-at",
+        "status": "disputed",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.bound.unparseable-revoked-at"
+        ],
+        "createdAt": "2026-05-03T00:00:00.000Z"
+      },
+      {
+        "id": "event.bound.unparseable-valid-until.resolution",
+        "claimId": "claim.bound.unparseable-valid-until",
+        "status": "verified",
+        "actor": "reviewer:bound.unparseable-valid-until",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.bound.unparseable-valid-until"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.bound.unparseable-valid-until.later",
+        "claimId": "claim.bound.unparseable-valid-until",
+        "status": "disputed",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.bound.unparseable-valid-until"
+        ],
+        "createdAt": "2026-05-03T00:00:00.000Z"
+      },
+      {
+        "id": "event.bound.unparseable-valid-from.resolution",
+        "claimId": "claim.bound.unparseable-valid-from",
+        "status": "verified",
+        "actor": "reviewer:bound.unparseable-valid-from",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.bound.unparseable-valid-from"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.bound.unparseable-valid-from.later",
+        "claimId": "claim.bound.unparseable-valid-from",
+        "status": "disputed",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.bound.unparseable-valid-from"
+        ],
+        "createdAt": "2026-05-03T00:00:00.000Z"
+      },
+      {
+        "id": "event.resolution.unparseable-time-bounded-trace.resolution",
+        "claimId": "claim.resolution.unparseable-time-bounded-trace",
+        "status": "verified",
+        "actor": "reviewer:resolution.unparseable-time-bounded-trace",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.resolution.unparseable-time-bounded-trace"
+        ],
+        "createdAt": "not-a-timestamp",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.resolution.unparseable-time-bounded-trace.later",
+        "claimId": "claim.resolution.unparseable-time-bounded-trace",
+        "status": "disputed",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.resolution.unparseable-time-bounded-trace"
+        ],
+        "createdAt": "2026-05-03T00:00:00.000Z"
+      },
+      {
+        "id": "event.resolution.unparseable-time-unbounded-trace.resolution",
+        "claimId": "claim.resolution.unparseable-time-unbounded-trace",
+        "status": "verified",
+        "actor": "reviewer:resolution.unparseable-time-unbounded-trace",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.resolution.unparseable-time-unbounded-trace"
+        ],
+        "createdAt": "not-a-timestamp",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.resolution.unparseable-time-unbounded-trace.later",
+        "claimId": "claim.resolution.unparseable-time-unbounded-trace",
+        "status": "disputed",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.resolution.unparseable-time-unbounded-trace"
+        ],
+        "createdAt": "2026-05-03T00:00:00.000Z"
+      },
+      {
+        "id": "event.failure.unparseable-observed-at.resolution",
+        "claimId": "claim.failure.unparseable-observed-at",
+        "status": "verified",
+        "actor": "reviewer:failure.unparseable-observed-at",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.failure.unparseable-observed-at"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.failure.observed-before-resolution.resolution",
+        "claimId": "claim.failure.observed-before-resolution",
+        "status": "verified",
+        "actor": "reviewer:failure.observed-before-resolution",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.failure.observed-before-resolution"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.traces.unevaluable-plus-active.resolution",
+        "claimId": "claim.traces.unevaluable-plus-active",
+        "status": "verified",
+        "actor": "reviewer:traces.unevaluable-plus-active",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.traces.unevaluable-plus-active"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.traces.unevaluable-plus-active.later",
+        "claimId": "claim.traces.unevaluable-plus-active",
+        "status": "disputed",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.traces.unevaluable-plus-active"
+        ],
+        "createdAt": "2026-05-03T00:00:00.000Z"
+      },
+      {
+        "id": "event.traces.unevaluable-plus-revoked.resolution",
+        "claimId": "claim.traces.unevaluable-plus-revoked",
+        "status": "verified",
+        "actor": "reviewer:traces.unevaluable-plus-revoked",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.traces.unevaluable-plus-revoked"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.traces.unevaluable-plus-revoked.later",
+        "claimId": "claim.traces.unevaluable-plus-revoked",
+        "status": "disputed",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.traces.unevaluable-plus-revoked"
+        ],
+        "createdAt": "2026-05-03T00:00:00.000Z"
+      },
+      {
+        "id": "event.strengthens.refused-rejection.resolution",
+        "claimId": "claim.strengthens.refused-rejection",
+        "status": "rejected",
+        "actor": "reviewer:strengthens.refused-rejection",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.strengthens.refused-rejection"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.strengthens.refused-rejection.later",
+        "claimId": "claim.strengthens.refused-rejection",
+        "status": "verified",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.strengthens.refused-rejection"
+        ],
+        "createdAt": "2026-05-03T00:00:00.000Z"
+      },
+      {
+        "id": "event.control.unbounded.resolution",
+        "claimId": "claim.control.unbounded",
+        "status": "verified",
+        "actor": "reviewer:control.unbounded",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.control.unbounded"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.control.unbounded.later",
+        "claimId": "claim.control.unbounded",
+        "status": "disputed",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.control.unbounded"
+        ],
+        "createdAt": "2026-05-03T00:00:00.000Z"
+      },
+      {
+        "id": "event.bound.date-only-valid-until.resolution",
+        "claimId": "claim.bound.date-only-valid-until",
+        "status": "verified",
+        "actor": "reviewer:bound.date-only-valid-until",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.bound.date-only-valid-until"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.bound.date-only-valid-until.later",
+        "claimId": "claim.bound.date-only-valid-until",
+        "status": "disputed",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.bound.date-only-valid-until"
+        ],
+        "createdAt": "2026-05-03T00:00:00.000Z"
+      },
+      {
+        "id": "event.resolution.date-only-time.resolution",
+        "claimId": "claim.resolution.date-only-time",
+        "status": "verified",
+        "actor": "reviewer:resolution.date-only-time",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.resolution.date-only-time"
+        ],
+        "createdAt": "2026-05-02",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.resolution.date-only-time.later",
+        "claimId": "claim.resolution.date-only-time",
+        "status": "disputed",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.resolution.date-only-time"
+        ],
+        "createdAt": "2026-05-03T00:00:00.000Z"
+      },
+      {
+        "id": "event.failure.date-only-observed-at.resolution",
+        "claimId": "claim.failure.date-only-observed-at",
+        "status": "verified",
+        "actor": "reviewer:failure.date-only-observed-at",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.failure.date-only-observed-at"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.bound.offset-out-of-range.resolution",
+        "claimId": "claim.bound.offset-out-of-range",
+        "status": "verified",
+        "actor": "reviewer:bound.offset-out-of-range",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.bound.offset-out-of-range"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.bound.offset-out-of-range.later",
+        "claimId": "claim.bound.offset-out-of-range",
+        "status": "disputed",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.bound.offset-out-of-range"
+        ],
+        "createdAt": "2026-05-03T00:00:00.000Z"
+      },
+      {
+        "id": "event.failure.non-blocking-unparseable-observed-at.resolution",
+        "claimId": "claim.failure.non-blocking-unparseable-observed-at",
+        "status": "verified",
+        "actor": "reviewer:failure.non-blocking-unparseable-observed-at",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.failure.non-blocking-unparseable-observed-at"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.evidence.supporting-unparseable-observed-at.resolution",
+        "claimId": "claim.evidence.supporting-unparseable-observed-at",
+        "status": "verified",
+        "actor": "reviewer:evidence.supporting-unparseable-observed-at",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.evidence.supporting-unparseable-observed-at"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.bound.leap-second-valid-until.resolution",
+        "claimId": "claim.bound.leap-second-valid-until",
+        "status": "verified",
+        "actor": "reviewer:bound.leap-second-valid-until",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.bound.leap-second-valid-until"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.bound.leap-second-valid-until.later",
+        "claimId": "claim.bound.leap-second-valid-until",
+        "status": "disputed",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.bound.leap-second-valid-until"
+        ],
+        "createdAt": "2026-05-03T00:00:00.000Z"
+      },
+      {
+        "id": "event.bound.leap-second-revoked-at.resolution",
+        "claimId": "claim.bound.leap-second-revoked-at",
+        "status": "verified",
+        "actor": "reviewer:bound.leap-second-revoked-at",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.bound.leap-second-revoked-at"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.bound.leap-second-revoked-at.later",
+        "claimId": "claim.bound.leap-second-revoked-at",
+        "status": "disputed",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.bound.leap-second-revoked-at"
+        ],
+        "createdAt": "2026-05-03T00:00:00.000Z"
+      },
+      {
+        "id": "event.bound.leap-second-valid-from.resolution",
+        "claimId": "claim.bound.leap-second-valid-from",
+        "status": "verified",
+        "actor": "reviewer:bound.leap-second-valid-from",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.bound.leap-second-valid-from"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.bound.leap-second-valid-from.later",
+        "claimId": "claim.bound.leap-second-valid-from",
+        "status": "disputed",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.bound.leap-second-valid-from"
+        ],
+        "createdAt": "2026-05-03T00:00:00.000Z"
+      }
+    ],
+    "authorityTrace": [
+      {
+        "id": "trace.bound.unparseable-revoked-at",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.bound.unparseable-revoked-at"
+        },
+        "actorRef": "reviewer:bound.unparseable-revoked-at",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z",
+        "revokedAt": "not-a-timestamp"
+      },
+      {
+        "id": "trace.bound.unparseable-valid-until",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.bound.unparseable-valid-until"
+        },
+        "actorRef": "reviewer:bound.unparseable-valid-until",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z",
+        "validUntil": "not-a-timestamp"
+      },
+      {
+        "id": "trace.bound.unparseable-valid-from",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.bound.unparseable-valid-from"
+        },
+        "actorRef": "reviewer:bound.unparseable-valid-from",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z",
+        "validFrom": "not-a-timestamp"
+      },
+      {
+        "id": "trace.resolution.unparseable-time-bounded-trace",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.resolution.unparseable-time-bounded-trace"
+        },
+        "actorRef": "reviewer:resolution.unparseable-time-bounded-trace",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z",
+        "validFrom": "2026-01-01T00:00:00.000Z",
+        "validUntil": "2027-01-01T00:00:00.000Z"
+      },
+      {
+        "id": "trace.resolution.unparseable-time-unbounded-trace",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.resolution.unparseable-time-unbounded-trace"
+        },
+        "actorRef": "reviewer:resolution.unparseable-time-unbounded-trace",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z"
+      },
+      {
+        "id": "trace.failure.unparseable-observed-at",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.failure.unparseable-observed-at"
+        },
+        "actorRef": "reviewer:failure.unparseable-observed-at",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z"
+      },
+      {
+        "id": "trace.failure.observed-before-resolution",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.failure.observed-before-resolution"
+        },
+        "actorRef": "reviewer:failure.observed-before-resolution",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z"
+      },
+      {
+        "id": "trace.traces.unevaluable-plus-active",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.traces.unevaluable-plus-active"
+        },
+        "actorRef": "reviewer:traces.unevaluable-plus-active",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z",
+        "revokedAt": "not-a-timestamp"
+      },
+      {
+        "id": "trace.traces.unevaluable-plus-active.second",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.traces.unevaluable-plus-active"
+        },
+        "actorRef": "reviewer:traces.unevaluable-plus-active",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z"
+      },
+      {
+        "id": "trace.traces.unevaluable-plus-revoked",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.traces.unevaluable-plus-revoked"
+        },
+        "actorRef": "reviewer:traces.unevaluable-plus-revoked",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z",
+        "revokedAt": "not-a-timestamp"
+      },
+      {
+        "id": "trace.traces.unevaluable-plus-revoked.second",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.traces.unevaluable-plus-revoked"
+        },
+        "actorRef": "reviewer:traces.unevaluable-plus-revoked",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z",
+        "revokedAt": "2026-05-01T00:00:00.000Z"
+      },
+      {
+        "id": "trace.strengthens.refused-rejection",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.strengthens.refused-rejection"
+        },
+        "actorRef": "reviewer:strengthens.refused-rejection",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z",
+        "revokedAt": "not-a-timestamp"
+      },
+      {
+        "id": "trace.control.unbounded",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.control.unbounded"
+        },
+        "actorRef": "reviewer:control.unbounded",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z"
+      },
+      {
+        "id": "trace.bound.date-only-valid-until",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.bound.date-only-valid-until"
+        },
+        "actorRef": "reviewer:bound.date-only-valid-until",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z",
+        "validUntil": "2027-01-01"
+      },
+      {
+        "id": "trace.resolution.date-only-time",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.resolution.date-only-time"
+        },
+        "actorRef": "reviewer:resolution.date-only-time",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z"
+      },
+      {
+        "id": "trace.failure.date-only-observed-at",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.failure.date-only-observed-at"
+        },
+        "actorRef": "reviewer:failure.date-only-observed-at",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z"
+      },
+      {
+        "id": "trace.bound.offset-out-of-range",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.bound.offset-out-of-range"
+        },
+        "actorRef": "reviewer:bound.offset-out-of-range",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z",
+        "validUntil": "2027-01-01T00:00:00+24:00"
+      },
+      {
+        "id": "trace.failure.non-blocking-unparseable-observed-at",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.failure.non-blocking-unparseable-observed-at"
+        },
+        "actorRef": "reviewer:failure.non-blocking-unparseable-observed-at",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z"
+      },
+      {
+        "id": "trace.evidence.supporting-unparseable-observed-at",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.evidence.supporting-unparseable-observed-at"
+        },
+        "actorRef": "reviewer:evidence.supporting-unparseable-observed-at",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z"
+      },
+      {
+        "id": "trace.bound.leap-second-valid-until",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.bound.leap-second-valid-until"
+        },
+        "actorRef": "reviewer:bound.leap-second-valid-until",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z",
+        "validUntil": "2026-05-01T23:59:60Z"
+      },
+      {
+        "id": "trace.bound.leap-second-revoked-at",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.bound.leap-second-revoked-at"
+        },
+        "actorRef": "reviewer:bound.leap-second-revoked-at",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z",
+        "revokedAt": "2026-05-01T23:59:60Z"
+      },
+      {
+        "id": "trace.bound.leap-second-valid-from",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.bound.leap-second-valid-from"
+        },
+        "actorRef": "reviewer:bound.leap-second-valid-from",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z",
+        "validFrom": "2026-05-01T23:59:60Z"
+      }
+    ]
+  },
+  "expect": {
+    "statusByClaimId": {
+      "claim.bound.unparseable-revoked-at": "disputed",
+      "claim.bound.unparseable-valid-until": "disputed",
+      "claim.bound.unparseable-valid-from": "disputed",
+      "claim.resolution.unparseable-time-bounded-trace": "disputed",
+      "claim.resolution.unparseable-time-unbounded-trace": "disputed",
+      "claim.failure.unparseable-observed-at": "disputed",
+      "claim.failure.observed-before-resolution": "verified",
+      "claim.traces.unevaluable-plus-active": "verified",
+      "claim.traces.unevaluable-plus-revoked": "disputed",
+      "claim.strengthens.refused-rejection": "verified",
+      "claim.control.unbounded": "verified",
+      "claim.bound.date-only-valid-until": "disputed",
+      "claim.resolution.date-only-time": "disputed",
+      "claim.failure.date-only-observed-at": "disputed",
+      "claim.bound.offset-out-of-range": "disputed",
+      "claim.failure.non-blocking-unparseable-observed-at": "verified",
+      "claim.evidence.supporting-unparseable-observed-at": "verified",
+      "claim.bound.leap-second-valid-until": "verified",
+      "claim.bound.leap-second-revoked-at": "disputed",
+      "claim.bound.leap-second-valid-from": "verified"
+    }
+  }
+}

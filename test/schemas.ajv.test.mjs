@@ -917,11 +917,17 @@ test('hachure vectors honours --status-function-version and rejects stray argume
   assert.equal(v2.status, 0, v2.stdout + v2.stderr);
   assert.match(v2.stdout, /SKIP sf-v3-no-policy/);
   assert.match(v2.stdout, /PASS sf-inconclusive-evidence/);
-  assert.match(v2.stdout, /all 11 applicable vectors pass \(statusFunctionVersion "2"\)/);
+  assert.match(v2.stdout, /all 14 applicable vectors pass \(statusFunctionVersion "2"\)/);
 
-  const unsupported = spawnSync(process.execPath, [CLI, 'vectors', '--status-function-version', '4'], { encoding: 'utf8' });
+  const unsupported = spawnSync(process.execPath, [CLI, 'vectors', '--status-function-version', '5'], { encoding: 'utf8' });
   assert.equal(unsupported.status, 1);
-  assert.match(unsupported.stderr, /unsupported --status-function-version 4/);
+  assert.match(unsupported.stderr, /unsupported --status-function-version 5/);
+
+  const v3 = spawnSync(process.execPath, [CLI, 'vectors', '--status-function-version', '3'], { encoding: 'utf8' });
+  assert.equal(v3.status, 0, v3.stdout + v3.stderr);
+  assert.match(v3.stdout, /SKIP sf-v4-authority-window/);
+  assert.match(v3.stdout, /PASS sf-v3-no-policy/);
+  assert.match(v3.stdout, /all 22 applicable vectors pass \(statusFunctionVersion "3"\)/);
 
   const stray = spawnSync(process.execPath, [CLI, 'vectors', '--verbose'], { encoding: 'utf8' });
   assert.equal(stray.status, 1);
@@ -1124,4 +1130,42 @@ test('--no-validate skips validation even when ajv is installed, and warns', () 
   assert.match(r.stderr, /warning: --no-validate/);
   // The unreliable result the warning is about: the attempt counts as evidence.
   assert.deepEqual(JSON.parse(r.stdout).statusByClaimId, { 'claim.facet-rename-test.1': 'proposed' });
+});
+
+test('hachure derive --now must be an RFC 3339 date-time under version 4, and is read exactly', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'hachure-now-'));
+  const claim = { ...buildBaseClaim(), expiresAt: '2026-10-01T00:00:00.0005Z', verificationPolicyId: 'policy.coverage' };
+  const bundle = buildBaseBundle(9, claim);
+  bundle.evidence = [{ ...withoutKey(buildInconclusiveEvidence(), 'inconclusive'), supportStrength: 'entails', passing: true }];
+  bundle.policies = [
+    {
+      id: 'policy.coverage', claimType: 'coverage', requiredEvidence: ['runtime_observation'], requiredMethods: ['monitoring'], requiresCorroboration: false,
+      acceptanceCriteria: ['p95 observed'], reviewAuthority: 'operator', validityRule: { kind: 'historical' }, stalenessTriggers: [], conflictRules: [], impactLevel: 'medium',
+    },
+  ];
+  bundle.events = [{ id: 'v', claimId: claim.id, status: 'verified', actor: 'ci', method: 'm', evidenceIds: ['ev-9'], createdAt: '2026-09-26T10:00:00Z' }];
+  const path = join(dir, 'bundle.json');
+  writeFileSync(path, JSON.stringify(bundle));
+  const derive = (...argv) => spawnSync(process.execPath, [CLI, 'derive', path, ...argv], { encoding: 'utf8' });
+  const status = (r) => JSON.parse(r.stdout).statusByClaimId[claim.id];
+
+  const inside = derive('--now', '2026-10-01T00:00:00.0005Z');
+  assert.equal(inside.status, 0, inside.stdout + inside.stderr);
+  assert.equal(status(inside), 'verified');
+  assert.equal(JSON.parse(inside.stdout).evaluatedAt, '2026-10-01T00:00:00.0005Z', 'the given instant is reported, not a rounded one');
+  assert.equal(status(derive('--now', '2026-10-01T00:00:00.0009Z')), 'stale');
+
+  for (const now of ['2026-10-01', '2026-10-01T00:00:00', 'October 1, 2026']) {
+    const refused = derive('--now', now);
+    assert.equal(refused.status, 1, now);
+    assert.match(refused.stderr, /invalid --now value: .*expected an RFC 3339 date-time with an offset/, now);
+    assert.equal(refused.stdout, '', now);
+    const diff = spawnSync(process.execPath, [CLI, 'diff', path, path, '--now', now], { encoding: 'utf8' });
+    assert.equal(diff.status, 1, now);
+    assert.match(diff.stderr, /invalid --now value/, now);
+  }
+  // Versions 2 and 3 read --now as they always did.
+  const v3 = derive('--now', '2026-10-01', '--status-function-version', '3');
+  assert.equal(v3.status, 0, v3.stdout + v3.stderr);
+  assert.equal(status(v3), 'verified');
 });

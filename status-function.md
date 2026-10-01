@@ -1,8 +1,8 @@
 # Status Derivation — Specification
 
 **Function:** `status = f(claim, evidence, events, policy, authorityTrace, now)`
-**Version constant:** `statusFunctionVersion` (currently `"3"`; version `"2"`
-remains defined in [§Version 2](#version-2))
+**Version constant:** `statusFunctionVersion` (currently `"4"`; versions `"3"`
+and `"2"` remain defined in [§Version 3](#version-3) and [§Version 2](#version-2))
 **Normative source:** this document. The bundled implementation is
 `lib/derive.mjs` in the `hachure` package; it and every other conforming
 implementation are checked against the same `conformance/` vectors.
@@ -19,7 +19,7 @@ computation; the derived status is always recomputed from the input bundle at
 evaluation time.
 
 `now` is an explicit input so that time-based staleness checks are reproducible.
-Under version `"3"` an implementation MUST refuse to evaluate with a `now` that
+From version `"3"` an implementation MUST refuse to evaluate with a `now` that
 is not a valid instant, rather than let every freshness comparison fail open.
 A caller that wants a point-in-time view fixes `now` before evaluating; there are
 no clock-tick events and no background expiry.
@@ -34,12 +34,23 @@ Reproducibility guarantee: if two independent implementations receive the same
 `(claim, evidence, events, policies, authorityTrace, now)` and the same
 status function version, they must return the same `TrustStatus`.
 
-**Omission fails closed (version `"3"`).** A derived `verified` means every input
+**Omission fails closed (from version `"3"`).** A derived `verified` means every input
 the applicable policy depends on was present and evaluated. Leaving an input
 out — the policy, a requirement, a check result, a validity-rule parameter, a
 derivation input — can only weaken the derived status, never strengthen it.
 Where this document says an input is *unevaluable*, the step treats it as
 failing, not as satisfied or skipped.
+
+**Unevaluable times fail closed (version `"4"`).** Version `"4"` defines what a
+timestamp is ([§Timestamps](#timestamps)) and says, at every place the fold
+reads one, what happens when the value is not a timestamp. In Step 1 the rule
+is that authority which cannot be evaluated is not exercised: a resolution
+whose time, or whose resolver's authority window, cannot be evaluated is not
+honoured. That is not the same as "can only weaken". A refused resolution
+leaves the claim to the rest of the fold, which can produce a stronger status
+than the resolution carried: refusing a resolution to `rejected` lets a later
+`verified` event stand. What fails closed is the resolver's authority, not
+the claim's status.
 
 ---
 
@@ -86,7 +97,7 @@ value was arrived at. In particular it does not read:
   staleness check), and is never a blocking failure (Step 1, and Step 4's
   blocking failure check). A claim derives the same status with the item as
   without it. No step tests for `inconclusive`; the exclusion follows from the
-  partition, in version `"2"` and version `"3"` alike. (The steps are named by
+  partition, in every version. (The steps are named by
   role here because the two versions letter Step 4's sub-steps differently.)
 - `evidence.collectedByKind` — the kind of collector. Evidence collected by a
   model counts exactly as evidence collected any other way.
@@ -129,6 +140,104 @@ corroboration, the `commit` anchor, and Steps 6 and 7. The
 `metadata` keys on claims of four different statuses, and the package's suite
 re-derives it with the fields removed. No vector covers `execution`,
 `conclusionConfidence`, or `confidenceBasis`.
+
+---
+
+## Timestamps
+
+A *timestamp* is a string that is an RFC 3339 `date-time`
+(`full-date "T" full-time`), the same definition the schemas name with
+`format: date-time`. Under version `"4"`:
+
+- The `T` separator and a `Z` offset may be written in lower case.
+- Fractional seconds may have any number of digits.
+- The offset is `Z` or `±hh:mm`, and is required.
+- The date must exist in the calendar (`2027-02-30` does not), the hour is
+  `00`–`23`, and the minute and offset minute are `00`–`59`.
+- Second `60` is a timestamp only where the time, converted to UTC, is
+  `23:59:60`: the one place a leap second can occur. It is read as the
+  instant that follows it, `00:00:00` of the next day.
+
+Nothing else is a timestamp. In particular a date with no time
+(`2027-04-01`), a time with no offset (`2027-04-01T00:00:00`), hour `24`, a
+space in place of `T`, an offset with no colon, prose such as
+`April 1, 2027`, and any value that is not a string are not timestamps.
+
+Timestamps are compared as instants, never as strings:
+`2026-05-02T00:00:00Z`, `2026-05-02T00:00:00.000Z` and
+`2026-05-02T02:00:00+02:00` are the same instant.
+
+The comparison is exact. Every fractional digit counts, however many there
+are, and nothing is rounded or truncated: `00:00:00.0009Z` is later than
+`00:00:00.0001Z`, `00:00:00.00000000002Z` is later than
+`00:00:00.00000000001Z`, `00:00:00.9999999999Z` is earlier than `00:00:01Z`,
+and `00:00:00.5Z` equals `00:00:00.500000Z`. An implementation therefore
+cannot hold an instant in a binary floating-point number of milliseconds.
+The bundled `parseTimestamp(value)` returns
+`{ epochMilliseconds, subMillisecond }` (whole milliseconds since the epoch,
+and the remaining fractional digits as a string with trailing zeros removed),
+or `undefined` when the value is not a timestamp, and
+`compareTimestamps(a, b)` orders two of them.
+
+`now` is supplied by the caller and is not parsed from the bundle. Given as a
+native date value it is an instant of whole milliseconds. Given as a string it
+MUST be a timestamp as defined here and is read exactly, fractional digits
+included; an implementation MUST refuse any other string, and any other kind
+of value, rather than evaluate. `hachure derive --now` follows the same rule.
+
+A validity window (Step 4a) is exact too. Its length is the decimal product
+`ttlSeconds × 1000` or `durationDays × 86 400 000` milliseconds, and "`now` is
+later than `verifiedTime` plus the window" is evaluated without rounding
+anything: not the product, not the sum, not either instant. `durationDays:
+0.7` is exactly 60 480 000 ms, so a claim verified exactly that long before
+`now` is not yet stale, and one millisecond later it is.
+
+The value of `ttlSeconds` or `durationDays` is fixed in two steps, so that
+every implementation multiplies the same number whatever its JSON parser
+keeps:
+
+1. The JSON numeral is rounded to the nearest IEEE 754 binary64 value, ties
+   to even. A numeral that rounds to an infinity is not a finite number, and
+   the window is unevaluable (stale), like any other non-finite or negative
+   value. `1e400` is such a numeral; `1e-400` rounds to zero.
+2. The window uses the exact decimal value of that binary64 value's canonical
+   decimal form, defined as: a numeral with the fewest significant digits
+   that rounds back to the same binary64 value; where several numerals of
+   that length do, the one closest to the binary64 value's exact value; and
+   where two are equally close, the one whose last digit is even. The result
+   is unique. It is what ECMAScript `Number::toString` (radix 10) gives when
+   an implementation follows the alternative step 5 recommended in that
+   algorithm's Note 2, as V8 does; the algorithm's own step 5 leaves the last
+   digit open, so these three clauses, not ECMA-262, are the definition.
+
+So `0.1` and `0.1000000000000000055511151231257827` are the same window: both
+round to the same binary64 value, whose canonical form is `0.1`. An
+implementation whose JSON parser keeps arbitrary-precision decimals MUST still
+perform step 1, and MUST NOT multiply the numeral as written. No
+implementation multiplies in binary floating point: `0.7 × 86 400 000` there
+is `60479999.99999999`.
+
+Python's `repr(float)` gives the same digits as the canonical form (checked
+here on 100,000 random binary64 values, not proven). Java's `Double.toString`
+does not for every value: it gives `4.9E-324` where the canonical form is
+`5e-324`. An implementation in another language checks its formatter against
+this definition rather than assuming it.
+
+A time the fold reads that is absent or is not a timestamp is *unevaluable*.
+Each step says what follows: an event sorts before every event with an
+evaluable time (Step 2), a resolution is not honoured (Step 1), a blocking
+failure is not set aside by a resolution (Step 1), a validity window is stale
+(Step 4a). A trace bound that is absent is simply no bound; a trace bound
+that is present but is not a timestamp is unevaluable.
+
+JSON Schema validation does not remove these values. `format` is an annotation
+by default in JSON Schema 2020-12 and `hachure validate` does not assert it,
+so a bundle carrying `"revokedAt": "not-a-timestamp"` is schema-valid as this
+package validates and reaches the fold. A validator configured to assert
+`format` rejects such a bundle before derivation.
+
+Versions `"3"` and `"2"` do not define a timestamp; see
+[§Version 3](#version-3).
 
 ---
 
@@ -177,9 +286,18 @@ the evaluation and returns its status. No subsequent checks are applied.
 ### Step 1: Authority-gated dispute resolution
 
 Check for the most recent verification event (sorted most-recent-first by `createdAt`)
-that satisfies both of these conditions:
+that satisfies all of these conditions:
 
 - `event.resolvesDispute === true`
+- `event.createdAt` is a [timestamp](#timestamps). An event whose time is
+  unevaluable (absent, or not a timestamp) is not a resolution, whatever
+  traces its actor has: neither the authority window nor "newer than the
+  resolution" below can be evaluated against it. The event still takes part
+  in Step 2 as an ordinary event, read for its `status` like any other. So a
+  claim whose only event is a `verified` resolution with an unevaluable time
+  can still derive `verified` through Step 4 when the validity rule needs no
+  time (`historical`, `manual`, `commit`); what it loses is the authority to
+  override a dispute.
 - The event's `actor` has an active `AuthorityTrace` at the time of the decision
 
 An `AuthorityTrace` is active at a given `eventCreatedAt` if all of the following hold:
@@ -190,12 +308,26 @@ An `AuthorityTrace` is active at a given `eventCreatedAt` if all of the followin
 - `trace.validUntil` is absent, or `trace.validUntil >= eventCreatedAt`
 - If `event.authorityRef` is set, `trace.authorityRef === event.authorityRef`
 
+The three time conditions compare instants. A bound that is present must be a
+timestamp for its condition to hold: a trace whose `revokedAt`, `validFrom` or
+`validUntil` is present but unevaluable is not active.
+
+Traces are considered one at a time, and one active trace is enough. A trace
+that is not active, including one with an unevaluable bound, neither
+authorises the resolution nor vetoes it: if another trace for the same actor
+is active, the resolution is honoured.
+
 If such a resolution event is found:
 
-- Check whether any evidence item satisfies **all** of:
+- Check whether any entailing evidence item satisfies **all** of:
   - `evidence.passing === false`
   - `evidence.blocking !== false`
-  - `Date.parse(evidence.observedAt) > Date.parse(resolutionEvent.createdAt)`
+  - `evidence.observedAt` is later than `resolutionEvent.createdAt`, or
+    `evidence.observedAt` is unevaluable (absent, or not a timestamp). A
+    blocking failure whose time cannot be evaluated cannot be shown to
+    predate the resolution, so it is not set aside by it. This applies to
+    blocking failures only; other evidence with an unevaluable `observedAt`
+    has no effect here.
 
   If such a "newer blocking failure" exists, return **`disputed`** (the resolution
   is overridden by fresh contradicting evidence).
@@ -214,7 +346,13 @@ If such a resolution event is found:
 ### Step 2: Terminal event statuses
 
 Filter all events to those matching `claim.id`, sort most-recent-first by `createdAt`.
-Let `latestEvent` be the first (most recent) event.
+Let `latestEvent` be the first (most recent) event. Events are ordered by
+exact instant. An event whose `createdAt` is unevaluable sorts before every
+event whose `createdAt` is a timestamp, however early that timestamp is, so
+it is `latestEvent` only when the claim has no event with an evaluable
+`createdAt`. This ordering applies wherever the fold sorts events, including
+Step 1. (Versions `"3"` and `"2"` read an unparseable `createdAt` as the
+epoch instead; see [§Version 3](#version-3).)
 
 If `latestEvent` exists and its `status` is one of `"rejected"`, `"disputed"`,
 `"superseded"`, `"stale"`, or `"revoked"` — return that status. These are
@@ -244,13 +382,15 @@ If `latestEvent` exists and `latestEvent.status === "verified"`:
 
 **Claim-intrinsic validity window.** Before consulting the policy validity
 rule, check the claim's own validity window, which overrides policy timing when
-present. Let `verifiedTime = Date.parse(latestEvent.verifiedAt ?? latestEvent.createdAt)`.
+present. Let `verifiedTime` be `latestEvent.verifiedAt`, or
+`latestEvent.createdAt` when `verifiedAt` is absent, read as a
+[timestamp](#timestamps).
 
-- If `claim.expiresAt` is set, the claim is stale when `now > Date.parse(claim.expiresAt)`,
-  or when `claim.expiresAt` cannot be parsed.
-- Else if `claim.ttlSeconds` is set, the claim is stale when
-  `now > verifiedTime + claim.ttlSeconds * 1000`, or when `verifiedTime` cannot
-  be parsed or `ttlSeconds` is not a finite non-negative number.
+- If `claim.expiresAt` is set, the claim is stale when `now` is later than
+  `claim.expiresAt`, or when `claim.expiresAt` is not a timestamp.
+- Else if `claim.ttlSeconds` is set, the claim is stale when `now` is later
+  than `verifiedTime` plus `claim.ttlSeconds` seconds, or when `verifiedTime`
+  is unevaluable or `ttlSeconds` is not a finite non-negative number.
 - **Precedence:** `expiresAt` wins over `ttlSeconds` when both are present.
   When neither is present, fall through to the policy validity rule below.
 
@@ -264,9 +404,10 @@ Otherwise, if a policy is present, check whether the verification is stale based
   `integrityRef` equal to `claim.currentIntegrityRef`. Without a current
   integrity reference there is nothing to compare the verified evidence
   against.
-- **`"duration"`** — stale if `now > verifiedTime + (policy.validityRule.durationDays × 86400000 ms)`.
-  Also stale if `durationDays` is absent, is not a finite non-negative number,
-  or `verifiedTime` cannot be parsed.
+- **`"duration"`** — stale if `now` is later than `verifiedTime` plus
+  `policy.validityRule.durationDays` days (`× 86 400 000` ms). Also stale if
+  `durationDays` is absent, is not a finite non-negative number, or
+  `verifiedTime` is unevaluable.
 - **`"historical"` or `"manual"`** — never stale by time or commit change.
 - Any other `kind`, or a policy with no `validityRule.kind` — stale (the rule
   cannot be evaluated).
@@ -406,11 +547,75 @@ it arrives as evidence content, and derivation produces the status.
 
 ---
 
+## Version 3
+
+`statusFunctionVersion` `"3"` remains defined so that records resolved under
+it can be re-derived. It is this document with the following differences, and
+no others:
+
+1. **Timestamps.** Version `"3"` does not define what a timestamp is. The
+   bundled implementation reads every time with ECMAScript `Date.parse`, which
+   accepts more and less than RFC 3339: a date with no time, a time with no
+   offset (read in the evaluator's local time zone, so the result depends on
+   where it runs), hour `24`, an impossible day such as `02-30`, and some
+   prose dates are accepted; a leap second is not. Where this document says
+   "is a timestamp", read "`Date.parse` returns a number"; where it says
+   "unevaluable", read "`Date.parse` returns `NaN`" (which it also does for
+   an absent value).
+2. **Precision.** `Date.parse` keeps whole milliseconds and discards further
+   fractional digits, so two times in the same millisecond are equal. Events
+   that are equal keep their order in the `events` array. A validity window's
+   end is computed in binary floating point (`verifiedTime + ttlSeconds *
+   1000`, `verifiedTime + durationDays * 86400000`, in milliseconds).
+3. **Event order.** An event whose `createdAt` is unparseable is ordered as if
+   at the epoch (`1970-01-01T00:00:00Z`): after an event dated before 1970,
+   tied with one dated exactly at the epoch (so the two keep their order in
+   the `events` array), and before any dated later.
+4. **`now`.** A `now` given as a string is read with `Date.parse`.
+5. **Step 1, authority window.** A bound that is present but unparseable
+   excludes nothing: the trace stays active. So does every bound when the
+   event's `createdAt` is unparseable.
+6. **Step 1, resolution time.** A `resolvesDispute` event with an unparseable
+   or absent `createdAt` is a resolution like any other, provided its actor
+   has a matching trace. No blocking failure is ever newer than it.
+7. **Step 1, blocking failure time.** A blocking failure whose `observedAt` is
+   unparseable or absent is not newer than the resolution, so the resolution
+   stands.
+
+### Migrating from version 3
+
+A bundle derives a different status under version `"4"` only when one of the
+following rows applies to a claim, or to a claim it is derived from. A status
+can become stronger as well as weaker: the rows marked *either way* depend on
+what the rest of the fold derives.
+
+| Bundle shape | v3 | v4 | Why |
+|---|---|---|---|
+| *Resolution:* every trace matching the resolver has a `revokedAt`, `validFrom` or `validUntil` that is present but not a timestamp (and none of its evaluable bounds already excluded it) | resolution status | as if there were no resolution (*either way*) | Authority that cannot be evaluated is not exercised. |
+| *Resolution:* the resolution event's `createdAt` is absent or not a timestamp | resolution status | as if there were no resolution (*either way*) | Neither the authority window nor "newer than the resolution" can be evaluated. |
+| *Resolution:* a blocking failure's `observedAt` is absent or not a timestamp | resolution status | `disputed` | A failure that cannot be shown to predate the resolution is not set aside by it. |
+| Any time the fold reads is accepted by `Date.parse` but is not an RFC 3339 `date-time` (date only, no offset, hour `24`, impossible day, space separator, prose, a number) | read as `Date.parse` reads it | unevaluable: the event sorts first, the validity window is stale, the bound does not hold | Version `"4"` defines a timestamp. |
+| Any time the fold reads is a leap second (`23:59:60` UTC) | unevaluable | the instant that follows it | RFC 3339 permits it. |
+| Two times the fold compares with each other (event `createdAt` values, a trace bound and the resolution's `createdAt`, a blocking failure's `observedAt` and the resolution's `createdAt`) differ by less than a millisecond | equal | ordered by their full value (*either way*) | Instants are compared exactly. |
+| An event's `createdAt` is unevaluable and the claim has an event dated at or before the epoch (`1970-01-01T00:00:00Z`) | the unevaluable event is the later one (or, at the epoch exactly, tied with it and ordered by position in `events`) | the unevaluable event is the earlier one (*either way*) | An unevaluable time sorts before every timestamp. |
+| An event's `createdAt` changes reading under one of the rows above, and the claim has other events | ordered as `Date.parse` reads it | ordered by the version `"4"` reading (*either way*) | `latestEvent` can change. |
+| *Verified path:* `now` is within one millisecond of a validity window's end, and the binary floating-point sum `verifiedTime + window` does not land exactly on that end (because `verifiedTime` has digits below the millisecond, the window is not a whole number of milliseconds, or the floating-point product or sum rounds, as `65536.4 × 86 400 000` does) | `now` compared with the floating-point sum | `now` compared with the exact end (*either way*) | Windows are exact. |
+| `now` given as a string that is not a timestamp, or that has digits below the millisecond or is a leap second | read with `Date.parse` | refused, or read exactly | `now` is a timestamp. |
+
+The `sf-v4-*` conformance vectors cover each row except the last, which a
+vector cannot express (a vector's `now` is passed as a date value). A
+schema-valid bundle derives the same statuses under versions `"3"` and `"4"`
+if every time in it is an RFC 3339 `date-time` with an offset, at most three
+fractional digits and no leap second, and `now` is not within one millisecond
+of the end of a validity window. (Schema-valid matters: the schemas require
+the times the fold reads, and an absent one is unevaluable.)
+
 ## Version 2
 
 `statusFunctionVersion` `"2"` remains defined so that records resolved under
-it (`InquiryRecord.statusFunctionVersion`) can be re-derived. It is this
-document with the following differences, and no others:
+it (`InquiryRecord.statusFunctionVersion`) can be re-derived. It is version
+`"3"` (this document with the [Version 3](#version-3) differences) with the
+following further differences, and no others:
 
 1. **Policy resolution.** A `verificationPolicyId` that names no policy falls
    back to claim-type resolution (steps 2–3).
@@ -439,7 +644,6 @@ document with the following differences, and no others:
 8. **Step 2 and `now`.** An invalidation event returns its own `status`
    whatever it is, so an invalidation carrying `verified` derives `verified`.
    An invalid `now` is not refused.
-
 ### Migrating from version 2
 
 A bundle derives a different status under version `"3"` exactly when one of
@@ -452,6 +656,7 @@ resolution to `verified`).
 | *Verified path or resolution:* no policy resolves for the claim | `verified` | `proposed` | Nothing defines what verified requires. |
 | *Verified path:* `verificationPolicyId` names a policy not in the bundle | policy by `claimType` | `proposed` | A named policy that is absent is an omission, not a hint to look elsewhere. |
 | *Verified path or resolution:* resolved policy has empty `requiredEvidence` and no `requiredMethods` | `verified` | `proposed` | A policy that requires nothing is no policy. |
+| No events and no entailing evidence; resolved policy has empty `requiredEvidence` and no `requiredMethods` | `proposed` | `unknown` | A policy that requires nothing is no policy, so Step 6 applies and there is no evidence. (Step 7 passed vacuously under version `"2"`.) |
 | *Verified path:* required check evidence has `passing` absent, or `passing: false` with `blocking: false` | `verified` | `proposed` | A check with no passing result satisfies nothing. |
 | *Verified path:* corroboration counted check evidence without `passing: true` | `verified` | `proposed` | Only qualifying evidence corroborates. |
 | *Verified path:* `commit` rule, no `claim.currentIntegrityRef` | `verified` | `stale` | Nothing to compare the verified evidence against. |
@@ -478,8 +683,8 @@ was active at resolution time, enabling re-evaluation when the algorithm version
 changes.
 
 Conforming implementations must declare which status function version value they
-implement. Implementations claiming version `"3"` must satisfy every conformance
+implement. Implementations claiming version `"4"` must satisfy every conformance
 case in `conformance/` that applies to it: a vector with a
 `statusFunctionVersions` array applies only to the versions it lists, and a
 vector without one applies to every version. Implementations that still claim
-version `"2"` run the vectors that apply to `"2"`.
+version `"3"` or `"2"` run the vectors that apply to that version.

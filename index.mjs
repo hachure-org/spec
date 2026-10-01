@@ -25,10 +25,14 @@
  *   deriveClaimStatus      — status-function.md, one claim → { status, policyId }
  *                             (before the derivation ceiling)
  *   deriveStatuses         — whole bundle → { claimId: status }; both take an
- *                             optional { statusFunctionVersion } ("3" default,
- *                             "2" still supported, anything else throws)
+ *                             optional { statusFunctionVersion } ("4" default,
+ *                             "3" and "2" still supported, anything else throws)
  *   supportedStatusFunctionVersions — the versions lib/derive.mjs evaluates
  *   statusOrder, weakerStatus — status-function.md §"Status ordering" (v3)
+ *   parseTimestamp         — status-function.md §"Timestamps" (version "4"):
+ *                             an RFC 3339 date-time → an exact instant
+ *                             { epochMilliseconds, subMillisecond }, else undefined
+ *   compareTimestamps      — exact ordering of two such instants
  *   mergeBundles           — merge.md §5/§6; throws on claim collisions
  *   mergeBundlesDetailed   — merge.md; returns { bundle, collisions }
  *   canonicalize           — RFC 8785 (JCS) serialization (merge.md §6, SECURITY.md)
@@ -57,6 +61,8 @@ export {
   supportedStatusFunctionVersions,
   statusOrder,
   weakerStatus,
+  parseTimestamp,
+  compareTimestamps,
 } from './lib/derive.mjs';
 export { mergeBundles, mergeBundlesDetailed } from './lib/merge.mjs';
 export { canonicalize } from './lib/canonicalize.mjs';

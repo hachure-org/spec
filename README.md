@@ -64,7 +64,7 @@ npx hachure derive /tmp/bundle.json --now "2026-06-10T00:00:00.000Z"
 
 ```json
 {
-  "statusFunctionVersion": "3",
+  "statusFunctionVersion": "4",
   "evaluatedAt": "2026-06-10T00:00:00.000Z",
   "statusByClaimId": {
     "claim.repo-governance.api-proof": "verified",
@@ -215,7 +215,7 @@ Pre-1.0: the format uses hard breaking changes rather than compatibility aliases
 No forward or backward compatibility guarantees are made across versions. Version
 bumps are reflected in `schemaVersion` (an integer field in TrustBundle, currently
 `9`) and in the status function version (a string exported by this package and by
-every conforming implementation as `statusFunctionVersion`, currently `"3"`).
+every conforming implementation as `statusFunctionVersion`, currently `"4"`).
 
 Schema version `4` adds optional claim freshness fields (`expiresAt` /
 `ttlSeconds`) and an optional invalidation event vocabulary (event `status:
@@ -275,8 +275,8 @@ versions, and [merge.md](merge.md) §5 refuses to merge bundles whose
 the lower ones to `9` first; a bundle valid at `8` is valid at `9` unchanged,
 and a bundle at `5`–`7` is valid at `9` once it meets the version `8`
 `conclusionConfidence` rules. Neither field is a status-function input, so
-`statusFunctionVersion` remains `"3"`. The `sf-inconclusive-evidence` vector
-checks, for versions `"2"` and `"3"`, that an inconclusive item is ignored
+`statusFunctionVersion` did not change for it. The `sf-inconclusive-evidence` vector
+checks, for every version, that an inconclusive item is ignored
 wherever the fold reads evidence, and `sf-basis-fields-inert` checks that
 statuses are identical with and without the new fields.
 
@@ -290,6 +290,30 @@ evaluates it on request (`{ statusFunctionVersion: "2" }`, or
 `hachure derive --status-function-version 2`). No schema change is involved.
 See [status-function.md](status-function.md) §"Migrating from version 2" for
 exactly which bundles change status, and the `sf-v3-*` conformance vectors.
+
+Status function version `"4"` is the current version and the default of the
+bundled implementation and the CLI. It defines a timestamp as an RFC 3339
+`date-time`, compares instants exactly to any number of fractional digits, and makes times that cannot be evaluated fail closed in the
+authority step: a dispute resolution is not honoured when its own `createdAt`
+is not a timestamp, or when every trace for its actor has a `revokedAt`,
+`validFrom` or `validUntil` that is present but is not one; and a blocking
+failure whose `observedAt` is not a timestamp is not set aside by a
+resolution. Under version `"3"` each of those failed open. Values that
+`Date.parse` accepted but RFC 3339 does not (a date with no time, a time with
+no offset, hour `24`) are no longer read as times, and a leap second now is.
+Validity windows are exact as well (`durationDays: 0.7` is exactly
+60 480 000 ms), and a `now` given as a string, including `--now`, must be a
+timestamp. A schema-valid bundle derives the same under `"3"` and `"4"` if every time in
+it is an RFC 3339 `date-time` with an offset, at most three fractional digits
+and no leap second, and `now` is not within one millisecond of the end of a
+validity window.
+A status can become stronger as well as weaker under `"4"`: refusing a
+resolution to `rejected` lets a later `verified` event stand. Versions `"3"`
+and `"2"` remain defined, unchanged, and selectable
+(`{ statusFunctionVersion: "3" }`, or `hachure derive
+--status-function-version 3`). No schema change is involved. See
+[status-function.md](status-function.md) §"Migrating from version 3" and the
+`sf-v4-*` conformance vectors.
 
 ---
 

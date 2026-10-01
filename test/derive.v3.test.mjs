@@ -86,7 +86,7 @@ function bundle({ claim = {}, validityRule = { kind: 'historical' }, event = {} 
 
 const both = (b) => ({
   v2: deriveStatuses(b, NOW, { statusFunctionVersion: '2' }).c,
-  v3: deriveStatuses(b, NOW).c,
+  v3: deriveStatuses(b, NOW, { statusFunctionVersion: '3' }).c,
 });
 
 test('baseline fixture derives verified under both versions', () => {
@@ -185,7 +185,7 @@ test('status ordering is the literal v3 order, weakest first', () => {
 
 test('an unsupported statusFunctionVersion is refused, not silently defaulted', () => {
   const b = bundle();
-  for (const version of ['1', '4', 3, '']) {
+  for (const version of ['1', '5', 3, 4, '']) {
     assert.throws(() => deriveStatuses(b, NOW, { statusFunctionVersion: version }), RangeError);
     assert.throws(() => deriveClaimStatus(b.claims[0], b, NOW, { statusFunctionVersion: version }), RangeError);
   }
@@ -195,7 +195,7 @@ test('an unsupported statusFunctionVersion is refused, not silently defaulted', 
 
 const cli = fileURLToPath(new URL('../bin/hachure.mjs', import.meta.url));
 
-test('CLI derive defaults to v3 and honours --status-function-version 2', () => {
+test('CLI derive defaults to the current version and honours --status-function-version', () => {
   const dir = mkdtempSync(join(tmpdir(), 'hachure-v3-'));
   const path = join(dir, 'bundle.json');
   // A schema-valid bundle that derives differently under the two versions
@@ -205,7 +205,10 @@ test('CLI derive defaults to v3 and honours --status-function-version 2', () => 
   const run = (...extra) =>
     JSON.parse(execFileSync(process.execPath, [cli, 'derive', path, '--now', NOW.toISOString(), ...extra], { encoding: 'utf8' }));
   assert.deepEqual(run().statusByClaimId, { c: 'stale' });
-  assert.equal(run().statusFunctionVersion, '3');
+  assert.equal(run().statusFunctionVersion, '4');
+  const v3 = run('--status-function-version', '3');
+  assert.deepEqual(v3.statusByClaimId, { c: 'stale' });
+  assert.equal(v3.statusFunctionVersion, '3');
   const v2 = run('--status-function-version', '2');
   assert.deepEqual(v2.statusByClaimId, { c: 'verified' });
   assert.equal(v2.statusFunctionVersion, '2');
@@ -215,16 +218,24 @@ test('CLI derive rejects an unsupported --status-function-version with exit 1', 
   const dir = mkdtempSync(join(tmpdir(), 'hachure-v3-'));
   const path = join(dir, 'bundle.json');
   writeFileSync(path, JSON.stringify(bundle()));
-  const r = spawnSync(process.execPath, [cli, 'derive', path, '--status-function-version', '4'], { encoding: 'utf8' });
+  const r = spawnSync(process.execPath, [cli, 'derive', path, '--status-function-version', '5'], { encoding: 'utf8' });
   assert.equal(r.status, 1);
-  assert.match(r.stderr, /unsupported --status-function-version 4/);
+  assert.match(r.stderr, /unsupported --status-function-version 5/);
 });
 
 test('CLI vectors runs every applicable vector and exits 0', () => {
   const r = spawnSync(process.execPath, [cli, 'vectors'], { encoding: 'utf8' });
   assert.equal(r.status, 0, r.stderr);
   const applicable = testVectors.filter(
-    ({ vector }) => !vector.statusFunctionVersions || vector.statusFunctionVersions.includes('3')
+    ({ vector }) => !vector.statusFunctionVersions || vector.statusFunctionVersions.includes('4')
   ).length;
   assert.match(r.stdout, new RegExp(`all ${applicable} applicable vectors pass`));
+});
+
+// The schemas reject these two shapes, so no conformance vector can carry
+// them; the fold still defines them (status-function.md Step 4a).
+test('v3: a missing or unknown validity-rule kind is stale (v2 treated it as never stale)', () => {
+  for (const validityRule of [{}, { kind: 'weekly' }, { kind: null }]) {
+    assert.deepEqual(both(bundle({ validityRule })), { v2: 'verified', v3: 'stale' }, JSON.stringify(validityRule));
+  }
 });
