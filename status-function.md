@@ -167,11 +167,29 @@ Timestamps are compared as instants, never as strings:
 `2026-05-02T00:00:00Z`, `2026-05-02T00:00:00.000Z` and
 `2026-05-02T02:00:00+02:00` are the same instant.
 
-A value that is present where the fold reads a time but is not a timestamp is
-*unevaluable*. Each step says what follows: an event sorts as the oldest
-(Step 2), a resolution is not honoured (Step 1), a validity window is stale
-(Step 4a). `now` is supplied by the caller as an instant and is not parsed
-from the bundle.
+The comparison is exact. Every fractional digit counts, however many there
+are, and nothing is rounded or truncated: `00:00:00.0009Z` is later than
+`00:00:00.0001Z`, `00:00:00.00000000002Z` is later than
+`00:00:00.00000000001Z`, `00:00:00.9999999999Z` is earlier than `00:00:01Z`,
+and `00:00:00.5Z` equals `00:00:00.500000Z`. An implementation therefore
+cannot hold an instant in a binary floating-point number of milliseconds.
+The bundled `parseTimestamp(value)` returns
+`{ epochMilliseconds, subMillisecond }` (whole milliseconds since the epoch,
+and the remaining fractional digits as a string with trailing zeros removed),
+or `undefined` when the value is not a timestamp, and
+`compareTimestamps(a, b)` orders two of them.
+
+`now` is supplied by the caller as an instant with millisecond precision and
+is not parsed from the bundle. A validity window (Step 4a) is a whole number
+of milliseconds: a fraction of a millisecond in `ttlSeconds × 1000` or
+`durationDays × 86 400 000` is dropped.
+
+A time the fold reads that is absent or is not a timestamp is *unevaluable*.
+Each step says what follows: an event sorts before every event with an
+evaluable time (Step 2), a resolution is not honoured (Step 1), a blocking
+failure is not set aside by a resolution (Step 1), a validity window is stale
+(Step 4a). A trace bound that is absent is simply no bound; a trace bound
+that is present but is not a timestamp is unevaluable.
 
 JSON Schema validation does not remove these values. `format` is an annotation
 by default in JSON Schema 2020-12 and `hachure validate` does not assert it,
@@ -233,9 +251,14 @@ that satisfies all of these conditions:
 
 - `event.resolvesDispute === true`
 - `event.createdAt` is a [timestamp](#timestamps). An event whose time is
-  unevaluable is not a resolution, whatever traces its actor has: neither the
-  authority window nor "newer than the resolution" below can be evaluated
-  against it. The event still takes part in Step 2 as an ordinary event.
+  unevaluable (absent, or not a timestamp) is not a resolution, whatever
+  traces its actor has: neither the authority window nor "newer than the
+  resolution" below can be evaluated against it. The event still takes part
+  in Step 2 as an ordinary event, read for its `status` like any other. So a
+  claim whose only event is a `verified` resolution with an unevaluable time
+  can still derive `verified` through Step 4 when the validity rule needs no
+  time (`historical`, `manual`, `commit`); what it loses is the authority to
+  override a dispute.
 - The event's `actor` has an active `AuthorityTrace` at the time of the decision
 
 An `AuthorityTrace` is active at a given `eventCreatedAt` if all of the following hold:
@@ -261,9 +284,11 @@ If such a resolution event is found:
   - `evidence.passing === false`
   - `evidence.blocking !== false`
   - `evidence.observedAt` is later than `resolutionEvent.createdAt`, or
-    `evidence.observedAt` is unevaluable. A blocking failure whose time
-    cannot be evaluated cannot be shown to predate the resolution, so it is
-    not set aside by it.
+    `evidence.observedAt` is unevaluable (absent, or not a timestamp). A
+    blocking failure whose time cannot be evaluated cannot be shown to
+    predate the resolution, so it is not set aside by it. This applies to
+    blocking failures only; other evidence with an unevaluable `observedAt`
+    has no effect here.
 
   If such a "newer blocking failure" exists, return **`disputed`** (the resolution
   is overridden by fresh contradicting evidence).
@@ -283,11 +308,12 @@ If such a resolution event is found:
 
 Filter all events to those matching `claim.id`, sort most-recent-first by `createdAt`.
 Let `latestEvent` be the first (most recent) event. Events are ordered by
-instant. An event whose `createdAt` is unevaluable sorts as the oldest event
-(as if at the epoch), so it is `latestEvent` only when the claim has no event
-with an evaluable `createdAt`. This ordering applies wherever the fold sorts
-events, including Step 1, and holds in every version (the versions differ in
-what counts as a timestamp).
+exact instant. An event whose `createdAt` is unevaluable sorts before every
+event whose `createdAt` is a timestamp, however early that timestamp is, so
+it is `latestEvent` only when the claim has no event with an evaluable
+`createdAt`. This ordering applies wherever the fold sorts events, including
+Step 1. (Versions `"3"` and `"2"` read an unparseable `createdAt` as the
+epoch instead; see [§Version 3](#version-3).)
 
 If `latestEvent` exists and its `status` is one of `"rejected"`, `"disputed"`,
 `"superseded"`, `"stale"`, or `"revoked"` — return that status. These are
@@ -317,13 +343,15 @@ If `latestEvent` exists and `latestEvent.status === "verified"`:
 
 **Claim-intrinsic validity window.** Before consulting the policy validity
 rule, check the claim's own validity window, which overrides policy timing when
-present. Let `verifiedTime = Date.parse(latestEvent.verifiedAt ?? latestEvent.createdAt)`.
+present. Let `verifiedTime` be `latestEvent.verifiedAt`, or
+`latestEvent.createdAt` when `verifiedAt` is absent, read as a
+[timestamp](#timestamps).
 
-- If `claim.expiresAt` is set, the claim is stale when `now > Date.parse(claim.expiresAt)`,
-  or when `claim.expiresAt` cannot be parsed.
-- Else if `claim.ttlSeconds` is set, the claim is stale when
-  `now > verifiedTime + claim.ttlSeconds * 1000`, or when `verifiedTime` cannot
-  be parsed or `ttlSeconds` is not a finite non-negative number.
+- If `claim.expiresAt` is set, the claim is stale when `now` is later than
+  `claim.expiresAt`, or when `claim.expiresAt` is not a timestamp.
+- Else if `claim.ttlSeconds` is set, the claim is stale when `now` is later
+  than `verifiedTime` plus `claim.ttlSeconds` seconds, or when `verifiedTime`
+  is unevaluable or `ttlSeconds` is not a finite non-negative number.
 - **Precedence:** `expiresAt` wins over `ttlSeconds` when both are present.
   When neither is present, fall through to the policy validity rule below.
 
@@ -337,9 +365,10 @@ Otherwise, if a policy is present, check whether the verification is stale based
   `integrityRef` equal to `claim.currentIntegrityRef`. Without a current
   integrity reference there is nothing to compare the verified evidence
   against.
-- **`"duration"`** — stale if `now > verifiedTime + (policy.validityRule.durationDays × 86400000 ms)`.
-  Also stale if `durationDays` is absent, is not a finite non-negative number,
-  or `verifiedTime` cannot be parsed.
+- **`"duration"`** — stale if `now` is later than `verifiedTime` plus
+  `policy.validityRule.durationDays` days (`× 86 400 000` ms). Also stale if
+  `durationDays` is absent, is not a finite non-negative number, or
+  `verifiedTime` is unevaluable.
 - **`"historical"` or `"manual"`** — never stale by time or commit change.
 - Any other `kind`, or a policy with no `validityRule.kind` — stale (the rule
   cannot be evaluated).
@@ -490,34 +519,51 @@ no others:
    accepts more and less than RFC 3339: a date with no time, a time with no
    offset (read in the evaluator's local time zone, so the result depends on
    where it runs), hour `24`, an impossible day such as `02-30`, and some
-   prose dates are accepted; a leap second is not.
-2. **Step 1, authority window.** A bound that is present but unparseable
+   prose dates are accepted; a leap second is not. Where this document says
+   "is a timestamp", read "`Date.parse` returns a number"; where it says
+   "unevaluable", read "`Date.parse` returns `NaN`" (which it also does for
+   an absent value).
+2. **Precision.** `Date.parse` keeps whole milliseconds and discards further
+   fractional digits, so two times in the same millisecond are equal. Events
+   that are equal keep their order in the `events` array. Validity windows
+   are computed in floating-point milliseconds, with no fraction dropped.
+3. **Event order.** An event whose `createdAt` is unparseable is ordered as if
+   at the epoch (`1970-01-01T00:00:00Z`): after an event dated before 1970,
+   before any dated later.
+4. **Step 1, authority window.** A bound that is present but unparseable
    excludes nothing: the trace stays active. So does every bound when the
    event's `createdAt` is unparseable.
-3. **Step 1, resolution time.** A `resolvesDispute` event with an unparseable
-   `createdAt` is a resolution like any other, provided its actor has a
-   matching trace. No blocking failure is ever newer than it.
-4. **Step 1, blocking failure time.** A blocking failure whose `observedAt` is
-   unparseable is not newer than the resolution, so the resolution stands.
+5. **Step 1, resolution time.** A `resolvesDispute` event with an unparseable
+   or absent `createdAt` is a resolution like any other, provided its actor
+   has a matching trace. No blocking failure is ever newer than it.
+6. **Step 1, blocking failure time.** A blocking failure whose `observedAt` is
+   unparseable or absent is not newer than the resolution, so the resolution
+   stands.
 
 ### Migrating from version 3
 
-A bundle derives a different status under version `"4"` exactly when one of
-the following rows applies to a claim. A status can become stronger as well as
-weaker: the rows marked *either way* depend on what the rest of the fold
-derives once a resolution is no longer honoured.
+A bundle derives a different status under version `"4"` only when one of the
+following rows applies to a claim, or to a claim it is derived from. A status
+can become stronger as well as weaker: the rows marked *either way* depend on
+what the rest of the fold derives.
 
 | Bundle shape | v3 | v4 | Why |
 |---|---|---|---|
 | *Resolution:* every trace matching the resolver has a `revokedAt`, `validFrom` or `validUntil` that is present but not a timestamp (and none of its evaluable bounds already excluded it) | resolution status | as if there were no resolution (*either way*) | Authority that cannot be evaluated is not exercised. |
-| *Resolution:* the resolution event's `createdAt` is not a timestamp | resolution status | as if there were no resolution (*either way*) | Neither the authority window nor "newer than the resolution" can be evaluated. |
-| *Resolution:* a blocking failure's `observedAt` is not a timestamp | resolution status | `disputed` | A failure that cannot be shown to predate the resolution is not set aside by it. |
-| Any time the fold reads is accepted by `Date.parse` but is not an RFC 3339 `date-time` (date only, no offset, hour `24`, impossible day, space separator, prose) | read as `Date.parse` reads it | unevaluable: the event sorts oldest, the validity window is stale, the bound does not hold | Version `"4"` defines a timestamp. |
+| *Resolution:* the resolution event's `createdAt` is absent or not a timestamp | resolution status | as if there were no resolution (*either way*) | Neither the authority window nor "newer than the resolution" can be evaluated. |
+| *Resolution:* a blocking failure's `observedAt` is absent or not a timestamp | resolution status | `disputed` | A failure that cannot be shown to predate the resolution is not set aside by it. |
+| Any time the fold reads is accepted by `Date.parse` but is not an RFC 3339 `date-time` (date only, no offset, hour `24`, impossible day, space separator, prose, a number) | read as `Date.parse` reads it | unevaluable: the event sorts first, the validity window is stale, the bound does not hold | Version `"4"` defines a timestamp. |
 | Any time the fold reads is a leap second (`23:59:60` UTC) | unevaluable | the instant that follows it | RFC 3339 permits it. |
-| An event's `createdAt` is one of the two rows above, and the claim has other events | ordered as `Date.parse` reads it | ordered by the version `"4"` reading (*either way*) | `latestEvent` can change. |
+| Two times the fold compares with each other (event `createdAt` values, a trace bound and the resolution's `createdAt`, a blocking failure's `observedAt` and the resolution's `createdAt`) differ by less than a millisecond | equal | ordered by their full value (*either way*) | Instants are compared exactly. |
+| An event's `createdAt` is unevaluable and the claim has an event dated before 1970 | the unevaluable event is the later one | the unevaluable event is the earlier one (*either way*) | An unevaluable time sorts before every timestamp. |
+| An event's `createdAt` changes reading under one of the rows above, and the claim has other events | ordered as `Date.parse` reads it | ordered by the version `"4"` reading (*either way*) | `latestEvent` can change. |
+| `ttlSeconds × 1000` or `durationDays × 86 400 000` is not a whole number of milliseconds | window kept in floating point | fraction of a millisecond dropped | Windows are whole milliseconds. |
 
-The `sf-v4-*` conformance vectors cover each row. Producers that write every
-time as an RFC 3339 `date-time` with an offset are unaffected.
+The `sf-v4-*` conformance vectors cover each row except the last, which
+cannot change a status unless `now` falls within a millisecond of the window's
+end. A producer is unaffected if every time it writes is an RFC 3339
+`date-time` with an offset, with at most three fractional digits and no leap
+second, and every window is a whole number of milliseconds.
 
 ## Version 2
 

@@ -1,0 +1,534 @@
+{
+  "now": "2026-06-10T00:00:00.000Z",
+  "statusFunctionVersions": [
+    "4"
+  ],
+  "input": {
+    "schemaVersion": 5,
+    "source": "spec-conformance:v4-exact-instants",
+    "claims": [
+      {
+        "id": "claim.exact.event-order",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.exact.event-order",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "event-order",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.exact.event-order-long-fraction",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.exact.event-order-long-fraction",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "event-order-long-fraction",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.exact.event-order-reversed",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.exact.event-order-reversed",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "event-order-reversed",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.exact.failure-after-resolution",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.exact.failure-after-resolution",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "failure-after-resolution",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.exact.failure-before-resolution",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.exact.failure-before-resolution",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "failure-before-resolution",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.exact.revoked-after-resolution",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.exact.revoked-after-resolution",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "revoked-after-resolution",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.exact.revoked-before-resolution",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.exact.revoked-before-resolution",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "revoked-before-resolution",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.exact.expired-just-before-resolution",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.exact.expired-just-before-resolution",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "expired-just-before-resolution",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.exact.trailing-zeros-equal",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.exact.trailing-zeros-equal",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "trailing-zeros-equal",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "evidence.claim.exact.event-order",
+        "claimId": "claim.exact.event-order",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.exact.event-order-long-fraction",
+        "claimId": "claim.exact.event-order-long-fraction",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.exact.event-order-reversed",
+        "claimId": "claim.exact.event-order-reversed",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.exact.failure-after-resolution",
+        "claimId": "claim.exact.failure-after-resolution",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.exact.failure-after-resolution",
+        "claimId": "claim.exact.failure-after-resolution",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Source now shows a different value.",
+        "observedAt": "2026-05-02T00:00:00.123900Z",
+        "collectedBy": "crawler",
+        "passing": false,
+        "blocking": true
+      },
+      {
+        "id": "evidence.claim.exact.failure-before-resolution",
+        "claimId": "claim.exact.failure-before-resolution",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.exact.failure-before-resolution",
+        "claimId": "claim.exact.failure-before-resolution",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Source showed a different value before review.",
+        "observedAt": "2026-05-02T00:00:00.123400Z",
+        "collectedBy": "crawler",
+        "passing": false,
+        "blocking": true
+      },
+      {
+        "id": "evidence.claim.exact.revoked-after-resolution",
+        "claimId": "claim.exact.revoked-after-resolution",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.exact.revoked-before-resolution",
+        "claimId": "claim.exact.revoked-before-resolution",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.exact.expired-just-before-resolution",
+        "claimId": "claim.exact.expired-just-before-resolution",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.exact.trailing-zeros-equal",
+        "claimId": "claim.exact.trailing-zeros-equal",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      }
+    ],
+    "policies": [
+      {
+        "id": "policy.public-data-field.basic",
+        "claimType": "public-data-field",
+        "requiredEvidence": [
+          "source_excerpt"
+        ],
+        "requiredMethods": [
+          "observation"
+        ],
+        "requiresCorroboration": false,
+        "acceptanceCriteria": [
+          "field verified from source"
+        ],
+        "reviewAuthority": "operator",
+        "validityRule": {
+          "kind": "historical"
+        },
+        "stalenessTriggers": [],
+        "conflictRules": [],
+        "impactLevel": "medium"
+      }
+    ],
+    "events": [
+      {
+        "id": "event.exact.event-order.0",
+        "claimId": "claim.exact.event-order",
+        "status": "rejected",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.exact.event-order"
+        ],
+        "createdAt": "2026-05-02T00:00:00.0001Z"
+      },
+      {
+        "id": "event.exact.event-order.1",
+        "claimId": "claim.exact.event-order",
+        "status": "verified",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.exact.event-order"
+        ],
+        "createdAt": "2026-05-02T00:00:00.0009Z"
+      },
+      {
+        "id": "event.exact.event-order-long-fraction.0",
+        "claimId": "claim.exact.event-order-long-fraction",
+        "status": "rejected",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.exact.event-order-long-fraction"
+        ],
+        "createdAt": "2026-05-02T00:00:00.00000000001Z"
+      },
+      {
+        "id": "event.exact.event-order-long-fraction.1",
+        "claimId": "claim.exact.event-order-long-fraction",
+        "status": "verified",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.exact.event-order-long-fraction"
+        ],
+        "createdAt": "2026-05-02T00:00:00.00000000002Z"
+      },
+      {
+        "id": "event.exact.event-order-reversed.0",
+        "claimId": "claim.exact.event-order-reversed",
+        "status": "rejected",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.exact.event-order-reversed"
+        ],
+        "createdAt": "2026-05-02T00:00:00.0009Z"
+      },
+      {
+        "id": "event.exact.event-order-reversed.1",
+        "claimId": "claim.exact.event-order-reversed",
+        "status": "verified",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.exact.event-order-reversed"
+        ],
+        "createdAt": "2026-05-02T00:00:00.0001Z"
+      },
+      {
+        "id": "event.exact.failure-after-resolution.resolution",
+        "claimId": "claim.exact.failure-after-resolution",
+        "status": "verified",
+        "actor": "reviewer:exact.failure-after-resolution",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.exact.failure-after-resolution"
+        ],
+        "createdAt": "2026-05-02T00:00:00.123400Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.exact.failure-before-resolution.resolution",
+        "claimId": "claim.exact.failure-before-resolution",
+        "status": "verified",
+        "actor": "reviewer:exact.failure-before-resolution",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.exact.failure-before-resolution"
+        ],
+        "createdAt": "2026-05-02T00:00:00.123900Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.exact.revoked-after-resolution.resolution",
+        "claimId": "claim.exact.revoked-after-resolution",
+        "status": "verified",
+        "actor": "reviewer:exact.revoked-after-resolution",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.exact.revoked-after-resolution"
+        ],
+        "createdAt": "2026-05-02T00:00:00.0001Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.exact.revoked-after-resolution.later",
+        "claimId": "claim.exact.revoked-after-resolution",
+        "status": "disputed",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.exact.revoked-after-resolution"
+        ],
+        "createdAt": "2026-05-03T00:00:00.000Z"
+      },
+      {
+        "id": "event.exact.revoked-before-resolution.resolution",
+        "claimId": "claim.exact.revoked-before-resolution",
+        "status": "verified",
+        "actor": "reviewer:exact.revoked-before-resolution",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.exact.revoked-before-resolution"
+        ],
+        "createdAt": "2026-05-02T00:00:00.0005Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.exact.revoked-before-resolution.later",
+        "claimId": "claim.exact.revoked-before-resolution",
+        "status": "disputed",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.exact.revoked-before-resolution"
+        ],
+        "createdAt": "2026-05-03T00:00:00.000Z"
+      },
+      {
+        "id": "event.exact.expired-just-before-resolution.resolution",
+        "claimId": "claim.exact.expired-just-before-resolution",
+        "status": "verified",
+        "actor": "reviewer:exact.expired-just-before-resolution",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.exact.expired-just-before-resolution"
+        ],
+        "createdAt": "2026-05-02T00:00:01Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.exact.expired-just-before-resolution.later",
+        "claimId": "claim.exact.expired-just-before-resolution",
+        "status": "disputed",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.exact.expired-just-before-resolution"
+        ],
+        "createdAt": "2026-05-03T00:00:00.000Z"
+      },
+      {
+        "id": "event.exact.trailing-zeros-equal.resolution",
+        "claimId": "claim.exact.trailing-zeros-equal",
+        "status": "verified",
+        "actor": "reviewer:exact.trailing-zeros-equal",
+        "method": "authority-review",
+        "evidenceIds": [
+          "evidence.claim.exact.trailing-zeros-equal"
+        ],
+        "createdAt": "2026-05-02T00:00:00.500000Z",
+        "resolvesDispute": true
+      },
+      {
+        "id": "event.exact.trailing-zeros-equal.later",
+        "claimId": "claim.exact.trailing-zeros-equal",
+        "status": "disputed",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.exact.trailing-zeros-equal"
+        ],
+        "createdAt": "2026-05-03T00:00:00.000Z"
+      }
+    ],
+    "authorityTrace": [
+      {
+        "id": "trace.exact.failure-after-resolution",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.exact.failure-after-resolution"
+        },
+        "actorRef": "reviewer:exact.failure-after-resolution",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z"
+      },
+      {
+        "id": "trace.exact.failure-before-resolution",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.exact.failure-before-resolution"
+        },
+        "actorRef": "reviewer:exact.failure-before-resolution",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z"
+      },
+      {
+        "id": "trace.exact.revoked-after-resolution",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.exact.revoked-after-resolution"
+        },
+        "actorRef": "reviewer:exact.revoked-after-resolution",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z",
+        "revokedAt": "2026-05-02T00:00:00.0005Z"
+      },
+      {
+        "id": "trace.exact.revoked-before-resolution",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.exact.revoked-before-resolution"
+        },
+        "actorRef": "reviewer:exact.revoked-before-resolution",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z",
+        "revokedAt": "2026-05-02T00:00:00.0001Z"
+      },
+      {
+        "id": "trace.exact.expired-just-before-resolution",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.exact.expired-just-before-resolution"
+        },
+        "actorRef": "reviewer:exact.expired-just-before-resolution",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z",
+        "validUntil": "2026-05-02T00:00:00.9999999999Z"
+      },
+      {
+        "id": "trace.exact.trailing-zeros-equal",
+        "subject": {
+          "subjectType": "data-field",
+          "subjectId": "dataset:claim.exact.trailing-zeros-equal"
+        },
+        "actorRef": "reviewer:exact.trailing-zeros-equal",
+        "authorityType": "role",
+        "authorityRef": "authority.domain-expert",
+        "sourceRef": "org-policy-2026",
+        "observedAt": "2026-01-01T00:00:00.000Z",
+        "validUntil": "2026-05-02T00:00:00.5Z"
+      }
+    ]
+  },
+  "expect": {
+    "statusByClaimId": {
+      "claim.exact.event-order": "verified",
+      "claim.exact.event-order-long-fraction": "verified",
+      "claim.exact.event-order-reversed": "rejected",
+      "claim.exact.failure-after-resolution": "disputed",
+      "claim.exact.failure-before-resolution": "verified",
+      "claim.exact.revoked-after-resolution": "verified",
+      "claim.exact.revoked-before-resolution": "disputed",
+      "claim.exact.expired-just-before-resolution": "disputed",
+      "claim.exact.trailing-zeros-equal": "verified"
+    }
+  }
+}

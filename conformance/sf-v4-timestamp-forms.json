@@ -177,6 +177,32 @@
         "expiresAt": "2027-04-01T00:00:00+0000"
       },
       {
+        "id": "claim.timestamp.offset-hour-24",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.timestamp.offset-hour-24",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "offset-hour-24",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic",
+        "expiresAt": "2027-04-01T00:00:00+24:00"
+      },
+      {
+        "id": "claim.timestamp.offset-minute-60",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.timestamp.offset-minute-60",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "offset-minute-60",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic",
+        "expiresAt": "2027-04-01T00:00:00+00:60"
+      },
+      {
         "id": "claim.timestamp.event-order",
         "subjectType": "data-field",
         "subjectId": "dataset:claim.timestamp.event-order",
@@ -187,6 +213,31 @@
         "updatedAt": "2026-05-01T00:00:00.000Z",
         "impactLevel": "medium",
         "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.timestamp.event-order-before-1970",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.timestamp.event-order-before-1970",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "event-order-before-1970",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.timestamp.verified-at-date-only",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.timestamp.verified-at-date-only",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "verified-at-date-only",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic",
+        "ttlSeconds": 315360000
       }
     ],
     "evidence": [
@@ -321,8 +372,48 @@
         "collectedBy": "crawler"
       },
       {
+        "id": "evidence.claim.timestamp.offset-hour-24",
+        "claimId": "claim.timestamp.offset-hour-24",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.timestamp.offset-minute-60",
+        "claimId": "claim.timestamp.offset-minute-60",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
         "id": "evidence.claim.timestamp.event-order",
         "claimId": "claim.timestamp.event-order",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.timestamp.event-order-before-1970",
+        "claimId": "claim.timestamp.event-order-before-1970",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.timestamp.verified-at-date-only",
+        "claimId": "claim.timestamp.verified-at-date-only",
         "evidenceType": "source_excerpt",
         "method": "observation",
         "sourceRef": "https://example.org/source",
@@ -499,6 +590,28 @@
         "createdAt": "2026-05-02T00:00:00.000Z"
       },
       {
+        "id": "event.timestamp.offset-hour-24",
+        "claimId": "claim.timestamp.offset-hour-24",
+        "status": "verified",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.timestamp.offset-hour-24"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z"
+      },
+      {
+        "id": "event.timestamp.offset-minute-60",
+        "claimId": "claim.timestamp.offset-minute-60",
+        "status": "verified",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.timestamp.offset-minute-60"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z"
+      },
+      {
         "id": "event.timestamp.event-order.date-only",
         "claimId": "claim.timestamp.event-order",
         "status": "rejected",
@@ -519,6 +632,40 @@
           "evidence.claim.timestamp.event-order"
         ],
         "createdAt": "2026-05-02T00:00:00.000Z"
+      },
+      {
+        "id": "event.timestamp.event-order-before-1970.unevaluable",
+        "claimId": "claim.timestamp.event-order-before-1970",
+        "status": "rejected",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.timestamp.event-order-before-1970"
+        ],
+        "createdAt": "not-a-timestamp"
+      },
+      {
+        "id": "event.timestamp.event-order-before-1970.verified",
+        "claimId": "claim.timestamp.event-order-before-1970",
+        "status": "verified",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.timestamp.event-order-before-1970"
+        ],
+        "createdAt": "1969-12-31T00:00:00Z"
+      },
+      {
+        "id": "event.timestamp.verified-at-date-only",
+        "claimId": "claim.timestamp.verified-at-date-only",
+        "status": "verified",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.timestamp.verified-at-date-only"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z",
+        "verifiedAt": "2026-05-02"
       }
     ]
   },
@@ -537,7 +684,11 @@
       "claim.timestamp.space-separator": "stale",
       "claim.timestamp.prose": "stale",
       "claim.timestamp.offset-without-colon": "stale",
-      "claim.timestamp.event-order": "verified"
+      "claim.timestamp.offset-hour-24": "stale",
+      "claim.timestamp.offset-minute-60": "stale",
+      "claim.timestamp.event-order": "verified",
+      "claim.timestamp.event-order-before-1970": "verified",
+      "claim.timestamp.verified-at-date-only": "stale"
     }
   }
 }

@@ -293,7 +293,7 @@ exactly which bundles change status, and the `sf-v3-*` conformance vectors.
 
 Status function version `"4"` is the current version and the default of the
 bundled implementation and the CLI. It defines a timestamp as an RFC 3339
-`date-time` and makes times that cannot be evaluated fail closed in the
+`date-time`, compares instants exactly to any number of fractional digits, and makes times that cannot be evaluated fail closed in the
 authority step: a dispute resolution is not honoured when its own `createdAt`
 is not a timestamp, or when every trace for its actor has a `revokedAt`,
 `validFrom` or `validUntil` that is present but is not one; and a blocking
@@ -301,6 +301,8 @@ failure whose `observedAt` is not a timestamp is not set aside by a
 resolution. Under version `"3"` each of those failed open. Values that
 `Date.parse` accepted but RFC 3339 does not (a date with no time, a time with
 no offset, hour `24`) are no longer read as times, and a leap second now is.
+A producer is unaffected if every time it writes is an RFC 3339 `date-time`
+with an offset, at most three fractional digits and no leap second.
 A status can become stronger as well as weaker under `"4"`: refusing a
 resolution to `rejected` lets a later `verified` event stand. Versions `"3"`
 and `"2"` remain defined, unchanged, and selectable
