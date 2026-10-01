@@ -69,7 +69,38 @@ Before the fold, evidence is partitioned by `supportStrength`:
   policy checks and does not count toward corroboration.
 
 Only entailing evidence is passed to `deriveTrustStatus`. Cited evidence is
-available to callers but does not influence status derivation.
+available to callers but does not influence status derivation. Every step of
+the fold that mentions evidence, including Steps 6 and 7, sees entailing
+evidence only.
+
+### Fields that are not inputs
+
+The function reads no field that describes how evidence was collected or how a
+value was arrived at. In particular it does not read:
+
+- `evidence.inconclusive` — an attempt that could not run. The Evidence schema
+  requires such an item to be `supportStrength: "cited"` with no `passing`, so
+  the partition above removes it before the fold. It satisfies no requirement
+  (Steps 4c and 7), is not counted as evidence in Step 6, does not corroborate,
+  anchors no `commit` rule (Step 4a), and is never a blocking failure (Steps 1
+  and 4b). A claim derives the same status with the item as without it. No
+  step tests for `inconclusive`; the exclusion follows from the partition, in
+  version `"2"` and version `"3"` alike.
+- `evidence.collectedByKind` — the kind of collector. Evidence collected by a
+  model counts exactly as evidence collected any other way.
+- `evidence.execution`, including `execution.isError`. A failed check affects
+  status only through `passing: false`.
+- `metadata` on any record, including the
+  [basis-annotations profile](basis-annotations.md)'s
+  `evidence.metadata.sourceOfRecord` and `claim.metadata.estimate`.
+- `claim.conclusionConfidence` and `claim.confidenceBasis`.
+
+The exclusion of inconclusive evidence rests on schema validity: an item that
+carries `inconclusive` but is entailing is not schema-valid, and the fold,
+which does not look at `inconclusive`, would count it. An implementation MUST
+validate a bundle against the schemas before deriving status from it. The
+`sf-inconclusive-evidence` and `sf-basis-fields-inert` conformance vectors
+cover these fields.
 
 ---
 

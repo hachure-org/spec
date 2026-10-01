@@ -42,6 +42,8 @@ vectors via the `testVectors` export or `npx hachure vectors`.
 | `sf-v3-unevaluable-validity.json` | v3: `commit` rule with no `currentIntegrityRef` → `stale`; `duration` rule with no `durationDays` → `stale`; `historical` stays `verified` | 2026-06-10T00:00:00.000Z |
 | `sf-v3-blocking-before-requirements.json` | v3: a blocking failure that also leaves a requirement unmet → `disputed`, not `proposed` | 2026-06-10T00:00:00.000Z |
 | `sf-v3-invalidation-nonterminal.json` | v3: a `type: "invalidation"` event whose status is not terminal (`verified`, `assumed`) → `stale`; a terminal status (`rejected`) passes through | 2026-06-10T00:00:00.000Z |
+| `sf-inconclusive-evidence.json` | Inconclusive evidence (schema 9): a verified claim stays `verified`; an attempt alone, with or without a policy, derives `unknown`; an attempt of the required type leaves the requirement unmet → `proposed` | 2026-06-10T00:00:00.000Z |
+| `sf-basis-fields-inert.json` | `inconclusive`, `collectedByKind`, `metadata.sourceOfRecord` and `metadata.estimate` present on claims deriving `verified`, `disputed`, `proposed` and `unknown`; the package's suite re-derives with the fields stripped and asserts identical statuses | 2026-06-10T00:00:00.000Z |
 | `sf-v3-derivation-ceiling.json` | v3: derivation ceiling and status ordering — rejected below unknown, disputed below superseded, stale below unknown, missing input → `unknown`, transitive through `derivationEdges` | 2026-06-10T00:00:00.000Z |
 
 ## Test vector format

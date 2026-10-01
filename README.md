@@ -197,7 +197,7 @@ product-scoped namespaces (a domain the producer controls), never
 Pre-1.0: the format uses hard breaking changes rather than compatibility aliases.
 No forward or backward compatibility guarantees are made across versions. Version
 bumps are reflected in `schemaVersion` (an integer field in TrustBundle, currently
-`8`) and in the status function version (a string exported by this package and by
+`9`) and in the status function version (a string exported by this package and by
 every conforming implementation as `statusFunctionVersion`, currently `"3"`).
 
 Schema version `4` adds optional claim freshness fields (`expiresAt` /
@@ -244,6 +244,18 @@ JSON Schema cannot express. Bundles at `5`–`7` validate exactly as before (all
 of this is a SHOULD there). The status function never reads
 `conclusionConfidence`.
 
+Schema version `9` adds two optional Evidence fields that record how an item
+was obtained: `inconclusive` (the attempt to collect it could not run) and
+`collectedByKind` (`human`, `deterministic`, or `model`). See
+[§Evidence](#evidence). The addition is additive: every bundle valid at
+`schemaVersion` `8` remains valid. A bundle that uses either field MUST declare
+`schemaVersion` `9`, and the schema rejects them under a lower declared
+version; a producer SHOULD declare `9` only when it uses one of them, because
+older validators reject the new properties. Neither field is a status-function
+input, so `statusFunctionVersion` remains `"3"`; the `sf-inconclusive-evidence`
+and `sf-basis-fields-inert` conformance vectors prove it for versions `"2"`
+and `"3"`.
+
 Status function version `"3"` makes omission fail closed: a claim with no
 resolvable (or no non-empty) verification policy derives at most `proposed`,
 check evidence satisfies a requirement only with `passing: true`, an
@@ -265,7 +277,7 @@ document and in every other normative document in this repository
 (`merge.md`, `assurance.md`, `verification-endpoint.md`,
 `status-function.md`, `interop-in-toto.md`, `evidence-ingestion.md`,
 `scitt.md`, `oscal.md`, `ai-evaluation.md`, `contract-claims.md`, `waivers.md`,
-`SECURITY.md`) are to be
+`basis-annotations.md`, `SECURITY.md`) are to be
 interpreted as described in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119)
 and clarified by [RFC 8174](https://www.rfc-editor.org/rfc/rfc8174) (BCP 14),
 only when they appear in all capitals, as shown here.
@@ -352,6 +364,64 @@ optional `environment` (`test`, `staging`, or `production`) records where that
 execution occurred; policies that specifically require live/deployed evidence
 SHOULD require `runtime_observation` rather than inferring it from method or
 execution metadata.
+
+#### Inconclusive evidence
+
+An attempt to collect evidence that could not run is recorded with the optional
+`inconclusive` object (schema version `9`):
+
+```json
+{
+  "id": "ev-9", "claimId": "claim.api.p95",
+  "evidenceType": "runtime_observation", "method": "monitoring",
+  "supportStrength": "cited",
+  "sourceRef": "https://metrics.example/p95",
+  "excerptOrSummary": "Metrics endpoint returned 503",
+  "observedAt": "2026-09-26T10:00:00Z", "collectedBy": "ci-probe",
+  "inconclusive": { "reason": "unreachable", "detail": "HTTP 503 after 3 retries" }
+}
+```
+
+`reason` is one of `unreachable`, `tool_error`, `permission_denied`, `timeout`,
+or `other`; `detail` is an optional non-empty string and is REQUIRED when
+`reason` is `other`. The set is closed: a cause it does not name (a rate limit,
+for example) is recorded as `other` with a `detail`.
+
+- An inconclusive item MUST set `supportStrength: "cited"` and MUST NOT carry
+  `passing`. The Evidence schema enforces both. Because cited evidence is
+  dropped before the fold, an inconclusive item satisfies no policy requirement,
+  does not corroborate, and cannot dispute a claim: every claim derives the
+  status it would have if the item were absent. A consumer MUST validate a
+  bundle against the schemas before relying on this.
+- Only an explicit `inconclusive` object means "could not run".
+  `execution.isError: true` on its own, and `passing: false`, both mean the
+  check ran and failed. A producer MUST NOT write a check that could not run as
+  `passing: false`: an absent `blocking` counts as blocking, so that would turn
+  a verified claim `disputed`. `execution.isError` MAY accompany `inconclusive`;
+  `inconclusive` then takes precedence in display.
+- A consumer MAY show a claim-level "could not check" label when a claim has at
+  least one inconclusive item and no entailing evidence. That is distinct from
+  "never checked" (no evidence) and from "failed".
+
+#### Collector kind
+
+The optional `collectedByKind` (schema version `9`) records what kind of
+collector produced an item: `human`, `deterministic` (a parser, test runner, or
+probe), or `model`. `collectedBy` remains the collector's identity; the kind is
+never encoded in it.
+
+- The field is descriptive only. The status function does not read it and no
+  policy field refers to it; a policy that excludes evidence by collector kind
+  would be a status-function change and is not defined.
+- When the value is `"model"`, the producer SHOULD also set
+  `metadata.collectorModel` to `{ "name": "<model>", "version": "<version>" }`.
+  This names the model that collected the item, and is separate from the
+  [AI-evaluation profile](ai-evaluation.md)'s `metadata.model`, which names the
+  model under evaluation.
+- A person's review of model output is separate `attestation` evidence with
+  `collectedByKind: "human"`. There is no combined value.
+- Absent means not declared. A consumer MUST NOT infer `human` or
+  `deterministic` from a missing field.
 
 ### VerificationPolicy
 
@@ -467,6 +537,7 @@ a profile requires no changes to core record shapes or the status function.
 | AI evaluation | [ai-evaluation.md](ai-evaluation.md) | Eval results, model claims, and agent outcomes as recomputable trust: eval evidence that survives the boundary, calibrated `conclusionConfidence` + comfort-zone, conclusion-freshness vs signature-freshness, composing with model-signing / AI-BOMs / DID-VC as evidence. |
 | Contract claims | [contract-claims.md](contract-claims.md) | End-to-end contracts between providers and consumers: a `contract` claim qualifier convention plus live `runtime_observation` receipts that keep test-only integration assertions at a gap. |
 | Waivers | [waivers.md](waivers.md) | Typed `claim.metadata.waiver` shape for documenting an accepted `assumed` gap (reason/approver/timestamp), with no status-function or schema change. |
+| Basis annotations | [basis-annotations.md](basis-annotations.md) | How a status was established, for display: `evidence.metadata.sourceOfRecord` (a reference to an `AuthorityTrace`, with resolution rules) and `claim.metadata.estimate` (basis and optional bounds), with no status-function or schema change. |
 
 ---
 

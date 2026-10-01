@@ -15,7 +15,7 @@ import {
   supportedStatusFunctionVersions,
 } from '../index.mjs';
 
-assert.ok(testVectors.length >= 17, 'expected the full status-derivation vector set');
+assert.ok(testVectors.length >= 19, 'expected the full status-derivation vector set');
 
 // A vector without statusFunctionVersions holds for every version.
 const versionsOf = (vector) => vector.statusFunctionVersions ?? supportedStatusFunctionVersions;
@@ -61,6 +61,74 @@ test('every sf-v3-* vector is restricted to version 3', () => {
   const v3 = testVectors.filter(({ name }) => name.startsWith('sf-v3-'));
   assert.equal(v3.length, 8);
   for (const { name, vector } of v3) assert.deepEqual(vector.statusFunctionVersions, ['3'], name);
+});
+
+// Basis fields (schemaVersion 9 evidence fields and the basis-annotations
+// profile keys) describe how a status was established. They are not inputs:
+// deriving a bundle with them, with them stripped, and with every inconclusive
+// item removed must agree, under every supported version.
+const BASIS_VECTORS = ['sf-inconclusive-evidence', 'sf-basis-fields-inert'];
+const BASIS_METADATA_KEYS = ['sourceOfRecord', 'estimate', 'collectorModel'];
+
+function stripBasisFields(record) {
+  const { inconclusive, collectedByKind, ...rest } = record;
+  if (rest.metadata) {
+    rest.metadata = Object.fromEntries(
+      Object.entries(rest.metadata).filter(([key]) => !BASIS_METADATA_KEYS.includes(key))
+    );
+  }
+  return rest;
+}
+
+for (const name of BASIS_VECTORS) {
+  for (const version of supportedStatusFunctionVersions) {
+    test(`vector ${name}: basis fields do not change derivation (v${version})`, () => {
+      const { vector } = testVectors.find((v) => v.name === name);
+      const input = vector.input;
+      const now = new Date(vector.now);
+      const options = { statusFunctionVersion: version };
+      const withFields = deriveStatuses(input, now, options);
+      assert.deepEqual(withFields, vector.expect.statusByClaimId);
+
+      const inconclusive = input.evidence.filter((e) => e.inconclusive);
+      assert.ok(inconclusive.length > 0, `${name} carries no inconclusive evidence`);
+
+      const stripped = {
+        ...input,
+        claims: input.claims.map(stripBasisFields),
+        evidence: input.evidence.map(stripBasisFields),
+      };
+      assert.notDeepEqual(stripped, input, `${name} carries no basis fields to strip`);
+      assert.deepEqual(deriveStatuses(stripped, now, options), withFields);
+
+      const attemptsRemoved = { ...input, evidence: input.evidence.filter((e) => !e.inconclusive) };
+      assert.deepEqual(deriveStatuses(attemptsRemoved, now, options), withFields);
+    });
+  }
+}
+
+test('sf-basis-fields-inert carries all four basis fields', () => {
+  const { vector } = testVectors.find((v) => v.name === 'sf-basis-fields-inert');
+  const { claims, evidence } = vector.input;
+  assert.ok(evidence.some((e) => e.inconclusive));
+  assert.deepEqual([...new Set(evidence.map((e) => e.collectedByKind))].sort(), ['deterministic', 'human', 'model']);
+  assert.ok(evidence.some((e) => e.metadata?.sourceOfRecord));
+  assert.ok(claims.some((c) => c.metadata?.estimate));
+});
+
+// The schema, not the fold, keeps an attempt out of derivation. This pins what
+// that buys: the same item marked entailing would satisfy the requirement.
+test('an inconclusive item would count toward requiredEvidence if it were entailing', () => {
+  const { vector } = testVectors.find((v) => v.name === 'sf-inconclusive-evidence');
+  const entailing = {
+    ...vector.input,
+    evidence: vector.input.evidence.map((e) => (e.inconclusive ? { ...e, supportStrength: 'entails' } : e)),
+  };
+  const derived = deriveStatuses(entailing, new Date(vector.now));
+  assert.equal(vector.expect.statusByClaimId['claim.inconclusive.only-attempt'], 'unknown');
+  assert.equal(derived['claim.inconclusive.only-attempt'], 'proposed');
+  assert.equal(vector.expect.statusByClaimId['claim.inconclusive.requirement-unmet'], 'proposed');
+  assert.equal(derived['claim.inconclusive.requirement-unmet'], 'verified');
 });
 
 test('deriveClaimStatus returns { status, policyId } with resolved policy id', () => {

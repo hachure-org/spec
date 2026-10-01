@@ -682,3 +682,176 @@ test('hachure validate exits 1 on a schema-valid v8 bundle whose value lies outs
   const ok = spawnSync(process.execPath, [CLI, 'validate', good], { encoding: 'utf8' });
   assert.equal(ok.status, 0, ok.stdout + ok.stderr);
 });
+
+// ---------------------------------------------------------------------------
+// schemaVersion 9: evidence.inconclusive and evidence.collectedByKind.
+// An inconclusive item is an attempt that could not run. It must be `cited`
+// and carry no `passing`, which is what keeps it out of status derivation.
+// ---------------------------------------------------------------------------
+function buildInconclusiveEvidence(overrides = {}) {
+  return {
+    id: 'ev-9',
+    claimId: 'claim.facet-rename-test.1',
+    evidenceType: 'runtime_observation',
+    method: 'monitoring',
+    supportStrength: 'cited',
+    sourceRef: 'https://metrics.example/p95',
+    excerptOrSummary: 'Metrics endpoint returned 503',
+    observedAt: '2026-09-26T10:00:00Z',
+    collectedBy: 'ci-probe',
+    inconclusive: { reason: 'unreachable', detail: 'HTTP 503 after 3 retries' },
+    ...overrides,
+  };
+}
+
+function withoutKey(object, key) {
+  const { [key]: _removed, ...rest } = object;
+  return rest;
+}
+
+test('inconclusive: a cited evidence item with each reason validates', () => {
+  const validateEvidence = compileRoot('evidence.schema.json');
+  for (const reason of ['unreachable', 'tool_error', 'permission_denied', 'timeout']) {
+    const evidence = buildInconclusiveEvidence({ inconclusive: { reason } });
+    assert.equal(validateEvidence(evidence), true, `${reason}: ${JSON.stringify(validateEvidence.errors)}`);
+  }
+  const other = buildInconclusiveEvidence({ inconclusive: { reason: 'other', detail: 'unparseable response' } });
+  assert.equal(validateEvidence(other), true, JSON.stringify(validateEvidence.errors));
+  // execution.isError may accompany it; isError alone never implies inconclusive.
+  const withExecution = buildInconclusiveEvidence({
+    inconclusive: { reason: 'tool_error' },
+    execution: { runner: 'bash', label: 'p95 probe', isError: true },
+  });
+  assert.equal(validateEvidence(withExecution), true, JSON.stringify(validateEvidence.errors));
+});
+
+test('inconclusive: rejected together with `passing` (true or false)', () => {
+  const validateEvidence = compileRoot('evidence.schema.json');
+  for (const passing of [true, false]) {
+    assert.equal(validateEvidence(buildInconclusiveEvidence({ passing })), false, `passing: ${passing}`);
+    assert.ok(
+      validateEvidence.errors.some((e) => e.keyword === 'not'),
+      JSON.stringify(validateEvidence.errors),
+    );
+  }
+});
+
+test('inconclusive: rejected with supportStrength "entails"', () => {
+  const validateEvidence = compileRoot('evidence.schema.json');
+  assert.equal(validateEvidence(buildInconclusiveEvidence({ supportStrength: 'entails' })), false);
+  assert.ok(
+    validateEvidence.errors.some((e) => e.instancePath === '/supportStrength' && e.keyword === 'const'),
+    JSON.stringify(validateEvidence.errors),
+  );
+});
+
+test('inconclusive: rejected when supportStrength is absent (absent means entails)', () => {
+  const validateEvidence = compileRoot('evidence.schema.json');
+  assert.equal(validateEvidence(withoutKey(buildInconclusiveEvidence(), 'supportStrength')), false);
+  assert.ok(
+    validateEvidence.errors.some((e) => e.keyword === 'required' && e.params.missingProperty === 'supportStrength'),
+    JSON.stringify(validateEvidence.errors),
+  );
+});
+
+test('inconclusive: reason "other" without detail is rejected', () => {
+  const validateEvidence = compileRoot('evidence.schema.json');
+  assert.equal(validateEvidence(buildInconclusiveEvidence({ inconclusive: { reason: 'other' } })), false);
+  assert.ok(
+    validateEvidence.errors.some((e) => e.keyword === 'required' && e.params.missingProperty === 'detail'),
+    JSON.stringify(validateEvidence.errors),
+  );
+  assert.equal(validateEvidence(buildInconclusiveEvidence({ inconclusive: { reason: 'other', detail: '' } })), false);
+});
+
+test('inconclusive: an unknown reason, a missing reason, and an unknown key are rejected', () => {
+  const validateEvidence = compileRoot('evidence.schema.json');
+  for (const inconclusive of [
+    { reason: 'rate_limited' },
+    { reason: 'not_applicable' },
+    { detail: 'no reason given' },
+    { reason: 'timeout', retries: 3 },
+    true,
+  ]) {
+    assert.equal(validateEvidence(buildInconclusiveEvidence({ inconclusive })), false, JSON.stringify(inconclusive));
+  }
+});
+
+test('the inconclusive constraints leave ordinary evidence alone', () => {
+  const validateEvidence = compileRoot('evidence.schema.json');
+  const base = withoutKey(buildInconclusiveEvidence(), 'inconclusive');
+  for (const evidence of [
+    base,
+    withoutKey(base, 'supportStrength'),
+    { ...base, supportStrength: 'entails', passing: false, blocking: true },
+    { ...base, passing: true },
+  ]) {
+    assert.equal(validateEvidence(evidence), true, JSON.stringify(validateEvidence.errors));
+  }
+});
+
+test('collectedByKind: each of human / deterministic / model validates', () => {
+  const validateEvidence = compileRoot('evidence.schema.json');
+  const base = withoutKey(buildInconclusiveEvidence(), 'inconclusive');
+  for (const collectedByKind of ['human', 'deterministic', 'model']) {
+    assert.equal(validateEvidence({ ...base, collectedByKind }), true, JSON.stringify(validateEvidence.errors));
+  }
+  const withModel = {
+    ...base,
+    collectedByKind: 'model',
+    metadata: { collectorModel: { name: 'example-llm', version: '2026-06' } },
+  };
+  assert.equal(validateEvidence(withModel), true, JSON.stringify(validateEvidence.errors));
+});
+
+test('collectedByKind: an unknown value is rejected', () => {
+  const validateEvidence = compileRoot('evidence.schema.json');
+  const base = withoutKey(buildInconclusiveEvidence(), 'inconclusive');
+  for (const collectedByKind of ['hybrid', 'llm', '', null]) {
+    assert.equal(validateEvidence({ ...base, collectedByKind }), false, JSON.stringify(collectedByKind));
+    assert.ok(
+      validateEvidence.errors.some((e) => e.instancePath === '/collectedByKind' && e.keyword === 'enum'),
+      JSON.stringify(validateEvidence.errors),
+    );
+  }
+});
+
+test('schemaVersion 9: a bundle using the new evidence fields validates', () => {
+  const validateBundle = compileRoot('trust-bundle.schema.json');
+  const bundle = buildBaseBundle(9, buildBaseClaim());
+  bundle.evidence = [buildInconclusiveEvidence({ collectedByKind: 'deterministic' })];
+  assert.equal(validateBundle(bundle), true, JSON.stringify(validateBundle.errors));
+});
+
+test('schemaVersion 9: a bundle declaring 8 or lower is rejected when it uses a version 9 evidence field', () => {
+  const validateBundle = compileRoot('trust-bundle.schema.json');
+  const plain = withoutKey(buildInconclusiveEvidence(), 'inconclusive');
+  for (const schemaVersion of [5, 8]) {
+    for (const evidence of [buildInconclusiveEvidence(), { ...plain, collectedByKind: 'model' }]) {
+      const bundle = buildBaseBundle(schemaVersion, buildBaseClaim());
+      bundle.evidence = [evidence];
+      assert.equal(validateBundle(bundle), false, `schemaVersion ${schemaVersion}`);
+      assert.ok(
+        validateBundle.errors.some((e) => e.instancePath === '/evidence/0' && e.keyword === 'not'),
+        JSON.stringify(validateBundle.errors),
+      );
+    }
+    // The same bundle without the new fields validates as before.
+    const bundle = buildBaseBundle(schemaVersion, buildBaseClaim());
+    bundle.evidence = [plain];
+    assert.equal(validateBundle(bundle), true, JSON.stringify(validateBundle.errors));
+  }
+});
+
+test('schemaVersion 9: 5 through 9 are accepted and 10 is not', () => {
+  const validateBundle = compileRoot('trust-bundle.schema.json');
+  assert.deepEqual(schemaFiles['trust-bundle.schema.json'].properties.schemaVersion.enum, [5, 6, 7, 8, 9]);
+  for (const schemaVersion of [5, 6, 7, 8, 9]) {
+    assert.equal(
+      validateBundle(buildBaseBundle(schemaVersion, buildBaseClaim())),
+      true,
+      `${schemaVersion}: ${JSON.stringify(validateBundle.errors)}`,
+    );
+  }
+  assert.equal(validateBundle(buildBaseBundle(10, buildBaseClaim())), false);
+});

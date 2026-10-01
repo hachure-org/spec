@@ -34,6 +34,10 @@
  *   canonicalize           — RFC 8785 (JCS) serialization (merge.md §6, SECURITY.md)
  *   validateConclusionConfidence — schema-8 conclusionConfidence checks JSON
  *                             Schema cannot express (ai-evaluation.md)
+ *   validateBasisAnnotations — shape checks for the basis-annotations
+ *                             profile's metadata keys (basis-annotations.md)
+ *   resolveSourceOfRecord  — whether an evidence item's source-of-record
+ *                             reference is backed by an AuthorityTrace
  */
 
 import { readFileSync, readdirSync } from 'node:fs';
@@ -54,6 +58,7 @@ export {
 export { mergeBundles, mergeBundlesDetailed } from './lib/merge.mjs';
 export { canonicalize } from './lib/canonicalize.mjs';
 export { validateConclusionConfidence } from './lib/confidence.mjs';
+export { validateBasisAnnotations, resolveSourceOfRecord } from './lib/basis-annotations.mjs';
 export { diffStatuses } from './lib/diff.mjs';
 
 // ---------------------------------------------------------------------------

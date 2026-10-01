@@ -1,0 +1,265 @@
+{
+  "now": "2026-06-10T00:00:00.000Z",
+  "input": {
+    "schemaVersion": 9,
+    "source": "spec-conformance:basis-fields-inert",
+    "claims": [
+      {
+        "id": "claim.basis.verified",
+        "subjectType": "tax-form",
+        "subjectId": "w2:2025:employee-123",
+        "claimType": "payroll-field",
+        "fieldOrBehavior": "wages",
+        "value": 84210,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.payroll-field.excerpt"
+      },
+      {
+        "id": "claim.basis.disputed",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.basis.disputed",
+        "claimType": "payroll-field",
+        "fieldOrBehavior": "disputed",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.payroll-field.excerpt"
+      },
+      {
+        "id": "claim.basis.proposed",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.basis.proposed",
+        "claimType": "payroll-field",
+        "fieldOrBehavior": "annualSalary",
+        "value": 90000,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.payroll-field.excerpt",
+        "metadata": {
+          "estimate": {
+            "basis": "offer letter base salary; bonus not yet known",
+            "low": 88000,
+            "high": 95000
+          }
+        }
+      },
+      {
+        "id": "claim.basis.unknown",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.basis.unknown",
+        "claimType": "payroll-field",
+        "fieldOrBehavior": "unknown",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.payroll-field.excerpt"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "evidence.v.excerpt",
+        "claimId": "claim.basis.verified",
+        "evidenceType": "source_excerpt",
+        "method": "extraction",
+        "sourceRef": "https://employer.example/payroll/w2/2025/123",
+        "excerptOrSummary": "Box 1: 84,210.00",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "payroll-connector",
+        "collectedByKind": "deterministic",
+        "metadata": {
+          "sourceOfRecord": {
+            "authorityTraceId": "trace.payroll.system-of-record"
+          }
+        }
+      },
+      {
+        "id": "evidence.v.attempt",
+        "claimId": "claim.basis.verified",
+        "evidenceType": "crawl_observation",
+        "method": "observation",
+        "sourceRef": "https://registry.example/records/42",
+        "excerptOrSummary": "Registry fetch did not complete.",
+        "observedAt": "2026-06-05T00:00:00.000Z",
+        "collectedBy": "crawler",
+        "supportStrength": "cited",
+        "inconclusive": {
+          "reason": "tool_error"
+        },
+        "collectedByKind": "deterministic"
+      },
+      {
+        "id": "evidence.d.excerpt",
+        "claimId": "claim.basis.disputed",
+        "evidenceType": "source_excerpt",
+        "method": "extraction",
+        "sourceRef": "https://employer.example/payroll/w2/2025/123",
+        "excerptOrSummary": "Box 1: 84,210.00",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "extraction-run-812",
+        "collectedByKind": "model",
+        "metadata": {
+          "collectorModel": {
+            "name": "example-llm",
+            "version": "2026-06"
+          }
+        }
+      },
+      {
+        "id": "evidence.d.contradiction",
+        "claimId": "claim.basis.disputed",
+        "evidenceType": "source_excerpt",
+        "method": "extraction",
+        "sourceRef": "https://employer.example/payroll/w2/2025/123",
+        "excerptOrSummary": "Corrected form shows a different Box 1 amount.",
+        "observedAt": "2026-06-05T00:00:00.000Z",
+        "collectedBy": "reviewer:alice",
+        "collectedByKind": "human",
+        "passing": false,
+        "blocking": true
+      },
+      {
+        "id": "evidence.p.citation",
+        "claimId": "claim.basis.proposed",
+        "evidenceType": "document_citation",
+        "method": "extraction",
+        "sourceRef": "https://employer.example/payroll/w2/2025/123",
+        "excerptOrSummary": "Offer letter states the annual salary.",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "extraction-run-812",
+        "collectedByKind": "model",
+        "metadata": {
+          "collectorModel": {
+            "name": "example-llm",
+            "version": "2026-06"
+          }
+        }
+      },
+      {
+        "id": "evidence.p.attempt",
+        "claimId": "claim.basis.proposed",
+        "evidenceType": "source_excerpt",
+        "method": "extraction",
+        "sourceRef": "https://registry.example/records/42",
+        "excerptOrSummary": "Registry fetch did not complete.",
+        "observedAt": "2026-06-05T00:00:00.000Z",
+        "collectedBy": "crawler",
+        "supportStrength": "cited",
+        "inconclusive": {
+          "reason": "unreachable"
+        },
+        "collectedByKind": "deterministic"
+      },
+      {
+        "id": "evidence.u.attempt",
+        "claimId": "claim.basis.unknown",
+        "evidenceType": "source_excerpt",
+        "method": "extraction",
+        "sourceRef": "https://registry.example/records/42",
+        "excerptOrSummary": "Registry fetch did not complete.",
+        "observedAt": "2026-06-05T00:00:00.000Z",
+        "collectedBy": "extraction-run-812",
+        "supportStrength": "cited",
+        "inconclusive": {
+          "reason": "timeout"
+        },
+        "collectedByKind": "model",
+        "metadata": {
+          "collectorModel": {
+            "name": "example-llm",
+            "version": "2026-06"
+          }
+        }
+      }
+    ],
+    "policies": [
+      {
+        "id": "policy.payroll-field.excerpt",
+        "claimType": "payroll-field",
+        "requiredEvidence": [
+          "source_excerpt"
+        ],
+        "requiredMethods": [
+          "extraction"
+        ],
+        "requiresCorroboration": false,
+        "acceptanceCriteria": [
+          "fact observed at its source"
+        ],
+        "reviewAuthority": "operator",
+        "validityRule": {
+          "kind": "historical"
+        },
+        "stalenessTriggers": [],
+        "conflictRules": [],
+        "impactLevel": "medium"
+      }
+    ],
+    "events": [
+      {
+        "id": "event.v.verified",
+        "claimId": "claim.basis.verified",
+        "status": "verified",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.v.excerpt"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "2026-06-01T00:00:00.000Z"
+      },
+      {
+        "id": "event.d.verified",
+        "claimId": "claim.basis.disputed",
+        "status": "verified",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.d.excerpt"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "2026-06-01T00:00:00.000Z"
+      },
+      {
+        "id": "event.p.verified",
+        "claimId": "claim.basis.proposed",
+        "status": "verified",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.p.citation"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "2026-06-01T00:00:00.000Z"
+      }
+    ],
+    "authorityTrace": [
+      {
+        "id": "trace.payroll.system-of-record",
+        "subject": {
+          "subjectType": "tax-form",
+          "subjectId": "w2:2025:employee-123"
+        },
+        "actorRef": "employer.example/payroll",
+        "authorityType": "system",
+        "authorityRef": "system-of-record:w2-wages",
+        "sourceRef": "https://employer.example/payroll/about",
+        "observedAt": "2026-01-01T00:00:00.000Z",
+        "validFrom": "2026-01-01T00:00:00.000Z",
+        "validUntil": "2027-01-01T00:00:00.000Z"
+      }
+    ]
+  },
+  "expect": {
+    "statusByClaimId": {
+      "claim.basis.verified": "verified",
+      "claim.basis.disputed": "disputed",
+      "claim.basis.proposed": "proposed",
+      "claim.basis.unknown": "unknown"
+    }
+  }
+}
