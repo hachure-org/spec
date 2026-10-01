@@ -917,7 +917,7 @@ test('hachure vectors honours --status-function-version and rejects stray argume
   assert.equal(v2.status, 0, v2.stdout + v2.stderr);
   assert.match(v2.stdout, /SKIP sf-v3-no-policy/);
   assert.match(v2.stdout, /PASS sf-inconclusive-evidence/);
-  assert.match(v2.stdout, /all 11 applicable vectors pass \(statusFunctionVersion "2"\)/);
+  assert.match(v2.stdout, /all 13 applicable vectors pass \(statusFunctionVersion "2"\)/);
 
   const unsupported = spawnSync(process.execPath, [CLI, 'vectors', '--status-function-version', '4'], { encoding: 'utf8' });
   assert.equal(unsupported.status, 1);

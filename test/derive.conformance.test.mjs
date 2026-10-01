@@ -15,7 +15,7 @@ import {
   supportedStatusFunctionVersions,
 } from '../index.mjs';
 
-assert.ok(testVectors.length >= 19, 'expected the full status-derivation vector set');
+assert.ok(testVectors.length >= 22, 'expected the full status-derivation vector set');
 
 // A vector without statusFunctionVersions holds for every version.
 const versionsOf = (vector) => vector.statusFunctionVersions ?? supportedStatusFunctionVersions;
@@ -59,7 +59,7 @@ for (const { name, vector } of testVectors) {
 
 test('every sf-v3-* vector is restricted to version 3', () => {
   const v3 = testVectors.filter(({ name }) => name.startsWith('sf-v3-'));
-  assert.equal(v3.length, 8);
+  assert.equal(v3.length, 9);
   for (const { name, vector } of v3) assert.deepEqual(vector.statusFunctionVersions, ['3'], name);
 });
 

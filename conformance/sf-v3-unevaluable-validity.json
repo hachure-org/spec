@@ -42,6 +42,44 @@
         "updatedAt": "2026-06-01T00:00:00.000Z",
         "impactLevel": "high",
         "verificationPolicyId": "policy.validity.historical"
+      },
+      {
+        "id": "claim.validity.unparseable-expires-at",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "software-evidence",
+        "fieldOrBehavior": "unparseable-expires-at",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.validity.historical",
+        "expiresAt": "not-a-timestamp"
+      },
+      {
+        "id": "claim.validity.ttl-unparseable-verified-at",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "software-evidence",
+        "fieldOrBehavior": "ttl-unparseable-verified-at",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.validity.historical",
+        "ttlSeconds": 315360000
+      },
+      {
+        "id": "claim.validity.duration-unparseable-verified-at",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "software-evidence",
+        "fieldOrBehavior": "duration-unparseable-verified-at",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.validity.duration"
       }
     ],
     "evidence": [
@@ -76,6 +114,39 @@
         "method": "validation",
         "sourceRef": "ci:run-1",
         "excerptOrSummary": "test_output for claim.validity.historical",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "ci"
+      },
+      {
+        "id": "evidence.claim.validity.unparseable-expires-at",
+        "claimId": "claim.validity.unparseable-expires-at",
+        "evidenceType": "test_output",
+        "passing": true,
+        "method": "validation",
+        "sourceRef": "ci:run-1",
+        "excerptOrSummary": "test_output for claim.validity.unparseable-expires-at",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "ci"
+      },
+      {
+        "id": "evidence.claim.validity.ttl-unparseable-verified-at",
+        "claimId": "claim.validity.ttl-unparseable-verified-at",
+        "evidenceType": "test_output",
+        "passing": true,
+        "method": "validation",
+        "sourceRef": "ci:run-1",
+        "excerptOrSummary": "test_output for claim.validity.ttl-unparseable-verified-at",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "ci"
+      },
+      {
+        "id": "evidence.claim.validity.duration-unparseable-verified-at",
+        "claimId": "claim.validity.duration-unparseable-verified-at",
+        "evidenceType": "test_output",
+        "passing": true,
+        "method": "validation",
+        "sourceRef": "ci:run-1",
+        "excerptOrSummary": "test_output for claim.validity.duration-unparseable-verified-at",
         "observedAt": "2026-06-01T00:00:00.000Z",
         "collectedBy": "ci"
       }
@@ -143,6 +214,28 @@
         "stalenessTriggers": [],
         "conflictRules": [],
         "impactLevel": "high"
+      },
+      {
+        "id": "policy.validity.duration",
+        "claimType": "software-evidence",
+        "requiredEvidence": [
+          "test_output"
+        ],
+        "requiredMethods": [
+          "validation"
+        ],
+        "requiresCorroboration": false,
+        "acceptanceCriteria": [
+          "check passes"
+        ],
+        "reviewAuthority": "repo policy",
+        "validityRule": {
+          "kind": "duration",
+          "durationDays": 3650
+        },
+        "stalenessTriggers": [],
+        "conflictRules": [],
+        "impactLevel": "high"
       }
     ],
     "events": [
@@ -181,6 +274,42 @@
         ],
         "createdAt": "2026-06-01T00:00:00.000Z",
         "verifiedAt": "2026-06-01T00:00:00.000Z"
+      },
+      {
+        "id": "event.claim.validity.unparseable-expires-at",
+        "claimId": "claim.validity.unparseable-expires-at",
+        "status": "verified",
+        "actor": "ci",
+        "method": "npm test",
+        "evidenceIds": [
+          "evidence.claim.validity.unparseable-expires-at"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "2026-06-01T00:00:00.000Z"
+      },
+      {
+        "id": "event.claim.validity.ttl-unparseable-verified-at",
+        "claimId": "claim.validity.ttl-unparseable-verified-at",
+        "status": "verified",
+        "actor": "ci",
+        "method": "npm test",
+        "evidenceIds": [
+          "evidence.claim.validity.ttl-unparseable-verified-at"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "not-a-timestamp"
+      },
+      {
+        "id": "event.claim.validity.duration-unparseable-verified-at",
+        "claimId": "claim.validity.duration-unparseable-verified-at",
+        "status": "verified",
+        "actor": "ci",
+        "method": "npm test",
+        "evidenceIds": [
+          "evidence.claim.validity.duration-unparseable-verified-at"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "not-a-timestamp"
       }
     ]
   },
@@ -188,7 +317,10 @@
     "statusByClaimId": {
       "claim.validity.commit-no-ref": "stale",
       "claim.validity.duration-no-days": "stale",
-      "claim.validity.historical": "verified"
+      "claim.validity.historical": "verified",
+      "claim.validity.unparseable-expires-at": "stale",
+      "claim.validity.ttl-unparseable-verified-at": "stale",
+      "claim.validity.duration-unparseable-verified-at": "stale"
     }
   }
 }

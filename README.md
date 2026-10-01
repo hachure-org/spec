@@ -291,6 +291,12 @@ evaluates it on request (`{ statusFunctionVersion: "2" }`, or
 See [status-function.md](status-function.md) §"Migrating from version 2" for
 exactly which bundles change status, and the `sf-v3-*` conformance vectors.
 
+The bundled implementation of version `"3"` in `hachure` 0.16.0 and 0.17.0 kept
+an authority trace active when its `revokedAt`, `validFrom` or `validUntil` was
+present but not a parseable timestamp. That contradicted Step 1 and is
+corrected, with no new `statusFunctionVersion`; see
+[status-function.md](status-function.md#correction-to-the-bundled-implementation-of-version-3).
+
 ---
 
 ## Conformance language

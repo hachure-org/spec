@@ -190,6 +190,14 @@ An `AuthorityTrace` is active at a given `eventCreatedAt` if all of the followin
 - `trace.validUntil` is absent, or `trace.validUntil >= eventCreatedAt`
 - If `event.authorityRef` is set, `trace.authorityRef === event.authorityRef`
 
+The three time conditions compare instants, not strings: `2026-05-02T00:00:00Z`,
+`2026-05-02T00:00:00.000Z` and `2026-05-02T02:00:00+02:00` are the same instant.
+A bound that is present has to be evaluated for its condition to hold. If
+`revokedAt`, `validFrom` or `validUntil` is present but is not a parseable
+timestamp, or `eventCreatedAt` is not one while any of the three is present,
+that condition does not hold and the trace is not active. A trace with none of
+the three bounds needs no time comparison.
+
 If such a resolution event is found:
 
 - Check whether any evidence item satisfies **all** of:
@@ -214,7 +222,11 @@ If such a resolution event is found:
 ### Step 2: Terminal event statuses
 
 Filter all events to those matching `claim.id`, sort most-recent-first by `createdAt`.
-Let `latestEvent` be the first (most recent) event.
+Let `latestEvent` be the first (most recent) event. Events are ordered by
+instant. An event whose `createdAt` is not a parseable timestamp sorts as the
+oldest event (as if at the epoch), so it is `latestEvent` only when the claim
+has no event with a parseable `createdAt`. This ordering applies wherever the
+fold sorts events, including Step 1.
 
 If `latestEvent` exists and its `status` is one of `"rejected"`, `"disputed"`,
 `"superseded"`, `"stale"`, or `"revoked"` — return that status. These are
@@ -439,6 +451,11 @@ document with the following differences, and no others:
 8. **Step 2 and `now`.** An invalidation event returns its own `status`
    whatever it is, so an invalidation carrying `verified` derives `verified`.
    An invalid `now` is not refused.
+9. **Step 1 authority window.** The spec text does not define the result for
+   a bound, or an event time, that is not a parseable timestamp. The bundled
+   implementation treats such a comparison as not excluding the trace, so a
+   trace with an unparseable `revokedAt`, `validFrom` or `validUntil` stays
+   active.
 
 ### Migrating from version 2
 
@@ -452,6 +469,8 @@ resolution to `verified`).
 | *Verified path or resolution:* no policy resolves for the claim | `verified` | `proposed` | Nothing defines what verified requires. |
 | *Verified path:* `verificationPolicyId` names a policy not in the bundle | policy by `claimType` | `proposed` | A named policy that is absent is an omission, not a hint to look elsewhere. |
 | *Verified path or resolution:* resolved policy has empty `requiredEvidence` and no `requiredMethods` | `verified` | `proposed` | A policy that requires nothing is no policy. |
+| No events and no entailing evidence; resolved policy has empty `requiredEvidence` and no `requiredMethods` | `proposed` | `unknown` | A policy that requires nothing is no policy, so Step 6 applies and there is no evidence. (Step 7 passed vacuously under version `"2"`.) |
+| *Resolution:* the resolver's only matching trace has a `revokedAt`, `validFrom` or `validUntil` that is not a parseable timestamp, or the resolution event's `createdAt` is not one and the trace has a bound | resolution status | as if there were no resolution | A bound that cannot be evaluated does not hold. |
 | *Verified path:* required check evidence has `passing` absent, or `passing: false` with `blocking: false` | `verified` | `proposed` | A check with no passing result satisfies nothing. |
 | *Verified path:* corroboration counted check evidence without `passing: true` | `verified` | `proposed` | Only qualifying evidence corroborates. |
 | *Verified path:* `commit` rule, no `claim.currentIntegrityRef` | `verified` | `stale` | Nothing to compare the verified evidence against. |
@@ -476,6 +495,33 @@ algorithm changes in a way that could produce different outputs for the same
 inputs. `InquiryRecord.statusFunctionVersion` captures which version
 was active at resolution time, enabling re-evaluation when the algorithm version
 changes.
+
+### Correction to the bundled implementation of version 3
+
+Step 1's activity conditions have always been stated positively: a trace is
+active only if each time condition holds. A bound that is present but is not a
+parseable timestamp cannot satisfy its condition, and version `"3"` treats
+unevaluable input as failing ([§Principle](#principle)). The bundled
+implementation in `hachure` 0.16.0 and 0.17.0 nonetheless kept such a trace
+active under version `"3"`, because it tested each bound in negated form and a
+comparison against an unparseable time is false either way. That was a defect
+in the implementation, not the specified behaviour, and no conformance vector
+covered it.
+
+It is corrected without a new `statusFunctionVersion`: the algorithm this
+document specifies for version `"3"` is unchanged, Step 1 now states the rule
+explicitly, and the `sf-v3-unparseable-authority-bound` vector pins it. An
+implementation that copied the earlier bundled behaviour, and any record
+resolved by `hachure` 0.16.0 or 0.17.0 under version `"3"` for a claim whose
+resolver's trace carries an unparseable bound, derives differently once
+corrected: the resolution is no longer honoured. Version `"2"` keeps its
+shipped behaviour ([§Version 2](#version-2), item 9).
+
+A JSON Schema validator does not catch these values unless it asserts
+`format`. `format: date-time` is an annotation by default in JSON Schema
+2020-12, and `hachure validate` does not assert it, so a bundle with an
+unparseable timestamp is schema-valid as this package validates and reaches
+the fold either way.
 
 Conforming implementations must declare which status function version value they
 implement. Implementations claiming version `"3"` must satisfy every conformance

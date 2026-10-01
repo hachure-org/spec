@@ -37,13 +37,16 @@ vectors via the `testVectors` export or `npx hachure vectors`.
 | `sf-runtime-observation-required.json` | Runtime-observation policy — test output alone leaves the requirement unmet; live observation satisfies it | 2026-06-10T00:00:00.000Z |
 | `sf-v3-no-policy.json` | v3: no resolvable policy — a verified event, and an authority-gated resolution to verified, derive `proposed` | 2026-06-10T00:00:00.000Z |
 | `sf-v3-dangling-policy-id.json` | v3: `verificationPolicyId` names no policy — no fallback to a matching `claimType` policy → `proposed` | 2026-06-10T00:00:00.000Z |
-| `sf-v3-empty-requirement.json` | v3: a policy with no `requiredEvidence` and no `requiredMethods` is no policy → `proposed` | 2026-06-10T00:00:00.000Z |
+| `sf-v3-empty-requirement.json` | v3: a policy with no `requiredEvidence` and no `requiredMethods` is no policy → `proposed`; with no events and no evidence → `unknown` | 2026-06-10T00:00:00.000Z |
 | `sf-v3-check-evidence-result.json` | v3: check evidence with `passing` absent, or a non-blocking `passing: false`, satisfies no requirement and does not corroborate → `proposed` | 2026-06-10T00:00:00.000Z |
-| `sf-v3-unevaluable-validity.json` | v3: `commit` rule with no `currentIntegrityRef` → `stale`; `duration` rule with no `durationDays` → `stale`; `historical` stays `verified` | 2026-06-10T00:00:00.000Z |
+| `sf-v3-unevaluable-validity.json` | v3: `commit` rule with no `currentIntegrityRef` → `stale`; `duration` rule with no `durationDays` → `stale`; an unparseable `expiresAt` → `stale`; `ttlSeconds` or a `duration` rule against an unparseable `verifiedAt` → `stale`; `historical` stays `verified` | 2026-06-10T00:00:00.000Z |
 | `sf-v3-blocking-before-requirements.json` | v3: a blocking failure that also leaves a requirement unmet → `disputed`, not `proposed` | 2026-06-10T00:00:00.000Z |
 | `sf-v3-invalidation-nonterminal.json` | v3: a `type: "invalidation"` event whose status is not terminal (`verified`, `assumed`) → `stale`; a terminal status (`rejected`) passes through | 2026-06-10T00:00:00.000Z |
+| `sf-authority-window-instants.json` | Step 1 authority window compares instants: `revokedAt`, `validFrom` and `validUntil` written with a UTC offset or without milliseconds, each in a case a string comparison accepts wrongly and a case it refuses wrongly | 2026-06-10T00:00:00.000Z |
+| `sf-unparseable-event-time.json` | An event whose `createdAt` is not a parseable timestamp sorts as the oldest event, whatever its position in the `events` array | 2026-06-10T00:00:00.000Z |
 | `sf-inconclusive-evidence.json` | Inconclusive evidence (schema 9): a verified claim stays `verified`; an attempt alone, with or without a policy, derives `unknown` (Steps 6 and 7 read entailing evidence only); an attempt of the required type leaves the requirement unmet → `proposed`; an attempt does not corroborate → `proposed`; an attempt carrying the current `integrityRef` anchors no `commit` rule → `stale` | 2026-06-10T00:00:00.000Z |
 | `sf-basis-fields-inert.json` | `inconclusive`, `collectedByKind`, `metadata.sourceOfRecord` and `metadata.estimate` present on claims deriving `verified`, `disputed`, `proposed` and `unknown`; the package's suite re-derives with the fields stripped and asserts identical statuses | 2026-06-10T00:00:00.000Z |
+| `sf-v3-unparseable-authority-bound.json` | v3: an authority trace whose `revokedAt`, `validFrom` or `validUntil` is not a parseable timestamp, or a bounded trace against a resolution event whose `createdAt` is not one, is not active → the resolution is not honoured | 2026-06-10T00:00:00.000Z |
 | `sf-v3-derivation-ceiling.json` | v3: derivation ceiling and status ordering — rejected below unknown, disputed below superseded, stale below unknown, missing input → `unknown`, transitive through `derivationEdges` | 2026-06-10T00:00:00.000Z |
 
 ## Test vector format
@@ -65,6 +68,19 @@ another version skips it. When absent, the vector holds for every version. The
 `sf-v3-*` vectors list `["3"]`; the package's own suite also checks that each of
 them derives differently under version `"2"`, so each one exercises a rule that
 changed.
+
+### Vectors with timestamps that are not date-times
+
+`sf-unparseable-event-time`, `sf-v3-unparseable-authority-bound` and
+`sf-v3-unevaluable-validity` carry values such as `"not-a-timestamp"` in
+`date-time` fields, because the status function defines what happens to them.
+JSON Schema 2020-12 treats `format` as an annotation by default, and these
+inputs validate under that default (as this package's own suite checks). A
+validator configured to assert `format` rejects them; run these vectors with
+format assertion off. A negative `ttlSeconds` and an unknown validity-rule
+`kind` are rejected by the schemas regardless, so they cannot appear in a
+vector; the status function still defines them (both derive `stale` under
+version `"3"`) and this package's unit tests cover them.
 
 ## Merge conformance vectors
 

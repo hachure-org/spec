@@ -18,6 +18,18 @@
         "updatedAt": "2026-06-01T00:00:00.000Z",
         "impactLevel": "high",
         "verificationPolicyId": "policy.requires-nothing"
+      },
+      {
+        "id": "claim.empty-requirement.no-events-no-evidence",
+        "subjectType": "api",
+        "subjectId": "public-api",
+        "claimType": "software-evidence",
+        "fieldOrBehavior": "no-events-no-evidence",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "high",
+        "verificationPolicyId": "policy.requires-nothing"
       }
     ],
     "evidence": [
@@ -68,7 +80,8 @@
   },
   "expect": {
     "statusByClaimId": {
-      "claim.empty-requirement": "proposed"
+      "claim.empty-requirement": "proposed",
+      "claim.empty-requirement.no-events-no-evidence": "unknown"
     }
   }
 }
