@@ -2,10 +2,13 @@
 /**
  * hachure — CLI for the open trust format.
  *
- *   hachure derive <bundle.json> [--now <ISO timestamp>] [--status-function-version <v>] [--no-validate]
+ *   hachure derive <bundle.json> [--now <RFC 3339 date-time>] [--status-function-version <v>] [--no-validate]
  *       Derive per-claim statuses from a TrustBundle (status-function.md),
  *       under the current statusFunctionVersion unless another supported one
- *       is named. deriveStatuses does not validate its input, so this command
+ *       is named. --now is the evaluation instant: under version "4" an RFC
+ *       3339 date-time with an offset (e.g. 2026-06-10T00:00:00Z), read
+ *       exactly; under "3" and "2" whatever Date.parse reads. Default: the
+ *       current time. deriveStatuses does not validate its input, so this command
  *       checks the bundle first and refuses one that fails (exit 1):
  *         1. Always: the built-in checkBasisInvariants (inconclusive evidence
  *            is cited with no passing; schemaVersion 9 fields are declared).
@@ -16,7 +19,7 @@
  *            step 1 and warns once on stderr that step 2 was skipped.
  *       --no-validate skips both checks, with a warning.
  *
- *   hachure diff <before.json> <after.json> [--now <ISO timestamp>] [--no-validate]
+ *   hachure diff <before.json> <after.json> [--now <RFC 3339 date-time>] [--no-validate]
  *       Report status transitions between two bundles. Both are checked
  *       first, under the same rules as derive.
  *
@@ -179,12 +182,16 @@ function deriving(fn) {
  * defines one (RFC 3339 date-time) and is passed through as written, so it is
  * read exactly; under "2" and "3" it is read as those versions read it.
  */
-function parseNow(nowArg, version) {
+function parseNow(nowArg, version, canSelectVersion = false) {
   if (nowArg === undefined) return new Date();
   const hint = /\.json$/i.test(nowArg) ? ' (--now takes a timestamp; the file path after it was read as its value)' : '';
   if (version === '4') {
     if (parseTimestamp(nowArg) === undefined) {
-      fail(`invalid --now value: ${JSON.stringify(nowArg)}: expected an RFC 3339 date-time with an offset, e.g. 2026-06-10T00:00:00Z${hint}`);
+      fail(
+        `invalid --now value: ${JSON.stringify(nowArg)}: expected an RFC 3339 date-time with an offset, e.g. 2026-06-10T00:00:00Z` +
+          (canSelectVersion ? ' (or pass --status-function-version 3 to read it as version 3 does)' : '') +
+          hint
+      );
     }
     return nowArg;
   }
@@ -202,8 +209,8 @@ switch (command) {
     const nowArg = takeFlag(args, '--now');
     const version = takeVersionFlag(args);
     const noValidate = takeSwitch(args, '--no-validate');
-    const usage = 'hachure derive <bundle.json> [--now <ISO timestamp>] [--status-function-version <v>] [--no-validate]';
-    const now = parseNow(nowArg, version);
+    const usage = 'hachure derive <bundle.json> [--now <RFC 3339 date-time with offset>] [--status-function-version <v>] [--no-validate]';
+    const now = parseNow(nowArg, version, true);
     const [path] = args;
     if (!path) fail(`usage: ${usage}`);
     rejectStray(args, 1, usage);
@@ -228,7 +235,7 @@ switch (command) {
   case 'diff': {
     const nowArg = takeFlag(args, '--now');
     const noValidate = takeSwitch(args, '--no-validate');
-    const usage = 'hachure diff <before.json> <after.json> [--now <ISO timestamp>] [--no-validate]';
+    const usage = 'hachure diff <before.json> <after.json> [--now <RFC 3339 date-time with offset>] [--no-validate]';
     const now = parseNow(nowArg, statusFunctionVersion);
     const [beforePath, afterPath] = args;
     if (!beforePath || !afterPath) fail(`usage: ${usage}`);

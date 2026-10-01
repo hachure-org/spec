@@ -7,6 +7,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
+import { readFileSync } from 'node:fs';
+
 import { deriveStatuses, parseTimestamp, compareTimestamps, statusFunctionVersion } from '../index.mjs';
 
 const NOW = new Date('2026-06-10T00:00:00.000Z');
@@ -435,4 +437,48 @@ test('v4: now as a string must be a timestamp and is read exactly; a Date is who
   // Version 3 keeps reading a string now with Date.parse.
   assert.equal(at(b, '2026-07-01', '3'), 'verified');
   assert.equal(at(b, 'July 2, 2026', '3'), 'stale');
+});
+
+test('v4: the window uses the binary64 value the numeral rounds to, not the numeral as written', () => {
+  // Three numerals for one binary64 value: the window is 8,640,000 ms for each.
+  for (const numeral of ['0.1', '0.1000000000000000055511151231257827', '0.10000000000000000000000000000000000001', '1e-1']) {
+    const durationDays = JSON.parse(numeral);
+    assert.equal(durationDays, 0.1, numeral);
+    const b = windowBundle({ validityRule: { kind: 'duration', durationDays }, verifiedAt: '2026-06-01T00:00:00.0000000000001Z' });
+    // verified 1e-10 ms after BASE: at BASE + 8,640,000 ms the window has 1e-10 ms left; a millisecond later it is past.
+    assert.equal(at(b, new Date(BASE + 8640000)), 'verified', numeral);
+    assert.equal(at(b, '2026-06-01T02:24:00.0000000000001Z'), 'verified', `${numeral}: now equal to the end`);
+    assert.equal(at(b, '2026-06-01T02:24:00.00000000000011Z'), 'stale', numeral);
+  }
+  // A numeral that rounds to an infinity is not finite: unevaluable. One that rounds to zero is a zero window.
+  assert.equal(JSON.parse('1e400'), Infinity);
+  assert.equal(at(windowBundle({ validityRule: { kind: 'duration', durationDays: JSON.parse('1e400') } }), new Date(BASE)), 'stale');
+  assert.equal(at(windowBundle({ claim: { ttlSeconds: JSON.parse('1e400') } }), new Date(BASE)), 'stale');
+  assert.equal(JSON.parse('1e-400'), 0);
+  assert.equal(at(windowBundle({ validityRule: { kind: 'duration', durationDays: JSON.parse('1e-400') } }), new Date(BASE)), 'verified');
+  assert.equal(at(windowBundle({ validityRule: { kind: 'duration', durationDays: JSON.parse('1e-400') } }), new Date(BASE + 1)), 'stale');
+});
+
+test('v4: where several shortest numerals round to one binary64 value, the window uses the canonical one', () => {
+  // 7.394193414316602e-8 and ...603e-8 are both 16-digit numerals for this binary64 value.
+  const x = 7.394193414316603e-8;
+  assert.equal(7.394193414316602e-8, x, 'two shortest numerals, one binary64 value');
+  const canonical = BigInt(/^(\d)\.(\d{15})e-8$/.exec(String(x)).slice(1).join(''));
+  const [lo, hi] = [7394193414316602n, 7394193414316603n];
+  assert.ok(canonical === lo || canonical === hi, String(x));
+  // M x 10^-23 days is M x 86400 x 10^-23 seconds: the digits after the decimal point of the window's end.
+  const endOf = (mantissa) => (mantissa * 86400n).toString().padStart(23, '0');
+  const b = windowBundle({ validityRule: { kind: 'duration', durationDays: x } });
+  const now = (fraction) => `2026-06-01T00:00:00.${fraction}Z`;
+  assert.equal(at(b, now(endOf(canonical))), 'verified', 'now equal to the canonical end');
+  assert.equal(at(b, now(`${endOf(canonical)}1`)), 'stale', 'just past the canonical end');
+  // An instant between the two candidate ends tells which numeral was used.
+  assert.equal(at(b, now(`${endOf(lo)}1`)), canonical === hi ? 'verified' : 'stale');
+});
+
+test('the long-numeral vector claim really carries a non-shortest numeral', () => {
+  const text = readFileSync(new URL('../conformance/sf-v4-exact-instants.json', import.meta.url), 'utf8');
+  assert.match(text, /"durationDays": 0\.1000000000000000055511151231257827\b/);
+  const policy = JSON.parse(text).input.policies.find((p) => p.id === 'policy.window.duration-0.1-long-numeral');
+  assert.equal(policy.validityRule.durationDays, 0.1);
 });

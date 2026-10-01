@@ -192,16 +192,33 @@ anything: not the product, not the sum, not either instant. `durationDays:
 0.7` is exactly 60 480 000 ms, so a claim verified exactly that long before
 `now` is not yet stale, and one millisecond later it is.
 
-The decimal value of `ttlSeconds` or `durationDays` is the shortest decimal
-numeral that reads back as the same IEEE 754 double the JSON number parses to.
-For a number written with at most 15 significant digits that is the number as
-written. It is what ECMAScript `String(n)`, Python `repr(float)`, Java
-`Double.toString` (JDK 19 or later), Rust `{}` and Go `strconv.FormatFloat(n, 'g', -1, 64)`
-produce (up to exponent notation), so an implementation that parses JSON
-numbers to doubles formats the double that way and multiplies in integer or
-decimal arithmetic; an implementation that keeps the JSON numeral as a decimal
-uses it directly. Neither multiplies in binary floating point: `0.7 ×
-86 400 000` there is `60479999.99999999`.
+The value of `ttlSeconds` or `durationDays` is fixed in two steps, so that
+every implementation multiplies the same number whatever its JSON parser
+keeps:
+
+1. The JSON numeral is rounded to the nearest IEEE 754 binary64 value, ties
+   to even. A numeral that rounds to an infinity is not a finite number, and
+   the window is unevaluable (stale), like any other non-finite or negative
+   value. `1e400` is such a numeral; `1e-400` rounds to zero.
+2. The window uses the exact decimal value of that binary64 value's canonical
+   decimal form: the numeral ECMAScript `Number::toString` (radix 10) gives
+   it. That is a numeral with the fewest significant digits that rounds back
+   to the same binary64 value; where several numerals of that length do, the
+   one closest to the binary64 value's exact value; and where two are equally
+   close, the one whose last digit is even. The result is unique.
+
+So `0.1` and `0.1000000000000000055511151231257827` are the same window: both
+round to the same binary64 value, whose canonical form is `0.1`. An
+implementation whose JSON parser keeps arbitrary-precision decimals MUST still
+perform step 1, and MUST NOT multiply the numeral as written. No
+implementation multiplies in binary floating point: `0.7 × 86 400 000` there
+is `60479999.99999999`.
+
+Python's `repr(float)` gives the same digits as the canonical form (checked
+here on 100,000 random binary64 values, not proven). Java's `Double.toString`
+does not for every value: it gives `4.9E-324` where the canonical form is
+`5e-324`. An implementation in another language checks its formatter against
+this definition rather than assuming it.
 
 A time the fold reads that is absent or is not a timestamp is *unevaluable*.
 Each step says what follows: an event sorts before every event with an
@@ -579,15 +596,15 @@ what the rest of the fold derives.
 | Two times the fold compares with each other (event `createdAt` values, a trace bound and the resolution's `createdAt`, a blocking failure's `observedAt` and the resolution's `createdAt`) differ by less than a millisecond | equal | ordered by their full value (*either way*) | Instants are compared exactly. |
 | An event's `createdAt` is unevaluable and the claim has an event dated at or before the epoch (`1970-01-01T00:00:00Z`) | the unevaluable event is the later one (or, at the epoch exactly, tied with it and ordered by position in `events`) | the unevaluable event is the earlier one (*either way*) | An unevaluable time sorts before every timestamp. |
 | An event's `createdAt` changes reading under one of the rows above, and the claim has other events | ordered as `Date.parse` reads it | ordered by the version `"4"` reading (*either way*) | `latestEvent` can change. |
-| *Verified path:* a validity window whose end the binary floating-point sum does not hit exactly: `verifiedTime` has digits below the millisecond, or the window is not a whole number of milliseconds, or it is longer than 2^53 ms | `now` compared with the rounded sum | `now` compared with the exact end | Windows are exact. Differs only when `now` is within a millisecond of the window's end. |
+| *Verified path:* `now` is within one millisecond of a validity window's end, and the binary floating-point sum `verifiedTime + window` does not land exactly on that end (because `verifiedTime` has digits below the millisecond, the window is not a whole number of milliseconds, or the floating-point product or sum rounds, as `65536.4 × 86 400 000` does) | `now` compared with the floating-point sum | `now` compared with the exact end (*either way*) | Windows are exact. |
 | `now` given as a string that is not a timestamp, or that has digits below the millisecond or is a leap second | read with `Date.parse` | refused, or read exactly | `now` is a timestamp. |
 
 The `sf-v4-*` conformance vectors cover each row except the last, which a
 vector cannot express (a vector's `now` is passed as a date value). A
-producer is unaffected if every time it writes is an RFC 3339 `date-time`
-with an offset, with at most three fractional digits and no leap second, and
-every `ttlSeconds × 1000` and `durationDays × 86 400 000` is a whole number
-of milliseconds below 2^53.
+bundle derives the same statuses under versions `"3"` and `"4"` if every time
+in it is an RFC 3339 `date-time` with an offset, at most three fractional
+digits and no leap second, and `now` is not within one millisecond of the end
+of a validity window.
 
 ## Version 2
 

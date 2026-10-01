@@ -115,6 +115,19 @@
         "updatedAt": "2026-05-01T00:00:00.000Z",
         "impactLevel": "medium",
         "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.before-v4.date-only-expires-at",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.before-v4.date-only-expires-at",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "date-only-expires-at",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic",
+        "expiresAt": "2027-01-01"
       }
     ],
     "evidence": [
@@ -213,6 +226,16 @@
       {
         "id": "evidence.claim.before-v4.same-millisecond-keeps-array-order",
         "claimId": "claim.before-v4.same-millisecond-keeps-array-order",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.before-v4.date-only-expires-at",
+        "claimId": "claim.before-v4.date-only-expires-at",
         "evidenceType": "source_excerpt",
         "method": "observation",
         "sourceRef": "https://example.org/source",
@@ -438,6 +461,17 @@
           "evidence.claim.before-v4.same-millisecond-keeps-array-order"
         ],
         "createdAt": "2026-05-02T00:00:00.0009Z"
+      },
+      {
+        "id": "event.before-v4.date-only-expires-at",
+        "claimId": "claim.before-v4.date-only-expires-at",
+        "status": "verified",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.before-v4.date-only-expires-at"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z"
       }
     ],
     "authorityTrace": [
@@ -543,7 +577,8 @@
       "claim.before-v4.failure-unparseable-observed-at": "verified",
       "claim.before-v4.refused-under-v4-rejection": "rejected",
       "claim.before-v4.unparseable-event-after-1969": "rejected",
-      "claim.before-v4.same-millisecond-keeps-array-order": "rejected"
+      "claim.before-v4.same-millisecond-keeps-array-order": "rejected",
+      "claim.before-v4.date-only-expires-at": "verified"
     }
   }
 }

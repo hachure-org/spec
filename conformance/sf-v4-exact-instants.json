@@ -188,6 +188,30 @@
         "verificationPolicyId": "policy.window.duration-1e-8"
       },
       {
+        "id": "claim.window.duration-0.1-just-past",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.window.duration-0.1-just-past",
+        "claimType": "window-0.1",
+        "fieldOrBehavior": "1-just-past",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.window.duration-0.1"
+      },
+      {
+        "id": "claim.window.long-numeral-is-the-same-window",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.window.long-numeral-is-the-same-window",
+        "claimType": "window-0.1-long-numeral",
+        "fieldOrBehavior": "long-numeral-is-the-same-window",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.window.duration-0.1-long-numeral"
+      },
+      {
         "id": "claim.window.ttl-from-sub-millisecond-verified-at",
         "subjectType": "data-field",
         "subjectId": "dataset:claim.window.ttl-from-sub-millisecond-verified-at",
@@ -441,6 +465,26 @@
         "collectedBy": "crawler"
       },
       {
+        "id": "evidence.claim.window.duration-0.1-just-past",
+        "claimId": "claim.window.duration-0.1-just-past",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.window.long-numeral-is-the-same-window",
+        "claimId": "claim.window.long-numeral-is-the-same-window",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
         "id": "evidence.claim.window.ttl-from-sub-millisecond-verified-at",
         "claimId": "claim.window.ttl-from-sub-millisecond-verified-at",
         "evidenceType": "source_excerpt",
@@ -552,6 +596,50 @@
         "validityRule": {
           "kind": "duration",
           "durationDays": 1e-8
+        },
+        "stalenessTriggers": [],
+        "conflictRules": [],
+        "impactLevel": "medium"
+      },
+      {
+        "id": "policy.window.duration-0.1",
+        "claimType": "window-0.1",
+        "requiredEvidence": [
+          "source_excerpt"
+        ],
+        "requiredMethods": [
+          "observation"
+        ],
+        "requiresCorroboration": false,
+        "acceptanceCriteria": [
+          "field verified from source"
+        ],
+        "reviewAuthority": "operator",
+        "validityRule": {
+          "kind": "duration",
+          "durationDays": 0.1
+        },
+        "stalenessTriggers": [],
+        "conflictRules": [],
+        "impactLevel": "medium"
+      },
+      {
+        "id": "policy.window.duration-0.1-long-numeral",
+        "claimType": "window-0.1-long-numeral",
+        "requiredEvidence": [
+          "source_excerpt"
+        ],
+        "requiredMethods": [
+          "observation"
+        ],
+        "requiresCorroboration": false,
+        "acceptanceCriteria": [
+          "field verified from source"
+        ],
+        "reviewAuthority": "operator",
+        "validityRule": {
+          "kind": "duration",
+          "durationDays": 0.1000000000000000055511151231257827
         },
         "stalenessTriggers": [],
         "conflictRules": [],
@@ -824,6 +912,30 @@
         "verifiedAt": "2026-06-09T23:59:59.9991Z"
       },
       {
+        "id": "event.window.duration-0.1-just-past",
+        "claimId": "claim.window.duration-0.1-just-past",
+        "status": "verified",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.window.duration-0.1-just-past"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z",
+        "verifiedAt": "2026-06-09T21:35:59.9999999999999Z"
+      },
+      {
+        "id": "event.window.long-numeral-is-the-same-window",
+        "claimId": "claim.window.long-numeral-is-the-same-window",
+        "status": "verified",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.window.long-numeral-is-the-same-window"
+        ],
+        "createdAt": "2026-05-02T00:00:00.000Z",
+        "verifiedAt": "2026-06-09T21:35:59.9999999999999Z"
+      },
+      {
         "id": "event.window.ttl-from-sub-millisecond-verified-at",
         "claimId": "claim.window.ttl-from-sub-millisecond-verified-at",
         "status": "verified",
@@ -989,6 +1101,8 @@
       "claim.window.duration-0.7-one-millisecond-past": "stale",
       "claim.window.fraction-of-a-millisecond-inside": "verified",
       "claim.window.fraction-of-a-millisecond-past": "stale",
+      "claim.window.duration-0.1-just-past": "stale",
+      "claim.window.long-numeral-is-the-same-window": "stale",
       "claim.window.ttl-from-sub-millisecond-verified-at": "stale",
       "claim.window.ttl-from-sub-millisecond-verified-at-inside": "verified",
       "claim.exact.expires-just-before-now": "stale",
