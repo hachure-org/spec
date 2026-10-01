@@ -72,8 +72,18 @@ check; it has no effect on status.
    the claim's own `subjectType`/`subjectId`, one of its `subjectAliases`, or a
    subject joined to either by `identityLinks` whose `relation` is
    `equivalent` (the default). `subsumes` and `converts` links do not count.
-4. Exactly one trace carries that `id`. An `id` shared by two or more traces
-   (possible after a merge) identifies none of them.
+4. The `id` identifies exactly one trace, and that trace is the one the
+   evidence's producer wrote:
+   - An `id` carried by two or more traces in one bundle identifies none of
+     them. (A merge never produces this; it can only occur in a bundle
+     assembled some other way.)
+   - [merge.md](merge.md) unions `authorityTrace` by `id`. When two producers'
+     traces share an `id` and differ, the merged bundle keeps one of them and
+     the merge reports the `id` as a collision. The surviving trace may belong
+     to the other producer, so a reference to a collided `id` is not backed.
+     A consumer that resolves over a merged bundle MUST either pass the
+     merge's collisions to the check or treat every collided trace `id` as not
+     backed.
 5. The evidence is not `inconclusive`. An attempt that could not run never
    reached the source, so it is not from the source of record whatever it
    declares.
@@ -176,8 +186,12 @@ validateBasisAnnotations(bundle);
 resolveSourceOfRecord(bundle, evidence);
 // → { backed: true, trace, revokedAt? } or { backed: false, reason }
 //   reason: not-declared | inconclusive | malformed | claim-not-found |
-//           trace-not-found | trace-ambiguous | authority-type |
-//           subject-mismatch | not-active
+//           trace-collision | trace-not-found | trace-ambiguous |
+//           authority-type | subject-mismatch | not-active
+
+// Over a merged bundle, pass the merge's collisions:
+const { bundle: merged, collisions } = mergeBundlesDetailed([a, b]);
+resolveSourceOfRecord(merged, evidence, { collisions });
 ```
 
 Neither is called by status derivation or by `hachure validate`. A consumer

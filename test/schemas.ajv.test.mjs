@@ -5,7 +5,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { readFileSync, readdirSync, mkdtempSync, writeFileSync, cpSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -858,7 +858,8 @@ test('schemaVersion 9: 5 through 9 are accepted and 10 is not', () => {
 
 test('inconclusive: a whitespace-only detail is rejected', () => {
   const validateEvidence = compileRoot('evidence.schema.json');
-  for (const detail of [' ', '\t\n', '']) {
+  // U+00A0 (no-break space) is whitespace under ECMAScript \s, which is what the schema pattern uses.
+  for (const detail of [' ', '\t\n', '', '\u00a0', '\u00a0 \u00a0']) {
     for (const reason of ['other', 'timeout']) {
       const evidence = buildInconclusiveEvidence({ inconclusive: { reason, detail } });
       assert.equal(validateEvidence(evidence), false, JSON.stringify({ reason, detail }));
@@ -925,4 +926,87 @@ test('hachure vectors honours --status-function-version and rejects stray argume
   const stray = spawnSync(process.execPath, [CLI, 'vectors', '--verbose'], { encoding: 'utf8' });
   assert.equal(stray.status, 1);
   assert.match(stray.stderr, /unexpected: --verbose/);
+});
+
+test('hachure derive and vectors reject stray arguments and a flag with no value', () => {
+  const valid = writeInconclusiveBundle({});
+  const cases = [
+    [['derive', valid, 'extra.json'], /unexpected: extra.json/],
+    [['derive', valid, '--verbose'], /unexpected: --verbose/],
+    [['derive', valid, '--now'], /--now requires a value/],
+    [['derive', valid, '--status-function-version'], /--status-function-version requires a value/],
+    [['vectors', '--status-function-version'], /--status-function-version requires a value/],
+    [['diff', valid, valid, 'extra.json'], /unexpected: extra.json/],
+  ];
+  for (const [argv, pattern] of cases) {
+    const r = spawnSync(process.execPath, [CLI, ...argv], { encoding: 'utf8' });
+    assert.equal(r.status, 1, `${argv.join(' ')}: ${r.stdout}${r.stderr}`);
+    assert.match(r.stderr, pattern);
+    assert.equal(r.stdout, '', argv.join(' '));
+  }
+});
+
+test('hachure diff refuses an invalid bundle on either side', () => {
+  const now = ['--now', '2026-10-01T00:00:00.000Z'];
+  const valid = writeInconclusiveBundle({});
+  const invalid = writeInconclusiveBundle({ supportStrength: undefined });
+  for (const pair of [[invalid, valid], [valid, invalid]]) {
+    const r = spawnSync(process.execPath, [CLI, 'diff', ...pair, ...now], { encoding: 'utf8' });
+    assert.equal(r.status, 1, r.stdout + r.stderr);
+    assert.match(r.stderr, /invalid TrustBundle/);
+    assert.equal(r.stdout, '');
+  }
+  const same = spawnSync(process.execPath, [CLI, 'diff', valid, valid, ...now], { encoding: 'utf8' });
+  assert.equal(same.status, 0, same.stdout + same.stderr);
+});
+
+// The package does not depend on ajv, so an installed consumer may not have
+// it. Reproduce that: a copy of the package with no node_modules beside it.
+function packageWithoutAjv() {
+  const dir = mkdtempSync(join(tmpdir(), 'hachure-noajv-'));
+  const root = join(__dirname, '..');
+  for (const entry of ['bin', 'lib', 'schemas', 'conformance', 'index.mjs', 'package.json']) {
+    cpSync(join(root, entry), join(dir, entry), { recursive: true });
+  }
+  return join(dir, 'bin', 'hachure.mjs');
+}
+
+test('without ajv, hachure derive and diff fail closed unless --no-validate is given', () => {
+  const cli = packageWithoutAjv();
+  const now = ['--now', '2026-10-01T00:00:00.000Z'];
+  const valid = writeInconclusiveBundle({});
+  const invalid = writeInconclusiveBundle({ supportStrength: undefined });
+
+  // The copy really has no validator.
+  const validate = spawnSync(process.execPath, [cli, 'validate', valid], { encoding: 'utf8' });
+  assert.equal(validate.status, 1);
+  assert.match(validate.stderr, /validate requires ajv/);
+
+  for (const argv of [['derive', valid], ['derive', invalid], ['diff', valid, valid]]) {
+    const refused = spawnSync(process.execPath, [cli, ...argv, ...now], { encoding: 'utf8' });
+    assert.equal(refused.status, 1, `${argv[0]}: ${refused.stdout}${refused.stderr}`);
+    assert.match(refused.stderr, /ajv is not installed/);
+    assert.match(refused.stderr, /--no-validate/);
+    assert.equal(refused.stdout, '', 'no statuses are printed when the bundle could not be validated');
+  }
+
+  const derived = spawnSync(process.execPath, [cli, 'derive', valid, ...now, '--no-validate'], { encoding: 'utf8' });
+  assert.equal(derived.status, 0, derived.stdout + derived.stderr);
+  assert.match(derived.stderr, /warning: --no-validate/);
+  assert.deepEqual(JSON.parse(derived.stdout).statusByClaimId, { 'claim.facet-rename-test.1': 'unknown' });
+
+  const diffed = spawnSync(process.execPath, [cli, 'diff', valid, valid, ...now, '--no-validate'], { encoding: 'utf8' });
+  assert.equal(diffed.status, 0, diffed.stdout + diffed.stderr);
+  assert.match(diffed.stderr, /warning: --no-validate/);
+});
+
+test('--no-validate skips validation even when ajv is installed, and warns', () => {
+  const invalid = writeInconclusiveBundle({ supportStrength: undefined });
+  const r = spawnSync(process.execPath, [CLI, 'derive', invalid, '--now', '2026-10-01T00:00:00.000Z', '--no-validate'], {
+    encoding: 'utf8',
+  });
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.match(r.stderr, /warning: --no-validate/);
+  // The unreliable result the warning is about: the attempt counts as evidence.
+  assert.deepEqual(JSON.parse(r.stdout).statusByClaimId, { 'claim.facet-rename-test.1': 'proposed' });
 });

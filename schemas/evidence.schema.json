@@ -32,7 +32,7 @@
       "required": ["reason"],
       "properties": {
         "reason": { "enum": ["unreachable", "tool_error", "permission_denied", "timeout", "other"] },
-        "detail": { "type": "string", "pattern": "\\S" }
+        "detail": { "type": "string", "pattern": "\\S", "description": "Free-text detail. Must contain at least one non-whitespace character, where whitespace is what the ECMAScript regular expression class \\s matches (ECMA-262 WhiteSpace and LineTerminator, which include U+00A0 and U+FEFF), as JSON Schema regular expressions are defined." }
       },
       "if": { "required": ["reason"], "properties": { "reason": { "const": "other" } } },
       "then": { "required": ["detail"] },

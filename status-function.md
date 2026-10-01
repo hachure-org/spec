@@ -105,7 +105,11 @@ because no fold step reads the field. The function does not validate its
 input, and neither do the bundled `deriveClaimStatus` and `deriveStatuses`. The
 caller therefore MUST validate a bundle against the schemas before deriving
 status from it, and MUST NOT rely on a status derived from a bundle that fails
-validation. `hachure derive` validates first and refuses an invalid bundle.
+validation. The `hachure derive` and `hachure diff` commands are such callers:
+each validates first and refuses an invalid bundle. Validation needs `ajv`,
+which the `hachure` package does not depend on; when it cannot be loaded the
+commands refuse to derive unless `--no-validate` is given, and with that flag
+they derive unvalidated and say so on stderr.
 
 The `sf-inconclusive-evidence` vector covers the exclusion of inconclusive
 evidence at each place the fold reads evidence: the requirement check,

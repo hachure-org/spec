@@ -2,13 +2,19 @@
 /**
  * hachure — CLI for the open trust format.
  *
- *   hachure derive <bundle.json> [--now <ISO timestamp>] [--status-function-version <v>]
+ *   hachure derive <bundle.json> [--now <ISO timestamp>] [--status-function-version <v>] [--no-validate]
  *       Derive per-claim statuses from a TrustBundle (status-function.md),
  *       under the current statusFunctionVersion unless another supported one
  *       is named. The bundle is validated first, as `hachure validate` does,
  *       and an invalid bundle is refused (exit 1): the function does not
- *       validate its own input. Without ajv installed the bundle is derived
- *       unvalidated, with a warning on stderr.
+ *       validate its own input. Validation needs ajv (npm i ajv), which this
+ *       package does not depend on. If ajv cannot be loaded the command
+ *       refuses to derive (exit 1) unless --no-validate is given; with that
+ *       flag it derives unvalidated and says so on stderr.
+ *
+ *   hachure diff <before.json> <after.json> [--now <ISO timestamp>] [--no-validate]
+ *       Report status transitions between two bundles. Both are validated
+ *       first, under the same rules as derive.
  *
  *   hachure merge <a.json> <b.json> [...more] [--detailed]
  *       Merge bundles (merge.md). --detailed reports collisions instead of
@@ -57,7 +63,21 @@ function takeFlag(args, name) {
   const i = args.indexOf(name);
   if (i === -1) return undefined;
   const [, value] = args.splice(i, 2);
+  if (value === undefined || value.startsWith('--')) fail(`${name} requires a value`);
   return value;
+}
+
+function takeSwitch(args, name) {
+  const i = args.indexOf(name);
+  if (i === -1) return false;
+  args.splice(i, 1);
+  return true;
+}
+
+/** Refuse anything left over once the expected positionals are taken. */
+function rejectStray(args, expected, usage) {
+  const stray = [...args.filter((a) => a.startsWith('--')), ...args.filter((a) => !a.startsWith('--')).slice(expected)];
+  if (stray.length > 0) fail(`usage: ${usage} (unexpected: ${stray.join(' ')})`);
 }
 
 function takeVersionFlag(args) {
@@ -85,10 +105,27 @@ async function bundleErrors(bundle) {
   return validate(bundle) ? validateConclusionConfidence(bundle) : validate.errors;
 }
 
-function reportInvalid(errors) {
-  console.error('invalid TrustBundle:');
+function reportInvalid(errors, path) {
+  console.error(path ? `invalid TrustBundle (${path}):` : 'invalid TrustBundle:');
   for (const e of errors) console.error(`  ${e.instancePath || '/'} ${e.message}`);
   process.exit(1);
+}
+
+/**
+ * Gate for commands that derive status: deriveStatuses does not validate, so
+ * the CLI, as its caller, does (status-function.md). Fails closed when the
+ * validator cannot be loaded; --no-validate is the only way past that.
+ */
+async function requireValidBundle(bundle, path, noValidate) {
+  if (noValidate) {
+    console.error(`hachure: warning: --no-validate: ${path} was not validated; derived statuses are not reliable for an invalid bundle`);
+    return;
+  }
+  const errors = await bundleErrors(bundle);
+  if (errors === undefined) {
+    fail('cannot validate the bundle: ajv is not installed (npm i ajv). Refusing to derive from an unvalidated bundle; pass --no-validate to derive anyway');
+  }
+  if (errors.length > 0) reportInvalid(errors, path);
 }
 
 const [command, ...args] = process.argv.slice(2);
@@ -97,18 +134,15 @@ switch (command) {
   case 'derive': {
     const nowArg = takeFlag(args, '--now');
     const version = takeVersionFlag(args);
+    const noValidate = takeSwitch(args, '--no-validate');
+    const usage = 'hachure derive <bundle.json> [--now <ISO timestamp>] [--status-function-version <v>] [--no-validate]';
     const [path] = args;
-    if (!path) fail('usage: hachure derive <bundle.json> [--now <ISO timestamp>] [--status-function-version <v>]');
+    if (!path) fail(`usage: ${usage}`);
+    rejectStray(args, 1, usage);
     const now = nowArg ? new Date(nowArg) : new Date();
     if (Number.isNaN(now.getTime())) fail(`invalid --now value: ${nowArg}`);
     const bundle = readJson(path);
-    // deriveStatuses does not validate; the caller does (status-function.md).
-    const errors = await bundleErrors(bundle);
-    if (errors === undefined) {
-      console.error('hachure: warning: ajv is not installed, so the bundle was not validated before deriving');
-    } else if (errors.length > 0) {
-      reportInvalid(errors);
-    }
+    await requireValidBundle(bundle, path, noValidate);
     console.log(
       JSON.stringify(
         {
@@ -125,11 +159,18 @@ switch (command) {
 
   case 'diff': {
     const nowArg = takeFlag(args, '--now');
+    const noValidate = takeSwitch(args, '--no-validate');
+    const usage = 'hachure diff <before.json> <after.json> [--now <ISO timestamp>] [--no-validate]';
     const [beforePath, afterPath] = args;
-    if (!beforePath || !afterPath) fail('usage: hachure diff <before.json> <after.json> [--now <ISO timestamp>]');
+    if (!beforePath || !afterPath) fail(`usage: ${usage}`);
+    rejectStray(args, 2, usage);
     const now = nowArg ? new Date(nowArg) : new Date();
     if (Number.isNaN(now.getTime())) fail(`invalid --now value: ${nowArg}`);
-    const { transitions, unchanged } = diffStatuses(readJson(beforePath), readJson(afterPath), now);
+    const before = readJson(beforePath);
+    const after = readJson(afterPath);
+    await requireValidBundle(before, beforePath, noValidate);
+    await requireValidBundle(after, afterPath, noValidate);
+    const { transitions, unchanged } = diffStatuses(before, after, now);
     const changed = Object.keys(transitions).length;
     for (const [claimId, { from, to }] of Object.entries(transitions)) {
       console.error(`  ${claimId}: ${from ?? '(absent)'} -> ${to ?? '(absent)'}`);
@@ -213,9 +254,10 @@ switch (command) {
   default:
     console.error(
       'usage: hachure <derive|diff|merge|validate|vectors> [...]\n' +
-        '  derive <bundle.json> [--now <ISO>] [--status-function-version <v>]\n' +
-        '                                               derive per-claim statuses\n' +
-        '  diff <before.json> <after.json> [--now <ISO>] report status transitions (exit 3 if any)\n' +
+        '  derive <bundle.json> [--now <ISO>] [--status-function-version <v>] [--no-validate]\n' +
+        '                                               validate, then derive per-claim statuses\n' +
+        '  diff <before.json> <after.json> [--now <ISO>] [--no-validate]\n' +
+        '                                               validate both, then report status transitions (exit 3 if any)\n' +
         '  merge <a.json> <b.json> [...] [--detailed]   merge producer bundles\n' +
         '  validate <bundle.json>                       schema-validate a bundle\n' +
         '  vectors [--status-function-version <v>]      run conformance vectors'

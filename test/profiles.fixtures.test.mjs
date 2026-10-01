@@ -8,7 +8,13 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import Ajv2020 from 'ajv/dist/2020.js';
 
-import { schemas, deriveStatuses, validateBasisAnnotations, resolveSourceOfRecord } from '../index.mjs';
+import {
+  schemas,
+  deriveStatuses,
+  validateBasisAnnotations,
+  resolveSourceOfRecord,
+  mergeBundlesDetailed,
+} from '../index.mjs';
 
 const ajv = new Ajv2020({ strict: false, allErrors: true, logger: false });
 for (const schema of schemas.values()) ajv.addSchema(schema);
@@ -411,4 +417,46 @@ test('Basis-annotations sourceOfRecord: the subject matches through subjectAlias
   const subsumes = clone(unlinked);
   subsumes.identityLinks = [{ subjects: [claimSubject, other], relation: 'subsumes' }];
   assert.equal(resolveSourceOfRecord(subsumes, subsumes.evidence[0]).reason, 'subject-mismatch');
+});
+
+// Merge unions authorityTrace by id and keeps one of two differing traces, so
+// one producer's reference can end up reading another producer's trace.
+test('Basis-annotations sourceOfRecord: a collided trace id is not backed over a merged bundle', () => {
+  const a = clone(basisBundle);
+  const b = clone(basisBundle);
+  b.source = 'other-producer:2026-06';
+  b.producerId = 'other-producer';
+  b.claims = [{ ...b.claims[0], id: 'claim.w2.wages.other' }];
+  b.evidence = [{ ...b.evidence[0], id: 'evidence.w2.box1.other', claimId: 'claim.w2.wages.other' }];
+  b.events = [];
+  // Same trace id, not yet valid when B's evidence was observed.
+  b.authorityTrace[0].validFrom = '2026-03-01T00:00:00.000Z';
+  assert.equal(validateBundle(b), true, JSON.stringify(validateBundle.errors));
+  assert.deepEqual(resolveSourceOfRecord(b, b.evidence[0]), { backed: false, reason: 'not-active' });
+
+  const { bundle: merged, collisions } = mergeBundlesDetailed([a, b]);
+  assert.deepEqual(
+    collisions.map((c) => [c.collection, c.id]),
+    [['authorityTrace', 'trace.payroll.system-of-record']],
+  );
+  assert.equal(merged.authorityTrace.length, 1, 'merge keeps a single trace per id');
+  const fromB = merged.evidence.find((e) => e.id === 'evidence.w2.box1.other');
+  const fromA = merged.evidence.find((e) => e.id === 'evidence.w2.box1');
+
+  // Without the collisions, B's reference reads A's trace: the hazard.
+  assert.equal(resolveSourceOfRecord(merged, fromB).backed, true);
+  // With them, every reference to the collided id fails closed.
+  for (const evidence of [fromB, fromA]) {
+    assert.deepEqual(resolveSourceOfRecord(merged, evidence, { collisions }), {
+      backed: false,
+      reason: 'trace-collision',
+    });
+  }
+  // Collisions in other collections, or on other ids, do not affect it.
+  const unrelated = [
+    { collection: 'claims', id: 'trace.payroll.system-of-record' },
+    { collection: 'authorityTrace', id: 'trace.other' },
+    null,
+  ];
+  assert.equal(resolveSourceOfRecord(a, a.evidence[0], { collisions: unrelated }).backed, true);
 });
