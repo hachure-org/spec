@@ -201,11 +201,14 @@ keeps:
    the window is unevaluable (stale), like any other non-finite or negative
    value. `1e400` is such a numeral; `1e-400` rounds to zero.
 2. The window uses the exact decimal value of that binary64 value's canonical
-   decimal form: the numeral ECMAScript `Number::toString` (radix 10) gives
-   it. That is a numeral with the fewest significant digits that rounds back
-   to the same binary64 value; where several numerals of that length do, the
-   one closest to the binary64 value's exact value; and where two are equally
-   close, the one whose last digit is even. The result is unique.
+   decimal form, defined as: a numeral with the fewest significant digits
+   that rounds back to the same binary64 value; where several numerals of
+   that length do, the one closest to the binary64 value's exact value; and
+   where two are equally close, the one whose last digit is even. The result
+   is unique. It is what ECMAScript `Number::toString` (radix 10) gives when
+   an implementation follows the alternative step 5 recommended in that
+   algorithm's Note 2, as V8 does; the algorithm's own step 5 leaves the last
+   digit open, so these three clauses, not ECMA-262, are the definition.
 
 So `0.1` and `0.1000000000000000055511151231257827` are the same window: both
 round to the same binary64 value, whose canonical form is `0.1`. An
@@ -601,10 +604,11 @@ what the rest of the fold derives.
 
 The `sf-v4-*` conformance vectors cover each row except the last, which a
 vector cannot express (a vector's `now` is passed as a date value). A
-bundle derives the same statuses under versions `"3"` and `"4"` if every time
-in it is an RFC 3339 `date-time` with an offset, at most three fractional
-digits and no leap second, and `now` is not within one millisecond of the end
-of a validity window.
+schema-valid bundle derives the same statuses under versions `"3"` and `"4"`
+if every time in it is an RFC 3339 `date-time` with an offset, at most three
+fractional digits and no leap second, and `now` is not within one millisecond
+of the end of a validity window. (Schema-valid matters: the schemas require
+the times the fold reads, and an absent one is unevaluable.)
 
 ## Version 2
 

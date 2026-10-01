@@ -303,7 +303,7 @@ resolution. Under version `"3"` each of those failed open. Values that
 no offset, hour `24`) are no longer read as times, and a leap second now is.
 Validity windows are exact as well (`durationDays: 0.7` is exactly
 60 480 000 ms), and a `now` given as a string, including `--now`, must be a
-timestamp. A bundle derives the same under `"3"` and `"4"` if every time in
+timestamp. A schema-valid bundle derives the same under `"3"` and `"4"` if every time in
 it is an RFC 3339 `date-time` with an offset, at most three fractional digits
 and no leap second, and `now` is not within one millisecond of the end of a
 validity window.

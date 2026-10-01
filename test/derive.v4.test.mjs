@@ -463,9 +463,10 @@ test('v4: where several shortest numerals round to one binary64 value, the windo
   // 7.394193414316602e-8 and ...603e-8 are both 16-digit numerals for this binary64 value.
   const x = 7.394193414316603e-8;
   assert.equal(7.394193414316602e-8, x, 'two shortest numerals, one binary64 value');
-  const canonical = BigInt(/^(\d)\.(\d{15})e-8$/.exec(String(x)).slice(1).join(''));
+  // Of the two, ...603 is the closer to the binary64 value, so it is the canonical one.
   const [lo, hi] = [7394193414316602n, 7394193414316603n];
-  assert.ok(canonical === lo || canonical === hi, String(x));
+  const canonical = hi;
+  assert.equal(String(x), '7.394193414316603e-8', 'this engine formats to the canonical numeral');
   // M x 10^-23 days is M x 86400 x 10^-23 seconds: the digits after the decimal point of the window's end.
   const endOf = (mantissa) => (mantissa * 86400n).toString().padStart(23, '0');
   const b = windowBundle({ validityRule: { kind: 'duration', durationDays: x } });
@@ -473,7 +474,7 @@ test('v4: where several shortest numerals round to one binary64 value, the windo
   assert.equal(at(b, now(endOf(canonical))), 'verified', 'now equal to the canonical end');
   assert.equal(at(b, now(`${endOf(canonical)}1`)), 'stale', 'just past the canonical end');
   // An instant between the two candidate ends tells which numeral was used.
-  assert.equal(at(b, now(`${endOf(lo)}1`)), canonical === hi ? 'verified' : 'stale');
+  assert.equal(at(b, now(`${endOf(lo)}1`)), 'verified');
 });
 
 test('the long-numeral vector claim really carries a non-shortest numeral', () => {
