@@ -19,8 +19,8 @@ test('statusFunctionVersion is a non-empty string', () => {
   assert.ok(statusFunctionVersion.length > 0);
 });
 
-test('statusFunctionVersion is "3"', () => {
-  assert.equal(statusFunctionVersion, '3');
+test('statusFunctionVersion is "4"', () => {
+  assert.equal(statusFunctionVersion, '4');
 });
 
 test('statusFunctionVersion matches package.json', () => {

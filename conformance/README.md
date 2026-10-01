@@ -46,15 +46,17 @@ vectors via the `testVectors` export or `npx hachure vectors`.
 | `sf-unparseable-event-time.json` | An event whose `createdAt` is not a parseable timestamp sorts as the oldest event, whatever its position in the `events` array | 2026-06-10T00:00:00.000Z |
 | `sf-inconclusive-evidence.json` | Inconclusive evidence (schema 9): a verified claim stays `verified`; an attempt alone, with or without a policy, derives `unknown` (Steps 6 and 7 read entailing evidence only); an attempt of the required type leaves the requirement unmet → `proposed`; an attempt does not corroborate → `proposed`; an attempt carrying the current `integrityRef` anchors no `commit` rule → `stale` | 2026-06-10T00:00:00.000Z |
 | `sf-basis-fields-inert.json` | `inconclusive`, `collectedByKind`, `metadata.sourceOfRecord` and `metadata.estimate` present on claims deriving `verified`, `disputed`, `proposed` and `unknown`; the package's suite re-derives with the fields stripped and asserts identical statuses | 2026-06-10T00:00:00.000Z |
-| `sf-v3-unparseable-authority-bound.json` | v3: an authority trace whose `revokedAt`, `validFrom` or `validUntil` is not a parseable timestamp, or a bounded trace against a resolution event whose `createdAt` is not one, is not active → the resolution is not honoured | 2026-06-10T00:00:00.000Z |
 | `sf-v3-derivation-ceiling.json` | v3: derivation ceiling and status ordering — rejected below unknown, disputed below superseded, stale below unknown, missing input → `unknown`, transitive through `derivationEdges` | 2026-06-10T00:00:00.000Z |
+
+| `sf-v4-authority-window.json` | v4: a resolution is not honoured when a matching trace's `revokedAt`, `validFrom` or `validUntil` is not a timestamp, or when the resolution event's own `createdAt` is not one; a blocking failure with an unevaluable `observedAt` stands against a resolution; one active trace is enough beside an unevaluable one; refusing a `rejected` resolution lets a later `verified` event stand | 2026-06-10T00:00:00.000Z |
+| `sf-v4-timestamp-forms.json` | v4: what is a timestamp — RFC 3339 `date-time` with offset, lower-case `t`/`z`, fractional seconds and a leap second at `23:59:60` UTC are; a date with no time, a time with no offset, hour `24`, `02-30`, a space separator, an offset with no colon, prose, and a misplaced `:60` are not; a date-only `createdAt` sorts as oldest | 2026-06-10T00:00:00.000Z |
 
 ## Test vector format
 
 ```json
 {
   "now": "<ISO 8601 string>",
-  "statusFunctionVersions": ["3"],
+  "statusFunctionVersions": ["3", "4"],
   "input": { /* TrustBundle */ },
   "expect": {
     "statusByClaimId": { "<claimId>": "<TrustStatus>" }
@@ -65,22 +67,24 @@ vectors via the `testVectors` export or `npx hachure vectors`.
 `statusFunctionVersions` is optional. When present, the vector's expectations
 hold only for the listed status function versions, and an implementation of
 another version skips it. When absent, the vector holds for every version. The
-`sf-v3-*` vectors list `["3"]`; the package's own suite also checks that each of
-them derives differently under version `"2"`, so each one exercises a rule that
-changed.
+`sf-v3-*` vectors list `["3", "4"]` and the `sf-v4-*` vectors list `["4"]`; the
+package's own suite also checks that each of them derives differently under
+every version it does not list, so each one exercises a rule that changed.
 
 ### Vectors with timestamps that are not date-times
 
-`sf-unparseable-event-time`, `sf-v3-unparseable-authority-bound` and
-`sf-v3-unevaluable-validity` carry values such as `"not-a-timestamp"` in
+`sf-unparseable-event-time`, `sf-v3-unevaluable-validity`,
+`sf-v4-authority-window` and `sf-v4-timestamp-forms` carry values such as
+`"not-a-timestamp"` or `"2027-04-01"` in
 `date-time` fields, because the status function defines what happens to them.
 JSON Schema 2020-12 treats `format` as an annotation by default, and these
 inputs validate under that default (as this package's own suite checks). A
 validator configured to assert `format` rejects them; run these vectors with
 format assertion off. A negative `ttlSeconds` and an unknown validity-rule
 `kind` are rejected by the schemas regardless, so they cannot appear in a
-vector; the status function still defines them (both derive `stale` under
-version `"3"`) and this package's unit tests cover them.
+vector; the status function still defines them (both derive `stale` from
+version `"3"`) and this package's unit tests cover them. The same goes for a
+time that is not a string.
 
 ## Merge conformance vectors
 

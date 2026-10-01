@@ -86,7 +86,7 @@ function bundle({ claim = {}, validityRule = { kind: 'historical' }, event = {} 
 
 const both = (b) => ({
   v2: deriveStatuses(b, NOW, { statusFunctionVersion: '2' }).c,
-  v3: deriveStatuses(b, NOW).c,
+  v3: deriveStatuses(b, NOW, { statusFunctionVersion: '3' }).c,
 });
 
 test('baseline fixture derives verified under both versions', () => {
@@ -185,7 +185,7 @@ test('status ordering is the literal v3 order, weakest first', () => {
 
 test('an unsupported statusFunctionVersion is refused, not silently defaulted', () => {
   const b = bundle();
-  for (const version of ['1', '4', 3, '']) {
+  for (const version of ['1', '5', 3, 4, '']) {
     assert.throws(() => deriveStatuses(b, NOW, { statusFunctionVersion: version }), RangeError);
     assert.throws(() => deriveClaimStatus(b.claims[0], b, NOW, { statusFunctionVersion: version }), RangeError);
   }
@@ -195,7 +195,7 @@ test('an unsupported statusFunctionVersion is refused, not silently defaulted', 
 
 const cli = fileURLToPath(new URL('../bin/hachure.mjs', import.meta.url));
 
-test('CLI derive defaults to v3 and honours --status-function-version 2', () => {
+test('CLI derive defaults to the current version and honours --status-function-version', () => {
   const dir = mkdtempSync(join(tmpdir(), 'hachure-v3-'));
   const path = join(dir, 'bundle.json');
   // A schema-valid bundle that derives differently under the two versions
@@ -205,7 +205,10 @@ test('CLI derive defaults to v3 and honours --status-function-version 2', () => 
   const run = (...extra) =>
     JSON.parse(execFileSync(process.execPath, [cli, 'derive', path, '--now', NOW.toISOString(), ...extra], { encoding: 'utf8' }));
   assert.deepEqual(run().statusByClaimId, { c: 'stale' });
-  assert.equal(run().statusFunctionVersion, '3');
+  assert.equal(run().statusFunctionVersion, '4');
+  const v3 = run('--status-function-version', '3');
+  assert.deepEqual(v3.statusByClaimId, { c: 'stale' });
+  assert.equal(v3.statusFunctionVersion, '3');
   const v2 = run('--status-function-version', '2');
   assert.deepEqual(v2.statusByClaimId, { c: 'verified' });
   assert.equal(v2.statusFunctionVersion, '2');
@@ -215,68 +218,18 @@ test('CLI derive rejects an unsupported --status-function-version with exit 1', 
   const dir = mkdtempSync(join(tmpdir(), 'hachure-v3-'));
   const path = join(dir, 'bundle.json');
   writeFileSync(path, JSON.stringify(bundle()));
-  const r = spawnSync(process.execPath, [cli, 'derive', path, '--status-function-version', '4'], { encoding: 'utf8' });
+  const r = spawnSync(process.execPath, [cli, 'derive', path, '--status-function-version', '5'], { encoding: 'utf8' });
   assert.equal(r.status, 1);
-  assert.match(r.stderr, /unsupported --status-function-version 4/);
+  assert.match(r.stderr, /unsupported --status-function-version 5/);
 });
 
 test('CLI vectors runs every applicable vector and exits 0', () => {
   const r = spawnSync(process.execPath, [cli, 'vectors'], { encoding: 'utf8' });
   assert.equal(r.status, 0, r.stderr);
   const applicable = testVectors.filter(
-    ({ vector }) => !vector.statusFunctionVersions || vector.statusFunctionVersions.includes('3')
+    ({ vector }) => !vector.statusFunctionVersions || vector.statusFunctionVersions.includes('4')
   ).length;
   assert.match(r.stdout, new RegExp(`all ${applicable} applicable vectors pass`));
-});
-
-// --- Step 1 authority window: unevaluable bounds (issue #30) -----------------
-// A resolution to verified followed by a later disputed event: `verified` when
-// the resolver's trace is active, `disputed` when it is not.
-function resolutionBundle(traceBounds, resolvedAt = '2026-06-02T00:00:00.000Z') {
-  const b = bundle();
-  b.events = [
-    { ...b.events[0], id: 'resolution', actor: 'reviewer', resolvesDispute: true, createdAt: resolvedAt, verifiedAt: undefined },
-    { ...b.events[0], id: 'later', status: 'disputed', createdAt: '2026-06-03T00:00:00.000Z', verifiedAt: undefined },
-  ];
-  b.authorityTrace = [
-    {
-      id: 't',
-      subject: { subjectType: 'api', subjectId: 'x' },
-      actorRef: 'reviewer',
-      authorityType: 'role',
-      authorityRef: 'r',
-      sourceRef: 's',
-      observedAt: T0,
-      ...traceBounds,
-    },
-  ];
-  return b;
-}
-
-test('authority window: a parseable window is honoured under both versions', () => {
-  assert.deepEqual(both(resolutionBundle({})), { v2: 'verified', v3: 'verified' });
-  assert.deepEqual(both(resolutionBundle({ validFrom: T0, validUntil: '2027-01-01T00:00:00Z' })), { v2: 'verified', v3: 'verified' });
-  assert.deepEqual(both(resolutionBundle({ revokedAt: T0 })), { v2: 'disputed', v3: 'disputed' });
-});
-
-test('v3: an unparseable authority bound makes the trace inactive (v2 as shipped kept it active)', () => {
-  for (const bound of ['revokedAt', 'validFrom', 'validUntil']) {
-    for (const value of ['not-a-timestamp', '', '2026-13-45T00:00:00Z']) {
-      assert.deepEqual(both(resolutionBundle({ [bound]: value })), { v2: 'verified', v3: 'disputed' }, `${bound}=${value}`);
-    }
-  }
-});
-
-test('v3: a bounded trace is not active for a resolution event whose createdAt is unparseable', () => {
-  assert.deepEqual(both(resolutionBundle({ validUntil: '2027-01-01T00:00:00Z' }, 'not-a-timestamp')), { v2: 'verified', v3: 'disputed' });
-  // An unbounded trace needs no time comparison, so the resolution stands.
-  assert.deepEqual(both(resolutionBundle({}, 'not-a-timestamp')), { v2: 'verified', v3: 'verified' });
-});
-
-test('v3: one evaluable active trace is enough when another for the same actor is unevaluable', () => {
-  const b = resolutionBundle({ revokedAt: 'not-a-timestamp' });
-  b.authorityTrace.push({ ...b.authorityTrace[0], id: 't2', revokedAt: undefined });
-  assert.equal(deriveStatuses(b, NOW).c, 'verified');
 });
 
 // The schemas reject these two shapes, so no conformance vector can carry

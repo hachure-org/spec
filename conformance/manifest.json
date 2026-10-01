@@ -3,7 +3,7 @@
   "manifestVersion": 1,
   "appliesTo": {
     "schemaVersion": [5, 9],
-    "statusFunctionVersion": "3"
+    "statusFunctionVersion": "4"
   },
   "levels": [
     {
@@ -36,9 +36,9 @@
         "kind": "test-vectors",
         "vectorDir": "conformance",
         "vectorFilePattern": "sf-*.json",
-        "vectorCount": 22,
+        "vectorCount": 23,
         "specRef": "status-function.md",
-        "howToRun": "For each vector file, call your status-derivation function with vector.input and new Date(vector.now), then assert the derived status for every claim id matches vector.expect.statusByClaimId. All applicable vectors must pass for the statusFunctionVersion declared in appliesTo.statusFunctionVersion. A vector carrying a `statusFunctionVersions` array applies only to the versions it lists (the sf-v3-* vectors list [\"3\"]); a vector without it applies to every version."
+        "howToRun": "For each vector file, call your status-derivation function with vector.input and new Date(vector.now), then assert the derived status for every claim id matches vector.expect.statusByClaimId. All applicable vectors must pass for the statusFunctionVersion declared in appliesTo.statusFunctionVersion. A vector carrying a `statusFunctionVersions` array applies only to the versions it lists (the sf-v3-* vectors list [\"3\", \"4\"] and the sf-v4-* vectors list [\"4\"]); a vector without it applies to every version."
       }
     },
     {
