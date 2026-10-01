@@ -917,7 +917,7 @@ test('hachure vectors honours --status-function-version and rejects stray argume
   assert.equal(v2.status, 0, v2.stdout + v2.stderr);
   assert.match(v2.stdout, /SKIP sf-v3-no-policy/);
   assert.match(v2.stdout, /PASS sf-inconclusive-evidence/);
-  assert.match(v2.stdout, /all 13 applicable vectors pass \(statusFunctionVersion "2"\)/);
+  assert.match(v2.stdout, /all 14 applicable vectors pass \(statusFunctionVersion "2"\)/);
 
   const unsupported = spawnSync(process.execPath, [CLI, 'vectors', '--status-function-version', '5'], { encoding: 'utf8' });
   assert.equal(unsupported.status, 1);
@@ -927,7 +927,7 @@ test('hachure vectors honours --status-function-version and rejects stray argume
   assert.equal(v3.status, 0, v3.stdout + v3.stderr);
   assert.match(v3.stdout, /SKIP sf-v4-authority-window/);
   assert.match(v3.stdout, /PASS sf-v3-no-policy/);
-  assert.match(v3.stdout, /all 21 applicable vectors pass \(statusFunctionVersion "3"\)/);
+  assert.match(v3.stdout, /all 22 applicable vectors pass \(statusFunctionVersion "3"\)/);
 
   const stray = spawnSync(process.execPath, [CLI, 'vectors', '--verbose'], { encoding: 'utf8' });
   assert.equal(stray.status, 1);

@@ -15,7 +15,7 @@ import {
   supportedStatusFunctionVersions,
 } from '../index.mjs';
 
-assert.ok(testVectors.length >= 24, 'expected the full status-derivation vector set');
+assert.ok(testVectors.length >= 25, 'expected the full status-derivation vector set');
 
 // A vector without statusFunctionVersions holds for every version.
 const versionsOf = (vector) => vector.statusFunctionVersions ?? supportedStatusFunctionVersions;

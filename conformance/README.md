@@ -43,6 +43,7 @@ vectors via the `testVectors` export or `npx hachure vectors`.
 | `sf-v3-blocking-before-requirements.json` | v3: a blocking failure that also leaves a requirement unmet → `disputed`, not `proposed` | 2026-06-10T00:00:00.000Z |
 | `sf-v3-invalidation-nonterminal.json` | v3: a `type: "invalidation"` event whose status is not terminal (`verified`, `assumed`) → `stale`; a terminal status (`rejected`) passes through | 2026-06-10T00:00:00.000Z |
 | `sf-authority-window-instants.json` | Step 1 authority window compares instants: `revokedAt`, `validFrom` and `validUntil` written with a UTC offset or without milliseconds, each in a case a string comparison accepts wrongly and a case it refuses wrongly | 2026-06-10T00:00:00.000Z |
+| `sf-authority-window-before-v4.json` | Versions 2 and 3 only: as published, a trace bound, a resolution time or a blocking failure's time that cannot be read excludes nothing in Step 1, so the resolution is honoured. Pins the behaviour version 4 changes | 2026-06-10T00:00:00.000Z |
 | `sf-unparseable-event-time.json` | An event whose `createdAt` cannot be read as a time sorts as older than the claim's other events (all dated after 1970), whatever its position in the `events` array | 2026-06-10T00:00:00.000Z |
 | `sf-inconclusive-evidence.json` | Inconclusive evidence (schema 9): a verified claim stays `verified`; an attempt alone, with or without a policy, derives `unknown` (Steps 6 and 7 read entailing evidence only); an attempt of the required type leaves the requirement unmet → `proposed`; an attempt does not corroborate → `proposed`; an attempt carrying the current `integrityRef` anchors no `commit` rule → `stale` | 2026-06-10T00:00:00.000Z |
 | `sf-basis-fields-inert.json` | `inconclusive`, `collectedByKind`, `metadata.sourceOfRecord` and `metadata.estimate` present on claims deriving `verified`, `disputed`, `proposed` and `unknown`; the package's suite re-derives with the fields stripped and asserts identical statuses | 2026-06-10T00:00:00.000Z |
@@ -68,13 +69,14 @@ vectors via the `testVectors` export or `npx hachure vectors`.
 `statusFunctionVersions` is optional. When present, the vector's expectations
 hold only for the listed status function versions, and an implementation of
 another version skips it. When absent, the vector holds for every version. The
-`sf-v3-*` vectors list `["3", "4"]` and the `sf-v4-*` vectors list `["4"]`; the
+`sf-v3-*` vectors list `["3", "4"]`, the `sf-v4-*` vectors list `["4"]`, and
+`sf-authority-window-before-v4` lists `["2", "3"]`; the
 package's own suite also checks that each of them derives differently under
 every version it does not list, so each one exercises a rule that changed.
 
 ### Vectors with timestamps that are not date-times
 
-`sf-unparseable-event-time`, `sf-v3-unevaluable-validity`,
+`sf-authority-window-before-v4`, `sf-unparseable-event-time`, `sf-v3-unevaluable-validity`,
 `sf-v4-authority-window` and `sf-v4-timestamp-forms` carry values such as
 `"not-a-timestamp"` or `"2027-04-01"` in
 `date-time` fields, because the status function defines what happens to them.
