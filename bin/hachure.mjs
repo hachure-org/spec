@@ -49,6 +49,7 @@ import {
   mergeBundlesDetailed,
   validateConclusionConfidence,
   checkBasisInvariants,
+  parseTimestamp,
 } from '../index.mjs';
 
 function readJson(path) {
@@ -173,16 +174,26 @@ function deriving(fn) {
   }
 }
 
-/** Parse --now; an empty value is refused rather than read as "not given". */
-function parseNow(nowArg) {
+/**
+ * Parse --now. Under version "4" the value must be a timestamp as that version
+ * defines one (RFC 3339 date-time) and is passed through as written, so it is
+ * read exactly; under "2" and "3" it is read as those versions read it.
+ */
+function parseNow(nowArg, version) {
   if (nowArg === undefined) return new Date();
-  const now = new Date(nowArg);
-  if (nowArg === '' || Number.isNaN(now.getTime())) {
-    const hint = /\.json$/i.test(nowArg) ? ' (--now takes a timestamp; the file path after it was read as its value)' : '';
-    fail(`invalid --now value: ${JSON.stringify(nowArg)}${hint}`);
+  const hint = /\.json$/i.test(nowArg) ? ' (--now takes a timestamp; the file path after it was read as its value)' : '';
+  if (version === '4') {
+    if (parseTimestamp(nowArg) === undefined) {
+      fail(`invalid --now value: ${JSON.stringify(nowArg)}: expected an RFC 3339 date-time with an offset, e.g. 2026-06-10T00:00:00Z${hint}`);
+    }
+    return nowArg;
   }
+  const now = new Date(nowArg);
+  if (nowArg === '' || Number.isNaN(now.getTime())) fail(`invalid --now value: ${JSON.stringify(nowArg)}${hint}`);
   return now;
 }
+
+const evaluatedAt = (now) => (typeof now === 'string' ? now : now.toISOString());
 
 const [command, ...args] = process.argv.slice(2);
 
@@ -192,7 +203,7 @@ switch (command) {
     const version = takeVersionFlag(args);
     const noValidate = takeSwitch(args, '--no-validate');
     const usage = 'hachure derive <bundle.json> [--now <ISO timestamp>] [--status-function-version <v>] [--no-validate]';
-    const now = parseNow(nowArg);
+    const now = parseNow(nowArg, version);
     const [path] = args;
     if (!path) fail(`usage: ${usage}`);
     rejectStray(args, 1, usage);
@@ -204,7 +215,7 @@ switch (command) {
       JSON.stringify(
         {
           statusFunctionVersion: version,
-          evaluatedAt: now.toISOString(),
+          evaluatedAt: evaluatedAt(now),
           statusByClaimId,
         },
         null,
@@ -218,7 +229,7 @@ switch (command) {
     const nowArg = takeFlag(args, '--now');
     const noValidate = takeSwitch(args, '--no-validate');
     const usage = 'hachure diff <before.json> <after.json> [--now <ISO timestamp>] [--no-validate]';
-    const now = parseNow(nowArg);
+    const now = parseNow(nowArg, statusFunctionVersion);
     const [beforePath, afterPath] = args;
     if (!beforePath || !afterPath) fail(`usage: ${usage}`);
     rejectStray(args, 2, usage);
@@ -235,7 +246,7 @@ switch (command) {
     }
     console.log(
       JSON.stringify(
-        { statusFunctionVersion, evaluatedAt: now.toISOString(), transitions, unchanged },
+        { statusFunctionVersion, evaluatedAt: evaluatedAt(now), transitions, unchanged },
         null,
         2
       )

@@ -227,6 +227,18 @@
         "verificationPolicyId": "policy.public-data-field.basic"
       },
       {
+        "id": "claim.timestamp.event-order-at-epoch",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.timestamp.event-order-at-epoch",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "event-order-at-epoch",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
         "id": "claim.timestamp.verified-at-date-only",
         "subjectType": "data-field",
         "subjectId": "dataset:claim.timestamp.verified-at-date-only",
@@ -404,6 +416,16 @@
       {
         "id": "evidence.claim.timestamp.event-order-before-1970",
         "claimId": "claim.timestamp.event-order-before-1970",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.timestamp.event-order-at-epoch",
+        "claimId": "claim.timestamp.event-order-at-epoch",
         "evidenceType": "source_excerpt",
         "method": "observation",
         "sourceRef": "https://example.org/source",
@@ -656,6 +678,28 @@
         "createdAt": "1969-12-31T00:00:00Z"
       },
       {
+        "id": "event.timestamp.event-order-at-epoch.unevaluable",
+        "claimId": "claim.timestamp.event-order-at-epoch",
+        "status": "rejected",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.timestamp.event-order-at-epoch"
+        ],
+        "createdAt": "not-a-timestamp"
+      },
+      {
+        "id": "event.timestamp.event-order-at-epoch.verified",
+        "claimId": "claim.timestamp.event-order-at-epoch",
+        "status": "verified",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.timestamp.event-order-at-epoch"
+        ],
+        "createdAt": "1970-01-01T00:00:00Z"
+      },
+      {
         "id": "event.timestamp.verified-at-date-only",
         "claimId": "claim.timestamp.verified-at-date-only",
         "status": "verified",
@@ -688,6 +732,7 @@
       "claim.timestamp.offset-minute-60": "stale",
       "claim.timestamp.event-order": "verified",
       "claim.timestamp.event-order-before-1970": "verified",
+      "claim.timestamp.event-order-at-epoch": "verified",
       "claim.timestamp.verified-at-date-only": "stale"
     }
   }

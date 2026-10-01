@@ -91,6 +91,30 @@
         "updatedAt": "2026-05-01T00:00:00.000Z",
         "impactLevel": "medium",
         "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.before-v4.unparseable-event-after-1969",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.before-v4.unparseable-event-after-1969",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "unparseable-event-after-1969",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
+      },
+      {
+        "id": "claim.before-v4.same-millisecond-keeps-array-order",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.before-v4.same-millisecond-keeps-array-order",
+        "claimType": "public-data-field",
+        "fieldOrBehavior": "same-millisecond-keeps-array-order",
+        "value": true,
+        "createdAt": "2026-05-01T00:00:00.000Z",
+        "updatedAt": "2026-05-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.public-data-field.basic"
       }
     ],
     "evidence": [
@@ -169,6 +193,26 @@
       {
         "id": "evidence.claim.before-v4.refused-under-v4-rejection",
         "claimId": "claim.before-v4.refused-under-v4-rejection",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.before-v4.unparseable-event-after-1969",
+        "claimId": "claim.before-v4.unparseable-event-after-1969",
+        "evidenceType": "source_excerpt",
+        "method": "observation",
+        "sourceRef": "https://example.org/source",
+        "excerptOrSummary": "Field observed at the source.",
+        "observedAt": "2026-05-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.claim.before-v4.same-millisecond-keeps-array-order",
+        "claimId": "claim.before-v4.same-millisecond-keeps-array-order",
         "evidenceType": "source_excerpt",
         "method": "observation",
         "sourceRef": "https://example.org/source",
@@ -350,6 +394,50 @@
           "evidence.claim.before-v4.refused-under-v4-rejection"
         ],
         "createdAt": "2026-05-03T00:00:00.000Z"
+      },
+      {
+        "id": "event.before-v4.unparseable-event-after-1969.0",
+        "claimId": "claim.before-v4.unparseable-event-after-1969",
+        "status": "verified",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.before-v4.unparseable-event-after-1969"
+        ],
+        "createdAt": "1969-12-31T00:00:00Z"
+      },
+      {
+        "id": "event.before-v4.unparseable-event-after-1969.1",
+        "claimId": "claim.before-v4.unparseable-event-after-1969",
+        "status": "rejected",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.before-v4.unparseable-event-after-1969"
+        ],
+        "createdAt": "not-a-timestamp"
+      },
+      {
+        "id": "event.before-v4.same-millisecond-keeps-array-order.0",
+        "claimId": "claim.before-v4.same-millisecond-keeps-array-order",
+        "status": "rejected",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.before-v4.same-millisecond-keeps-array-order"
+        ],
+        "createdAt": "2026-05-02T00:00:00.0001Z"
+      },
+      {
+        "id": "event.before-v4.same-millisecond-keeps-array-order.1",
+        "claimId": "claim.before-v4.same-millisecond-keeps-array-order",
+        "status": "verified",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.claim.before-v4.same-millisecond-keeps-array-order"
+        ],
+        "createdAt": "2026-05-02T00:00:00.0009Z"
       }
     ],
     "authorityTrace": [
@@ -453,7 +541,9 @@
       "claim.before-v4.unparseable-resolution-time": "verified",
       "claim.before-v4.unparseable-resolution-time-bounded-trace": "verified",
       "claim.before-v4.failure-unparseable-observed-at": "verified",
-      "claim.before-v4.refused-under-v4-rejection": "rejected"
+      "claim.before-v4.refused-under-v4-rejection": "rejected",
+      "claim.before-v4.unparseable-event-after-1969": "rejected",
+      "claim.before-v4.same-millisecond-keeps-array-order": "rejected"
     }
   }
 }

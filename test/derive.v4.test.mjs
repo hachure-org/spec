@@ -324,7 +324,7 @@ test('v4: an absent createdAt on a resolution, or observedAt on a blocking failu
   assert.deepEqual(v34(resolutionBundle({ later: false, evidence: [{ observedAt: undefined }] })), { v3: 'verified', v4: 'disputed' });
 });
 
-test('v4: a validity window is whole milliseconds, and the whole-millisecond part of a time decides against now', () => {
+test('v4: expiresAt and a whole-second ttl against now, with digits below the millisecond', () => {
   const at = (now, claim, event = {}) => {
     const b = resolutionBundle({ traces: [] });
     Object.assign(b.claims[0], claim);
@@ -337,4 +337,102 @@ test('v4: a validity window is whole milliseconds, and the whole-millisecond par
   // ttl of 1 s from a verification 0.5 ms past the second: fresh at +1.000 s, stale at +1.001 s.
   assert.equal(at('2026-06-01T00:00:01.000Z', { ttlSeconds: 1 }, { verifiedAt: '2026-06-01T00:00:00.0005Z' }), 'verified');
   assert.equal(at('2026-06-01T00:00:01.001Z', { ttlSeconds: 1 }, { verifiedAt: '2026-06-01T00:00:00.0005Z' }), 'stale');
+});
+
+// --- exact validity windows --------------------------------------------------------
+
+const VERIFIED_AT = '2026-06-01T00:00:00.000Z';
+const BASE = Date.parse(VERIFIED_AT);
+function windowBundle({ claim = {}, validityRule = { kind: 'historical' }, verifiedAt = VERIFIED_AT } = {}) {
+  const b = resolutionBundle({ traces: [] });
+  Object.assign(b.claims[0], claim);
+  b.policies[0].validityRule = validityRule;
+  b.events = [{ id: 'v', claimId: 'c', status: 'verified', actor: 'ci', method: 'm', evidenceIds: ['e'], createdAt: VERIFIED_AT, verifiedAt }];
+  return b;
+}
+const at = (b, now, version = '4') => deriveStatuses(b, now, { statusFunctionVersion: version }).c;
+
+test('v4: a window is the exact decimal product, not a floating-point one', () => {
+  // Each of these is a whole number of milliseconds whose float product is not.
+  const cases = [
+    [{ validityRule: { kind: 'duration', durationDays: 0.7 } }, 60480000],
+    [{ validityRule: { kind: 'duration', durationDays: 0.1 } }, 8640000],
+    [{ validityRule: { kind: 'duration', durationDays: 1.1 } }, 95040000],
+    [{ claim: { ttlSeconds: 4.35 } }, 4350],
+    [{ claim: { ttlSeconds: 0.29 } }, 290],
+    [{ claim: { ttlSeconds: 1.001 } }, 1001],
+  ];
+  for (const [shape, windowMs] of cases) {
+    const b = windowBundle(shape);
+    const label = JSON.stringify(shape);
+    assert.equal(at(b, new Date(BASE + windowMs - 1)), 'verified', label);
+    assert.equal(at(b, new Date(BASE + windowMs)), 'verified', `${label}: now is the window's last instant`);
+    assert.equal(at(b, new Date(BASE + windowMs + 1)), 'stale', label);
+  }
+  assert.notEqual(0.7 * 86400000, 60480000, 'the float product is the hazard this guards against');
+});
+
+test('v4: a window with a fraction of a millisecond, and a verifiedAt with one, are not rounded', () => {
+  // 1e-8 days = 0.864 ms.
+  const tiny = { kind: 'duration', durationDays: 1e-8 };
+  assert.equal(at(windowBundle({ validityRule: tiny }), new Date(BASE)), 'verified');
+  assert.equal(at(windowBundle({ validityRule: tiny }), new Date(BASE + 1)), 'stale');
+  // verified 0.2 ms after BASE: the window ends 1.064 ms after BASE.
+  const late = windowBundle({ validityRule: tiny, verifiedAt: '2026-06-01T00:00:00.0002Z' });
+  assert.equal(at(late, new Date(BASE + 1)), 'verified');
+  assert.equal(at(late, new Date(BASE + 2)), 'stale');
+  // ttl 0.0005 s = 0.5 ms from a verification 0.6 ms after BASE: ends at 1.1 ms.
+  const half = windowBundle({ claim: { ttlSeconds: 0.0005 }, verifiedAt: '2026-06-01T00:00:00.0006Z' });
+  assert.equal(at(half, new Date(BASE + 1)), 'verified');
+  assert.equal(at(half, new Date(BASE + 2)), 'stale');
+  // A string now carries its own digits: 1.05 ms is inside, 1.2 ms is past.
+  assert.equal(at(half, '2026-06-01T00:00:00.00105Z'), 'verified');
+  assert.equal(at(half, '2026-06-01T00:00:00.0011Z'), 'verified', 'now equal to the end is not later than it');
+  assert.equal(at(half, '2026-06-01T00:00:00.00110001Z'), 'stale');
+});
+
+test('v4: very small, very large and exponent-form windows are evaluated without overflow or rounding', () => {
+  assert.equal(at(windowBundle({ validityRule: { kind: 'duration', durationDays: 5e-324 } }), new Date(BASE)), 'verified');
+  assert.equal(at(windowBundle({ validityRule: { kind: 'duration', durationDays: 5e-324 } }), new Date(BASE + 1)), 'stale');
+  assert.equal(at(windowBundle({ validityRule: { kind: 'duration', durationDays: 1e300 } }), new Date('9999-01-01T00:00:00Z')), 'verified');
+  assert.equal(at(windowBundle({ claim: { ttlSeconds: 1.5e21 } }), new Date('9999-01-01T00:00:00Z')), 'verified');
+  assert.equal(at(windowBundle({ validityRule: { kind: 'duration', durationDays: 0 } }), new Date(BASE)), 'verified');
+  assert.equal(at(windowBundle({ validityRule: { kind: 'duration', durationDays: 0 } }), new Date(BASE + 1)), 'stale');
+  // Still unevaluable, as under version 3.
+  for (const durationDays of [-1, Infinity, NaN, '30', null]) {
+    assert.equal(at(windowBundle({ validityRule: { kind: 'duration', durationDays } }), new Date(BASE)), 'stale', String(durationDays));
+  }
+});
+
+test('v4: a blocking failure at exactly the resolution instant is not newer than it', () => {
+  const same = resolutionBundle({ later: false, resolvedAt: '2026-06-02T00:00:00.5Z', evidence: [{ observedAt: '2026-06-02T00:00:00.500000Z' }] });
+  assert.deepEqual(v34(same), { v3: 'verified', v4: 'verified' });
+  const after = resolutionBundle({ later: false, resolvedAt: '2026-06-02T00:00:00.5Z', evidence: [{ observedAt: '2026-06-02T00:00:00.5000001Z' }] });
+  assert.equal(at(after, NOW), 'disputed');
+});
+
+test('v4: an unevaluable createdAt sorts before an event dated exactly at the epoch (v3 tied them)', () => {
+  const b = resolutionBundle({ traces: [] });
+  const event = (id, status, createdAt) => ({ id, claimId: 'c', status, actor: 'ci', method: 'm', evidenceIds: ['e'], createdAt });
+  b.events = [event('bad', 'rejected', BAD), event('epoch', 'verified', '1970-01-01T00:00:00Z')];
+  assert.deepEqual(v34(b), { v3: 'rejected', v4: 'verified' });
+  b.events.reverse();
+  assert.deepEqual(v34(b), { v3: 'verified', v4: 'verified' });
+});
+
+test('v4: now as a string must be a timestamp and is read exactly; a Date is whole milliseconds', () => {
+  const b = windowBundle({ claim: { expiresAt: '2026-07-01T00:00:00.0005Z' } });
+  assert.equal(at(b, '2026-07-01T00:00:00.0005Z'), 'verified');
+  assert.equal(at(b, '2026-07-01T00:00:00.0009Z'), 'stale');
+  assert.equal(at(b, '2026-07-01t02:00:00.0004+02:00'), 'verified');
+  assert.equal(at(b, '2026-06-30T23:59:60Z'), 'verified', 'a leap-second now is the instant that follows it');
+  assert.equal(at(b, new Date('2026-07-01T00:00:00.000Z')), 'verified');
+  assert.equal(at(b, new Date('2026-07-01T00:00:00.001Z')), 'stale');
+  for (const now of ['2026-07-01', '2026-07-01T00:00:00', 'July 1, 2026', '', 'nope', 1782864000001, '1782864000001', null, {}, new Date('nope')]) {
+    assert.throws(() => at(b, now), RangeError, String(JSON.stringify(now)));
+    assert.throws(() => deriveStatuses({ ...b, claims: [] }, now), RangeError, 'refused even with no claims');
+  }
+  // Version 3 keeps reading a string now with Date.parse.
+  assert.equal(at(b, '2026-07-01', '3'), 'verified');
+  assert.equal(at(b, 'July 2, 2026', '3'), 'stale');
 });

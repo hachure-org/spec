@@ -179,10 +179,29 @@ and the remaining fractional digits as a string with trailing zeros removed),
 or `undefined` when the value is not a timestamp, and
 `compareTimestamps(a, b)` orders two of them.
 
-`now` is supplied by the caller as an instant with millisecond precision and
-is not parsed from the bundle. A validity window (Step 4a) is a whole number
-of milliseconds: a fraction of a millisecond in `ttlSeconds × 1000` or
-`durationDays × 86 400 000` is dropped.
+`now` is supplied by the caller and is not parsed from the bundle. Given as a
+native date value it is an instant of whole milliseconds. Given as a string it
+MUST be a timestamp as defined here and is read exactly, fractional digits
+included; an implementation MUST refuse any other string, and any other kind
+of value, rather than evaluate. `hachure derive --now` follows the same rule.
+
+A validity window (Step 4a) is exact too. Its length is the decimal product
+`ttlSeconds × 1000` or `durationDays × 86 400 000` milliseconds, and "`now` is
+later than `verifiedTime` plus the window" is evaluated without rounding
+anything: not the product, not the sum, not either instant. `durationDays:
+0.7` is exactly 60 480 000 ms, so a claim verified exactly that long before
+`now` is not yet stale, and one millisecond later it is.
+
+The decimal value of `ttlSeconds` or `durationDays` is the shortest decimal
+numeral that reads back as the same IEEE 754 double the JSON number parses to.
+For a number written with at most 15 significant digits that is the number as
+written. It is what ECMAScript `String(n)`, Python `repr(float)`, Java
+`Double.toString` (JDK 19 or later), Rust `{}` and Go `strconv.FormatFloat(n, 'g', -1, 64)`
+produce (up to exponent notation), so an implementation that parses JSON
+numbers to doubles formats the double that way and multiplies in integer or
+decimal arithmetic; an implementation that keeps the JSON numeral as a decimal
+uses it directly. Neither multiplies in binary floating point: `0.7 ×
+86 400 000` there is `60479999.99999999`.
 
 A time the fold reads that is absent or is not a timestamp is *unevaluable*.
 Each step says what follows: an event sorts before every event with an
@@ -525,18 +544,21 @@ no others:
    an absent value).
 2. **Precision.** `Date.parse` keeps whole milliseconds and discards further
    fractional digits, so two times in the same millisecond are equal. Events
-   that are equal keep their order in the `events` array. Validity windows
-   are computed in floating-point milliseconds, with no fraction dropped.
+   that are equal keep their order in the `events` array. A validity window's
+   end is computed in binary floating point (`verifiedTime + ttlSeconds *
+   1000`, `verifiedTime + durationDays * 86400000`, in milliseconds).
 3. **Event order.** An event whose `createdAt` is unparseable is ordered as if
    at the epoch (`1970-01-01T00:00:00Z`): after an event dated before 1970,
-   before any dated later.
-4. **Step 1, authority window.** A bound that is present but unparseable
+   tied with one dated exactly at the epoch (so the two keep their order in
+   the `events` array), and before any dated later.
+4. **`now`.** A `now` given as a string is read with `Date.parse`.
+5. **Step 1, authority window.** A bound that is present but unparseable
    excludes nothing: the trace stays active. So does every bound when the
    event's `createdAt` is unparseable.
-5. **Step 1, resolution time.** A `resolvesDispute` event with an unparseable
+6. **Step 1, resolution time.** A `resolvesDispute` event with an unparseable
    or absent `createdAt` is a resolution like any other, provided its actor
    has a matching trace. No blocking failure is ever newer than it.
-6. **Step 1, blocking failure time.** A blocking failure whose `observedAt` is
+7. **Step 1, blocking failure time.** A blocking failure whose `observedAt` is
    unparseable or absent is not newer than the resolution, so the resolution
    stands.
 
@@ -555,15 +577,17 @@ what the rest of the fold derives.
 | Any time the fold reads is accepted by `Date.parse` but is not an RFC 3339 `date-time` (date only, no offset, hour `24`, impossible day, space separator, prose, a number) | read as `Date.parse` reads it | unevaluable: the event sorts first, the validity window is stale, the bound does not hold | Version `"4"` defines a timestamp. |
 | Any time the fold reads is a leap second (`23:59:60` UTC) | unevaluable | the instant that follows it | RFC 3339 permits it. |
 | Two times the fold compares with each other (event `createdAt` values, a trace bound and the resolution's `createdAt`, a blocking failure's `observedAt` and the resolution's `createdAt`) differ by less than a millisecond | equal | ordered by their full value (*either way*) | Instants are compared exactly. |
-| An event's `createdAt` is unevaluable and the claim has an event dated before 1970 | the unevaluable event is the later one | the unevaluable event is the earlier one (*either way*) | An unevaluable time sorts before every timestamp. |
+| An event's `createdAt` is unevaluable and the claim has an event dated at or before the epoch (`1970-01-01T00:00:00Z`) | the unevaluable event is the later one (or, at the epoch exactly, tied with it and ordered by position in `events`) | the unevaluable event is the earlier one (*either way*) | An unevaluable time sorts before every timestamp. |
 | An event's `createdAt` changes reading under one of the rows above, and the claim has other events | ordered as `Date.parse` reads it | ordered by the version `"4"` reading (*either way*) | `latestEvent` can change. |
-| `ttlSeconds × 1000` or `durationDays × 86 400 000` is not a whole number of milliseconds | window kept in floating point | fraction of a millisecond dropped | Windows are whole milliseconds. |
+| *Verified path:* a validity window whose end the binary floating-point sum does not hit exactly: `verifiedTime` has digits below the millisecond, or the window is not a whole number of milliseconds, or it is longer than 2^53 ms | `now` compared with the rounded sum | `now` compared with the exact end | Windows are exact. Differs only when `now` is within a millisecond of the window's end. |
+| `now` given as a string that is not a timestamp, or that has digits below the millisecond or is a leap second | read with `Date.parse` | refused, or read exactly | `now` is a timestamp. |
 
-The `sf-v4-*` conformance vectors cover each row except the last, which
-cannot change a status unless `now` falls within a millisecond of the window's
-end. A producer is unaffected if every time it writes is an RFC 3339
-`date-time` with an offset, with at most three fractional digits and no leap
-second, and every window is a whole number of milliseconds.
+The `sf-v4-*` conformance vectors cover each row except the last, which a
+vector cannot express (a vector's `now` is passed as a date value). A
+producer is unaffected if every time it writes is an RFC 3339 `date-time`
+with an offset, with at most three fractional digits and no leap second, and
+every `ttlSeconds × 1000` and `durationDays × 86 400 000` is a whole number
+of milliseconds below 2^53.
 
 ## Version 2
 

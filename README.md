@@ -301,8 +301,11 @@ failure whose `observedAt` is not a timestamp is not set aside by a
 resolution. Under version `"3"` each of those failed open. Values that
 `Date.parse` accepted but RFC 3339 does not (a date with no time, a time with
 no offset, hour `24`) are no longer read as times, and a leap second now is.
-A producer is unaffected if every time it writes is an RFC 3339 `date-time`
-with an offset, at most three fractional digits and no leap second.
+Validity windows are exact as well (`durationDays: 0.7` is exactly
+60 480 000 ms), and a `now` given as a string, including `--now`, must be a
+timestamp. A producer is unaffected if every time it writes is an RFC 3339
+`date-time` with an offset, at most three fractional digits and no leap
+second, and every validity window is a whole number of milliseconds.
 A status can become stronger as well as weaker under `"4"`: refusing a
 resolution to `rejected` lets a later `verified` event stand. Versions `"3"`
 and `"2"` remain defined, unchanged, and selectable
