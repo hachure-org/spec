@@ -456,7 +456,34 @@ test('Basis-annotations sourceOfRecord: a collided trace id is not backed over a
   const unrelated = [
     { collection: 'claims', id: 'trace.payroll.system-of-record' },
     { collection: 'authorityTrace', id: 'trace.other' },
-    null,
   ];
-  assert.equal(resolveSourceOfRecord(a, a.evidence[0], { collisions: unrelated }).backed, true);
+  assert.equal(resolveSourceOfRecord(merged, fromB, { collisions: unrelated }).backed, true);
+  assert.equal(resolveSourceOfRecord(merged, fromB, { collisions: [] }).backed, true);
+  assert.equal(resolveSourceOfRecord(merged, fromB, { collisions: undefined }).backed, true);
+  assert.equal(resolveSourceOfRecord(merged, fromB, {}).backed, true);
+
+  // A collisions value that is present but is not the list the merge returned
+  // cannot be read as "no collision": every such shape fails closed.
+  const id = 'trace.payroll.system-of-record';
+  const malformed = [
+    null,
+    'authorityTrace',
+    collisions[0],
+    { authorityTrace: [id] },
+    [id],
+    new Set(collisions),
+    [{ collection: 'authorityTraces', id }],
+    [{ collection: 'authorityTrace' }],
+    [{ collection: 'authorityTrace', id: 7 }],
+    [...collisions, null],
+    0,
+    false,
+  ];
+  for (const value of malformed) {
+    assert.deepEqual(
+      resolveSourceOfRecord(merged, fromB, { collisions: value }),
+      { backed: false, reason: 'collisions-malformed' },
+      String(JSON.stringify(value)),
+    );
+  }
 });

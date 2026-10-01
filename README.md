@@ -28,10 +28,9 @@ const statusByClaimId = deriveStatuses(merged, new Date());
 Or from the command line:
 
 ```sh
-npm i ajv                            # validate, derive and diff need it (see below)
-npx hachure validate bundle.json     # schema-validate a TrustBundle
-npx hachure derive bundle.json       # validate, then derive per-claim statuses
-npx hachure diff before.json after.json  # validate both, then status transitions as evidence arrives
+npx hachure validate bundle.json     # schema-validate a TrustBundle (needs ajv)
+npx hachure derive bundle.json       # check, then derive per-claim statuses
+npx hachure diff before.json after.json  # check both, then status transitions as evidence arrives
 npx hachure merge a.json b.json      # merge producer bundles
 npx hachure vectors                  # run the conformance vectors
 ```
@@ -39,11 +38,19 @@ npx hachure vectors                  # run the conformance vectors
 The library functions do not validate their input, and some guarantees hold
 only for schema-valid bundles (see
 [status-function.md](status-function.md#fields-that-are-not-inputs)). The
-`derive` and `diff` commands therefore validate first and exit 1 on an invalid
-bundle. Validation uses `ajv`, which this package deliberately does not depend
-on. Without it, `derive` and `diff` refuse to run (exit 1) unless
-`--no-validate` is given; with that flag they derive unvalidated and print a
-warning to stderr.
+`derive` and `diff` commands therefore check a bundle before deriving and exit
+1 on one that fails:
+
+- They always run a built-in check, also exported as
+  `checkBasisInvariants(bundle)`: inconclusive evidence is `cited` with no
+  `passing`, and the `schemaVersion` `9` evidence fields are declared.
+- When `ajv` can be loaded they also run full schema validation. This package
+  deliberately does not depend on `ajv`. It is picked up when it is resolvable
+  from this package's own install location, that is, installed into the same
+  `node_modules` as `hachure` (`npm i hachure ajv`). When it is not, `derive`
+  and `diff` still run, after the built-in check, and warn on stderr that full
+  validation was skipped.
+- `--no-validate` skips both checks and prints a warning.
 
 **Worked example.** `conformance/sf-reference-bundle-snapshot.json` is a
 `{ now, input, expect }` vector fixture; write its `input` bundle to a file and

@@ -83,7 +83,11 @@ check; it has no effect on status.
      to the other producer, so a reference to a collided `id` is not backed.
      A consumer that resolves over a merged bundle MUST either pass the
      merge's collisions to the check or treat every collided trace `id` as not
-     backed.
+     backed. That refuses the references of every producer that used the `id`,
+     including the producer whose trace survived: the merged bundle does not
+     record which producer wrote the kept trace, so none of them can be shown
+     as backed. A collisions value that is not the list the merge returned is
+     treated as malformed and nothing is backed.
 5. The evidence is not `inconclusive`. An attempt that could not run never
    reached the source, so it is not from the source of record whatever it
    declares.
@@ -186,7 +190,8 @@ validateBasisAnnotations(bundle);
 resolveSourceOfRecord(bundle, evidence);
 // → { backed: true, trace, revokedAt? } or { backed: false, reason }
 //   reason: not-declared | inconclusive | malformed | claim-not-found |
-//           trace-collision | trace-not-found | trace-ambiguous |
+//           collisions-malformed | trace-collision | trace-not-found |
+//           trace-ambiguous |
 //           authority-type | subject-mismatch | not-active
 
 // Over a merged bundle, pass the merge's collisions:

@@ -105,11 +105,22 @@ because no fold step reads the field. The function does not validate its
 input, and neither do the bundled `deriveClaimStatus` and `deriveStatuses`. The
 caller therefore MUST validate a bundle against the schemas before deriving
 status from it, and MUST NOT rely on a status derived from a bundle that fails
-validation. The `hachure derive` and `hachure diff` commands are such callers:
-each validates first and refuses an invalid bundle. Validation needs `ajv`,
-which the `hachure` package does not depend on; when it cannot be loaded the
-commands refuse to derive unless `--no-validate` is given, and with that flag
-they derive unvalidated and say so on stderr.
+validation.
+
+A caller that cannot run a JSON Schema validator MUST at least check the two
+constraints the exclusion depends on: every evidence item with `inconclusive`
+has `supportStrength: "cited"` and no `passing`, and a bundle carrying
+`inconclusive` or `collectedByKind` declares `schemaVersion` `9` or later. The
+`hachure` package exports this as `checkBasisInvariants(bundle)`, which needs
+no validator. It is a check a caller runs before the function, not a step of
+the function.
+
+The `hachure derive` and `hachure diff` commands are such callers. Each always
+runs `checkBasisInvariants` and refuses a bundle that fails it. Each also runs
+full schema validation when `ajv` can be loaded, and refuses an invalid
+bundle; the package does not depend on `ajv`, and when it cannot be loaded the
+commands derive after the built-in check and warn on stderr that full
+validation was skipped. `--no-validate` skips both checks, with a warning.
 
 The `sf-inconclusive-evidence` vector covers the exclusion of inconclusive
 evidence at each place the fold reads evidence: the requirement check,
