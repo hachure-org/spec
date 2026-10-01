@@ -198,7 +198,10 @@ const cli = fileURLToPath(new URL('../bin/hachure.mjs', import.meta.url));
 test('CLI derive defaults to v3 and honours --status-function-version 2', () => {
   const dir = mkdtempSync(join(tmpdir(), 'hachure-v3-'));
   const path = join(dir, 'bundle.json');
-  writeFileSync(path, JSON.stringify(bundle({ validityRule: {} })));
+  // A schema-valid bundle that derives differently under the two versions
+  // (commit rule, no currentIntegrityRef). `hachure derive` validates first,
+  // so a schema-invalid shape such as `validityRule: {}` is refused instead.
+  writeFileSync(path, JSON.stringify(bundle({ validityRule: { kind: 'commit' } })));
   const run = (...extra) =>
     JSON.parse(execFileSync(process.execPath, [cli, 'derive', path, '--now', NOW.toISOString(), ...extra], { encoding: 'utf8' }));
   assert.deepEqual(run().statusByClaimId, { c: 'stale' });

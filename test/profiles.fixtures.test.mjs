@@ -337,6 +337,11 @@ test('Basis-annotations sourceOfRecord: every unresolved reference is reported a
     ['claim-not-found', (b) => { b.evidence[0].claimId = 'claim.missing'; }],
     ['trace-not-found', (b) => { b.evidence[0].metadata.sourceOfRecord.authorityTraceId = 'trace.missing'; }],
     ['trace-not-found', (b) => { delete b.authorityTrace; }],
+    ['trace-not-found', (b) => { b.authorityTrace = [null]; }],
+    ['trace-ambiguous', (b) => { b.authorityTrace.push({ ...b.authorityTrace[0], actorRef: 'someone-else' }); }],
+    ['trace-ambiguous', (b) => { b.authorityTrace.unshift({ ...b.authorityTrace[0], authorityType: 'role' }); }],
+    ['inconclusive', (b) => { b.evidence[0].inconclusive = { reason: 'unreachable' }; b.evidence[0].supportStrength = 'cited'; }],
+    ['subject-mismatch', (b) => { b.authorityTrace[0].subject = null; }],
     ['authority-type', (b) => { b.authorityTrace[0].authorityType = 'role'; }],
     ['subject-mismatch', (b) => { b.authorityTrace[0].subject.subjectId = 'w2:2025:employee-999'; }],
     ['not-active', (b) => { b.authorityTrace[0].validFrom = '2026-03-01T00:00:00.000Z'; }],
@@ -356,10 +361,34 @@ test('Basis-annotations sourceOfRecord: every unresolved reference is reported a
   ]);
 });
 
-test('Basis-annotations sourceOfRecord: a revocation after the observation leaves it backed', () => {
+test('Basis-annotations sourceOfRecord: a revocation after the observation stays backed and reports revokedAt', () => {
   const bundle = clone(basisBundle);
   bundle.authorityTrace[0].revokedAt = '2026-06-01T00:00:00.000Z';
-  assert.equal(resolveSourceOfRecord(bundle, bundle.evidence[0]).backed, true);
+  const result = resolveSourceOfRecord(bundle, bundle.evidence[0]);
+  assert.equal(result.backed, true);
+  assert.equal(result.revokedAt, '2026-06-01T00:00:00.000Z');
+  // A trace that was never revoked reports no revocation.
+  assert.equal(Object.hasOwn(resolveSourceOfRecord(basisBundle, basisBundle.evidence[0]), 'revokedAt'), false);
+});
+
+test('Basis-annotations sourceOfRecord: malformed input yields a reason and never throws', () => {
+  const evidence = basisBundle.evidence[0];
+  assert.deepEqual(resolveSourceOfRecord(null, evidence), { backed: false, reason: 'claim-not-found' });
+  assert.deepEqual(resolveSourceOfRecord({}, evidence), { backed: false, reason: 'claim-not-found' });
+  assert.deepEqual(resolveSourceOfRecord(basisBundle, null), { backed: false, reason: 'not-declared' });
+
+  const nullEntries = clone(basisBundle);
+  nullEntries.claims[0].subjectAliases = [null];
+  nullEntries.identityLinks = [null, { subjects: [null, null] }, { subjects: null }];
+  nullEntries.claims.unshift(null);
+  assert.equal(resolveSourceOfRecord(nullEntries, nullEntries.evidence[0]).backed, true);
+
+  // With the trace on another subject, the null entries must not match it either.
+  nullEntries.authorityTrace[0].subject = { subjectType: 'payroll-record', subjectId: 'employee-123:2025' };
+  assert.deepEqual(resolveSourceOfRecord(nullEntries, nullEntries.evidence[0]), {
+    backed: false,
+    reason: 'subject-mismatch',
+  });
 });
 
 test('Basis-annotations sourceOfRecord: the subject matches through subjectAliases or an equivalent identity link only', () => {

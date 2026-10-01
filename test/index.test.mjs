@@ -145,6 +145,13 @@ test('conformanceManifest.appliesTo declares schemaVersion and statusFunctionVer
   assert.equal(conformanceManifest.appliesTo.statusFunctionVersion, statusFunctionVersion);
 });
 
+test('conformanceManifest.appliesTo.schemaVersion is the [lowest, highest] the bundle schema accepts', () => {
+  const accepted = schemas.get('trust-bundle').properties.schemaVersion.enum;
+  assert.deepEqual(conformanceManifest.appliesTo.schemaVersion, [Math.min(...accepted), Math.max(...accepted)]);
+  // Pinned separately so the check is not derived only from the schema under test.
+  assert.deepEqual(conformanceManifest.appliesTo.schemaVersion, [5, 9]);
+});
+
 for (const level of conformanceManifest.levels ?? []) {
   test(`conformanceManifest level "${level.level}" satisfiedBy files exist on disk`, () => {
     const satisfiedBy = level.satisfiedBy;

@@ -855,3 +855,74 @@ test('schemaVersion 9: 5 through 9 are accepted and 10 is not', () => {
   }
   assert.equal(validateBundle(buildBaseBundle(10, buildBaseClaim())), false);
 });
+
+test('inconclusive: a whitespace-only detail is rejected', () => {
+  const validateEvidence = compileRoot('evidence.schema.json');
+  for (const detail of [' ', '\t\n', '']) {
+    for (const reason of ['other', 'timeout']) {
+      const evidence = buildInconclusiveEvidence({ inconclusive: { reason, detail } });
+      assert.equal(validateEvidence(evidence), false, JSON.stringify({ reason, detail }));
+    }
+  }
+});
+
+// Derivation is defined only for schema-valid bundles, and deriveStatuses does
+// not validate. The CLI is the bundled caller, so it validates before deriving.
+function writeInconclusiveBundle(evidenceOverrides) {
+  const dir = mkdtempSync(join(tmpdir(), 'hachure-derive-'));
+  const claim = {
+    ...buildBaseClaim(),
+    verificationPolicyId: 'policy.coverage',
+  };
+  const bundle = buildBaseBundle(9, claim);
+  bundle.evidence = [buildInconclusiveEvidence(evidenceOverrides)];
+  bundle.policies = [
+    {
+      id: 'policy.coverage',
+      claimType: 'coverage',
+      requiredEvidence: ['runtime_observation'],
+      requiredMethods: ['monitoring'],
+      requiresCorroboration: false,
+      acceptanceCriteria: ['p95 observed'],
+      reviewAuthority: 'operator',
+      validityRule: { kind: 'historical' },
+      stalenessTriggers: [],
+      conflictRules: [],
+      impactLevel: 'medium',
+    },
+  ];
+  const path = join(dir, 'bundle.json');
+  writeFileSync(path, JSON.stringify(bundle));
+  return path;
+}
+
+test('hachure derive refuses a bundle whose inconclusive evidence is entailing, and derives the valid one', () => {
+  const now = ['--now', '2026-10-01T00:00:00.000Z'];
+  const invalid = writeInconclusiveBundle({ supportStrength: undefined });
+  const refused = spawnSync(process.execPath, [CLI, 'derive', invalid, ...now], { encoding: 'utf8' });
+  assert.equal(refused.status, 1, refused.stdout + refused.stderr);
+  assert.match(refused.stderr, /invalid TrustBundle/);
+  assert.match(refused.stderr, /\/evidence\/0 must have required property 'supportStrength'/);
+  assert.equal(refused.stdout, '', 'no statuses are printed for an invalid bundle');
+
+  const valid = writeInconclusiveBundle({});
+  const derived = spawnSync(process.execPath, [CLI, 'derive', valid, ...now], { encoding: 'utf8' });
+  assert.equal(derived.status, 0, derived.stdout + derived.stderr);
+  assert.deepEqual(JSON.parse(derived.stdout).statusByClaimId, { 'claim.facet-rename-test.1': 'unknown' });
+});
+
+test('hachure vectors honours --status-function-version and rejects stray arguments', () => {
+  const v2 = spawnSync(process.execPath, [CLI, 'vectors', '--status-function-version', '2'], { encoding: 'utf8' });
+  assert.equal(v2.status, 0, v2.stdout + v2.stderr);
+  assert.match(v2.stdout, /SKIP sf-v3-no-policy/);
+  assert.match(v2.stdout, /PASS sf-inconclusive-evidence/);
+  assert.match(v2.stdout, /all 11 applicable vectors pass \(statusFunctionVersion "2"\)/);
+
+  const unsupported = spawnSync(process.execPath, [CLI, 'vectors', '--status-function-version', '4'], { encoding: 'utf8' });
+  assert.equal(unsupported.status, 1);
+  assert.match(unsupported.stderr, /unsupported --status-function-version 4/);
+
+  const stray = spawnSync(process.execPath, [CLI, 'vectors', '--verbose'], { encoding: 'utf8' });
+  assert.equal(stray.status, 1);
+  assert.match(stray.stderr, /unexpected: --verbose/);
+});

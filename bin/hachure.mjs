@@ -5,7 +5,10 @@
  *   hachure derive <bundle.json> [--now <ISO timestamp>] [--status-function-version <v>]
  *       Derive per-claim statuses from a TrustBundle (status-function.md),
  *       under the current statusFunctionVersion unless another supported one
- *       is named.
+ *       is named. The bundle is validated first, as `hachure validate` does,
+ *       and an invalid bundle is refused (exit 1): the function does not
+ *       validate its own input. Without ajv installed the bundle is derived
+ *       unvalidated, with a warning on stderr.
  *
  *   hachure merge <a.json> <b.json> [...more] [--detailed]
  *       Merge bundles (merge.md). --detailed reports collisions instead of
@@ -16,9 +19,11 @@
  *       npm i ajv), plus the schemaVersion 8 conclusionConfidence checks JSON
  *       Schema cannot express.
  *
- *   hachure vectors
+ *   hachure vectors [--status-function-version <v>]
  *       Run every conformance vector against the bundled implementation and
- *       report pass/fail — the self-conformance proof.
+ *       report pass/fail — the self-conformance proof. Runs the vectors that
+ *       apply to the current statusFunctionVersion unless another supported
+ *       one is named.
  */
 
 import { readFileSync } from 'node:fs';
@@ -55,20 +60,55 @@ function takeFlag(args, name) {
   return value;
 }
 
+function takeVersionFlag(args) {
+  const version = takeFlag(args, '--status-function-version') ?? statusFunctionVersion;
+  if (!supportedStatusFunctionVersions.includes(version)) {
+    fail(`unsupported --status-function-version ${version}; supported: ${supportedStatusFunctionVersions.join(', ')}`);
+  }
+  return version;
+}
+
+/**
+ * Schema errors for a bundle, then the cross-field rules JSON Schema cannot
+ * express. Returns undefined when ajv is not installed.
+ */
+async function bundleErrors(bundle) {
+  let Ajv;
+  try {
+    ({ default: Ajv } = await import('ajv/dist/2020.js'));
+  } catch {
+    return undefined;
+  }
+  const ajv = new Ajv({ strict: false, allErrors: true, logger: false });
+  for (const schema of schemas.values()) ajv.addSchema(schema);
+  const validate = ajv.getSchema(schemas.get('trust-bundle').$id);
+  return validate(bundle) ? validateConclusionConfidence(bundle) : validate.errors;
+}
+
+function reportInvalid(errors) {
+  console.error('invalid TrustBundle:');
+  for (const e of errors) console.error(`  ${e.instancePath || '/'} ${e.message}`);
+  process.exit(1);
+}
+
 const [command, ...args] = process.argv.slice(2);
 
 switch (command) {
   case 'derive': {
     const nowArg = takeFlag(args, '--now');
-    const version = takeFlag(args, '--status-function-version') ?? statusFunctionVersion;
+    const version = takeVersionFlag(args);
     const [path] = args;
     if (!path) fail('usage: hachure derive <bundle.json> [--now <ISO timestamp>] [--status-function-version <v>]');
-    if (!supportedStatusFunctionVersions.includes(version)) {
-      fail(`unsupported --status-function-version ${version}; supported: ${supportedStatusFunctionVersions.join(', ')}`);
-    }
     const now = nowArg ? new Date(nowArg) : new Date();
     if (Number.isNaN(now.getTime())) fail(`invalid --now value: ${nowArg}`);
     const bundle = readJson(path);
+    // deriveStatuses does not validate; the caller does (status-function.md).
+    const errors = await bundleErrors(bundle);
+    if (errors === undefined) {
+      console.error('hachure: warning: ajv is not installed, so the bundle was not validated before deriving');
+    } else if (errors.length > 0) {
+      reportInvalid(errors);
+    }
     console.log(
       JSON.stringify(
         {
@@ -129,38 +169,26 @@ switch (command) {
     const [path] = args;
     if (!path) fail('usage: hachure validate <bundle.json>');
     const bundle = readJson(path);
-    let Ajv;
-    try {
-      ({ default: Ajv } = await import('ajv/dist/2020.js'));
-    } catch {
-      fail('validate requires ajv — install it with: npm i ajv');
-    }
-    const ajv = new Ajv({ strict: false, allErrors: true, logger: false });
-    for (const schema of schemas.values()) ajv.addSchema(schema);
-    const validate = ajv.getSchema(schemas.get('trust-bundle').$id);
-    // Schema first, then the cross-field rules JSON Schema cannot express.
-    const errors = validate(bundle) ? validateConclusionConfidence(bundle) : validate.errors;
-    if (errors.length === 0) {
-      console.log(`valid TrustBundle (schemaVersion ${bundle.schemaVersion})`);
-    } else {
-      console.error('invalid TrustBundle:');
-      for (const e of errors) console.error(`  ${e.instancePath || '/'} ${e.message}`);
-      process.exit(1);
-    }
+    const errors = await bundleErrors(bundle);
+    if (errors === undefined) fail('validate requires ajv — install it with: npm i ajv');
+    if (errors.length > 0) reportInvalid(errors);
+    console.log(`valid TrustBundle (schemaVersion ${bundle.schemaVersion})`);
     break;
   }
 
   case 'vectors': {
+    const version = takeVersionFlag(args);
+    if (args.length > 0) fail(`usage: hachure vectors [--status-function-version <v>] (unexpected: ${args.join(' ')})`);
     let failed = 0;
     let run = 0;
     for (const { name, vector } of testVectors) {
       // A vector without statusFunctionVersions holds for every version.
-      if (vector.statusFunctionVersions && !vector.statusFunctionVersions.includes(statusFunctionVersion)) {
+      if (vector.statusFunctionVersions && !vector.statusFunctionVersions.includes(version)) {
         console.log(`  SKIP ${name} (applies to statusFunctionVersion ${vector.statusFunctionVersions.join(', ')})`);
         continue;
       }
       run++;
-      const derived = deriveStatuses(vector.input, new Date(vector.now));
+      const derived = deriveStatuses(vector.input, new Date(vector.now), { statusFunctionVersion: version });
       const mismatches = Object.entries(vector.expect.statusByClaimId).filter(
         ([claimId, expected]) => derived[claimId] !== expected
       );
@@ -175,7 +203,7 @@ switch (command) {
     }
     console.log(
       failed === 0
-        ? `all ${run} applicable vectors pass (statusFunctionVersion "${statusFunctionVersion}")`
+        ? `all ${run} applicable vectors pass (statusFunctionVersion "${version}")`
         : `${failed} vector(s) failed`
     );
     if (failed > 0) process.exit(1);
@@ -190,7 +218,7 @@ switch (command) {
         '  diff <before.json> <after.json> [--now <ISO>] report status transitions (exit 3 if any)\n' +
         '  merge <a.json> <b.json> [...] [--detailed]   merge producer bundles\n' +
         '  validate <bundle.json>                       schema-validate a bundle\n' +
-        '  vectors                                      run conformance vectors'
+        '  vectors [--status-function-version <v>]      run conformance vectors'
     );
     process.exit(command ? 1 : 0);
 }

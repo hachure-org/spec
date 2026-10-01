@@ -251,10 +251,17 @@ was obtained: `inconclusive` (the attempt to collect it could not run) and
 `schemaVersion` `8` remains valid. A bundle that uses either field MUST declare
 `schemaVersion` `9`, and the schema rejects them under a lower declared
 version; a producer SHOULD declare `9` only when it uses one of them, because
-older validators reject the new properties. Neither field is a status-function
-input, so `statusFunctionVersion` remains `"3"`; the `sf-inconclusive-evidence`
-and `sf-basis-fields-inert` conformance vectors prove it for versions `"2"`
-and `"3"`.
+older validators reject both the new properties and the value `9` itself. A
+consequence is that one producer's bundles can carry different declared
+versions, and [merge.md](merge.md) §5 refuses to merge bundles whose
+`schemaVersion` values differ. A consumer that merges such bundles restamps
+the lower ones to `9` first; a bundle valid at `8` is valid at `9` unchanged,
+and a bundle at `5`–`7` is valid at `9` once it meets the version `8`
+`conclusionConfidence` rules. Neither field is a status-function input, so
+`statusFunctionVersion` remains `"3"`. The `sf-inconclusive-evidence` vector
+checks, for versions `"2"` and `"3"`, that an inconclusive item is ignored
+wherever the fold reads evidence, and `sf-basis-fields-inert` checks that
+statuses are identical with and without the new fields.
 
 Status function version `"3"` makes omission fail closed: a claim with no
 resolvable (or no non-empty) verification policy derives at most `proposed`,
@@ -383,16 +390,17 @@ An attempt to collect evidence that could not run is recorded with the optional
 ```
 
 `reason` is one of `unreachable`, `tool_error`, `permission_denied`, `timeout`,
-or `other`; `detail` is an optional non-empty string and is REQUIRED when
-`reason` is `other`. The set is closed: a cause it does not name (a rate limit,
+or `other`; `detail` is an optional string containing at least one
+non-whitespace character and is REQUIRED when `reason` is `other`. The set is closed: a cause it does not name (a rate limit,
 for example) is recorded as `other` with a `detail`.
 
 - An inconclusive item MUST set `supportStrength: "cited"` and MUST NOT carry
   `passing`. The Evidence schema enforces both. Because cited evidence is
   dropped before the fold, an inconclusive item satisfies no policy requirement,
   does not corroborate, and cannot dispute a claim: every claim derives the
-  status it would have if the item were absent. A consumer MUST validate a
-  bundle against the schemas before relying on this.
+  status it would have if the item were absent. This holds for schema-valid
+  bundles only: status derivation does not validate its input, so a caller MUST
+  validate a bundle against the schemas before deriving status from it.
 - Only an explicit `inconclusive` object means "could not run".
   `execution.isError: true` on its own, and `passing: false`, both mean the
   check ran and failed. A producer MUST NOT write a check that could not run as

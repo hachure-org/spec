@@ -32,7 +32,7 @@
       "required": ["reason"],
       "properties": {
         "reason": { "enum": ["unreachable", "tool_error", "permission_denied", "timeout", "other"] },
-        "detail": { "type": "string", "minLength": 1 }
+        "detail": { "type": "string", "pattern": "\\S" }
       },
       "if": { "required": ["reason"], "properties": { "reason": { "const": "other" } } },
       "then": { "required": ["detail"] },

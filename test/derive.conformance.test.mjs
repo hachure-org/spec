@@ -129,6 +129,12 @@ test('an inconclusive item would count toward requiredEvidence if it were entail
   assert.equal(derived['claim.inconclusive.only-attempt'], 'proposed');
   assert.equal(vector.expect.statusByClaimId['claim.inconclusive.requirement-unmet'], 'proposed');
   assert.equal(derived['claim.inconclusive.requirement-unmet'], 'verified');
+  assert.equal(vector.expect.statusByClaimId['claim.inconclusive.no-policy'], 'unknown');
+  assert.equal(derived['claim.inconclusive.no-policy'], 'proposed');
+  assert.equal(vector.expect.statusByClaimId['claim.inconclusive.corroboration'], 'proposed');
+  assert.equal(derived['claim.inconclusive.corroboration'], 'verified');
+  assert.equal(vector.expect.statusByClaimId['claim.inconclusive.commit-anchor'], 'stale');
+  assert.equal(derived['claim.inconclusive.commit-anchor'], 'verified');
 });
 
 test('deriveClaimStatus returns { status, policyId } with resolved policy id', () => {

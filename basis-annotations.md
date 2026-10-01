@@ -72,7 +72,12 @@ check; it has no effect on status.
    the claim's own `subjectType`/`subjectId`, one of its `subjectAliases`, or a
    subject joined to either by `identityLinks` whose `relation` is
    `equivalent` (the default). `subsumes` and `converts` links do not count.
-4. The trace is active at `evidence.observedAt`: `validFrom` is absent or not
+4. Exactly one trace carries that `id`. An `id` shared by two or more traces
+   (possible after a merge) identifies none of them.
+5. The evidence is not `inconclusive`. An attempt that could not run never
+   reached the source, so it is not from the source of record whatever it
+   declares.
+6. The trace is active at `evidence.observedAt`: `validFrom` is absent or not
    later, `validUntil` is absent or not earlier, and `revokedAt` is absent or
    later. A bound or an `observedAt` that cannot be parsed makes the trace not
    active.
@@ -104,6 +109,12 @@ The trace that backs the example above:
   whose record it is, for example "From the system of record ·
   `employer.example/payroll`" (the trace's `actorRef`), with the trace's
   `sourceRef` and validity window available on inspection.
+- When the reference is backed but the trace carries a `revokedAt` (which, for
+  a backed reference, is later than `observedAt`), the authority has since
+  been withdrawn. A consumer that shows the label MUST show the revocation
+  with it, for example "From the system of record · `employer.example/payroll`
+  · authority revoked 2026-06-01". `resolveSourceOfRecord` returns the time as
+  `revokedAt` on the result.
 - When `sourceOfRecord` is present but not backed, a consumer MUST NOT show an
   authoritative label. It SHOULD show the caveat "Source-of-record label not
   backed".
@@ -163,9 +174,10 @@ validateBasisAnnotations(bundle);
 //   [{ instancePath: '/claims/1/metadata/estimate', message: '…' }, …]
 
 resolveSourceOfRecord(bundle, evidence);
-// → { backed: true, trace } or { backed: false, reason }
-//   reason: not-declared | malformed | claim-not-found | trace-not-found |
-//           authority-type | subject-mismatch | not-active
+// → { backed: true, trace, revokedAt? } or { backed: false, reason }
+//   reason: not-declared | inconclusive | malformed | claim-not-found |
+//           trace-not-found | trace-ambiguous | authority-type |
+//           subject-mismatch | not-active
 ```
 
 Neither is called by status derivation or by `hachure validate`. A consumer

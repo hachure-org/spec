@@ -81,11 +81,13 @@ value was arrived at. In particular it does not read:
 - `evidence.inconclusive` — an attempt that could not run. The Evidence schema
   requires such an item to be `supportStrength: "cited"` with no `passing`, so
   the partition above removes it before the fold. It satisfies no requirement
-  (Steps 4c and 7), is not counted as evidence in Step 6, does not corroborate,
-  anchors no `commit` rule (Step 4a), and is never a blocking failure (Steps 1
-  and 4b). A claim derives the same status with the item as without it. No
-  step tests for `inconclusive`; the exclusion follows from the partition, in
-  version `"2"` and version `"3"` alike.
+  (Step 4's policy requirement check, and Step 7), is not counted as evidence
+  in Step 6, does not corroborate, anchors no `commit` rule (Step 4's
+  staleness check), and is never a blocking failure (Step 1, and Step 4's
+  blocking failure check). A claim derives the same status with the item as
+  without it. No step tests for `inconclusive`; the exclusion follows from the
+  partition, in version `"2"` and version `"3"` alike. (The steps are named by
+  role here because the two versions letter Step 4's sub-steps differently.)
 - `evidence.collectedByKind` — the kind of collector. Evidence collected by a
   model counts exactly as evidence collected any other way.
 - `evidence.execution`, including `execution.isError`. A failed check affects
@@ -95,12 +97,23 @@ value was arrived at. In particular it does not read:
   `evidence.metadata.sourceOfRecord` and `claim.metadata.estimate`.
 - `claim.conclusionConfidence` and `claim.confidenceBasis`.
 
-The exclusion of inconclusive evidence rests on schema validity: an item that
-carries `inconclusive` but is entailing is not schema-valid, and the fold,
-which does not look at `inconclusive`, would count it. An implementation MUST
-validate a bundle against the schemas before deriving status from it. The
-`sf-inconclusive-evidence` and `sf-basis-fields-inert` conformance vectors
-cover these fields.
+The exclusion of inconclusive evidence holds only for a schema-valid bundle.
+An item that carries `inconclusive` but is entailing is not schema-valid, and
+the fold, which does not look at `inconclusive`, would count it. Version
+`"3"`'s fail-closed handling of unevaluable inputs does not reach this case,
+because no fold step reads the field. The function does not validate its
+input, and neither do the bundled `deriveClaimStatus` and `deriveStatuses`. The
+caller therefore MUST validate a bundle against the schemas before deriving
+status from it, and MUST NOT rely on a status derived from a bundle that fails
+validation. `hachure derive` validates first and refuses an invalid bundle.
+
+The `sf-inconclusive-evidence` vector covers the exclusion of inconclusive
+evidence at each place the fold reads evidence: the requirement check,
+corroboration, the `commit` anchor, and Steps 6 and 7. The
+`sf-basis-fields-inert` vector carries `collectedByKind` and the two profile
+`metadata` keys on claims of four different statuses, and the package's suite
+re-derives it with the fields removed. No vector covers `execution`,
+`conclusionConfidence`, or `confidenceBasis`.
 
 ---
 
@@ -300,8 +313,8 @@ If no policy is present (none resolved, or the resolved policy requires nothing)
 
 If a policy is present but no verification event exists:
 
-- Build the set of `evidenceType` values from all evidence (not just entailing, at
-  this step — but in practice the partitioning above was already applied upstream).
+- Build the set of `evidenceType` values from the entailing evidence. Cited
+  evidence is not included, here or in Step 6.
 - If `policy.requiredEvidence` is a subset of the evidence type set: return **`proposed`**.
 - Otherwise: return **`unknown`**.
 
