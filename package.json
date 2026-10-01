@@ -28,6 +28,7 @@
     "oscal.md",
     "verification-endpoint.md",
     "assurance.md",
+    "basis-annotations.md",
     "SECURITY.md"
   ],
   "scripts": {

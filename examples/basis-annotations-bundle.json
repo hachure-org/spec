@@ -1,0 +1,165 @@
+{
+  "schemaVersion": 9,
+  "source": "basis-annotations-example:2026-06",
+  "producerId": "example-producer",
+  "claims": [
+    {
+      "id": "claim.w2.wages",
+      "subjectType": "tax-form",
+      "subjectId": "w2:2025:employee-123",
+      "claimType": "payroll-field",
+      "fieldOrBehavior": "wages",
+      "value": 84210,
+      "createdAt": "2026-02-01T00:00:00.000Z",
+      "updatedAt": "2026-02-01T00:00:00.000Z",
+      "impactLevel": "high",
+      "verificationPolicyId": "policy.payroll-field.excerpt"
+    },
+    {
+      "id": "claim.fleet.co2-2025",
+      "subjectType": "organization",
+      "subjectId": "fleet:example-logistics",
+      "claimType": "emissions-estimate",
+      "fieldOrBehavior": "co2Tonnes2025",
+      "value": 1240,
+      "createdAt": "2026-03-01T00:00:00.000Z",
+      "updatedAt": "2026-03-01T00:00:00.000Z",
+      "impactLevel": "medium",
+      "verificationPolicyId": "policy.emissions-estimate.calculated",
+      "metadata": {
+        "estimate": {
+          "basis": "fuel spend × regional emission factor",
+          "low": 1100,
+          "high": 1400
+        }
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "id": "evidence.w2.box1",
+      "claimId": "claim.w2.wages",
+      "evidenceType": "source_excerpt",
+      "method": "extraction",
+      "sourceRef": "https://employer.example/payroll/w2/2025/123",
+      "excerptOrSummary": "Box 1: 84,210.00",
+      "observedAt": "2026-02-01T00:00:00.000Z",
+      "collectedBy": "payroll-connector",
+      "collectedByKind": "deterministic",
+      "metadata": {
+        "sourceOfRecord": {
+          "authorityTraceId": "trace.payroll.system-of-record"
+        }
+      }
+    },
+    {
+      "id": "evidence.co2.fuel-ledger",
+      "claimId": "claim.fleet.co2-2025",
+      "evidenceType": "document_citation",
+      "method": "extraction",
+      "sourceRef": "https://ledger.example/fuel/2025",
+      "excerptOrSummary": "Fuel spend for 2025 extracted from 412 invoices.",
+      "observedAt": "2026-03-01T00:00:00.000Z",
+      "collectedBy": "extraction-run-812",
+      "collectedByKind": "model",
+      "metadata": {
+        "collectorModel": {
+          "name": "example-llm",
+          "version": "2026-06"
+        }
+      }
+    },
+    {
+      "id": "evidence.co2.telematics-attempt",
+      "claimId": "claim.fleet.co2-2025",
+      "evidenceType": "runtime_observation",
+      "method": "monitoring",
+      "supportStrength": "cited",
+      "sourceRef": "https://telematics.example/fleet/odometer",
+      "excerptOrSummary": "Telematics endpoint returned 503.",
+      "observedAt": "2026-03-02T00:00:00.000Z",
+      "collectedBy": "ci-probe",
+      "collectedByKind": "deterministic",
+      "inconclusive": {
+        "reason": "unreachable",
+        "detail": "HTTP 503 after 3 retries"
+      }
+    }
+  ],
+  "policies": [
+    {
+      "id": "policy.payroll-field.excerpt",
+      "claimType": "payroll-field",
+      "requiredEvidence": [
+        "source_excerpt"
+      ],
+      "requiredMethods": [
+        "extraction"
+      ],
+      "requiresCorroboration": false,
+      "acceptanceCriteria": [
+        "fact observed at its source"
+      ],
+      "reviewAuthority": "operator",
+      "validityRule": {
+        "kind": "historical"
+      },
+      "stalenessTriggers": [],
+      "conflictRules": [],
+      "impactLevel": "medium"
+    },
+    {
+      "id": "policy.emissions-estimate.calculated",
+      "claimType": "emissions-estimate",
+      "requiredEvidence": [
+        "document_citation",
+        "runtime_observation"
+      ],
+      "requiredMethods": [
+        "extraction"
+      ],
+      "requiresCorroboration": false,
+      "acceptanceCriteria": [
+        "fuel ledger cited",
+        "odometer totals observed from telematics"
+      ],
+      "reviewAuthority": "operator",
+      "validityRule": {
+        "kind": "historical"
+      },
+      "stalenessTriggers": [],
+      "conflictRules": [],
+      "impactLevel": "medium"
+    }
+  ],
+  "events": [
+    {
+      "id": "event.w2.verified",
+      "claimId": "claim.w2.wages",
+      "status": "verified",
+      "actor": "payroll-connector",
+      "method": "automated-extraction",
+      "evidenceIds": [
+        "evidence.w2.box1"
+      ],
+      "createdAt": "2026-02-01T00:00:01.000Z",
+      "verifiedAt": "2026-02-01T00:00:01.000Z"
+    }
+  ],
+  "authorityTrace": [
+    {
+      "id": "trace.payroll.system-of-record",
+      "subject": {
+        "subjectType": "tax-form",
+        "subjectId": "w2:2025:employee-123"
+      },
+      "actorRef": "employer.example/payroll",
+      "authorityType": "system",
+      "authorityRef": "system-of-record:w2-wages",
+      "sourceRef": "https://employer.example/payroll/about",
+      "observedAt": "2026-01-01T00:00:00.000Z",
+      "validFrom": "2026-01-01T00:00:00.000Z",
+      "validUntil": "2027-01-01T00:00:00.000Z"
+    }
+  ]
+}

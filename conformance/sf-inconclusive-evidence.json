@@ -1,0 +1,338 @@
+{
+  "now": "2026-06-10T00:00:00.000Z",
+  "input": {
+    "schemaVersion": 9,
+    "source": "spec-conformance:inconclusive-evidence",
+    "claims": [
+      {
+        "id": "claim.inconclusive.verified-stays-verified",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.inconclusive.verified-stays-verified",
+        "claimType": "external-fact",
+        "fieldOrBehavior": "verified-stays-verified",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.external-fact.crawl"
+      },
+      {
+        "id": "claim.inconclusive.only-attempt",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.inconclusive.only-attempt",
+        "claimType": "external-fact",
+        "fieldOrBehavior": "only-attempt",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.external-fact.crawl"
+      },
+      {
+        "id": "claim.inconclusive.requirement-unmet",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.inconclusive.requirement-unmet",
+        "claimType": "external-fact",
+        "fieldOrBehavior": "requirement-unmet",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.external-fact.crawl"
+      },
+      {
+        "id": "claim.inconclusive.no-policy",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.inconclusive.no-policy",
+        "claimType": "unpoliced-fact",
+        "fieldOrBehavior": "no-policy",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "medium"
+      },
+      {
+        "id": "claim.inconclusive.corroboration",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.inconclusive.corroboration",
+        "claimType": "corroborated-fact",
+        "fieldOrBehavior": "corroboration",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.corroborated-fact.crawl"
+      },
+      {
+        "id": "claim.inconclusive.commit-anchor",
+        "subjectType": "data-field",
+        "subjectId": "dataset:claim.inconclusive.commit-anchor",
+        "claimType": "anchored-fact",
+        "fieldOrBehavior": "commit-anchor",
+        "value": true,
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "updatedAt": "2026-06-01T00:00:00.000Z",
+        "impactLevel": "medium",
+        "verificationPolicyId": "policy.anchored-fact.crawl",
+        "currentIntegrityRef": "sha256:current"
+      }
+    ],
+    "evidence": [
+      {
+        "id": "evidence.a.observed",
+        "claimId": "claim.inconclusive.verified-stays-verified",
+        "evidenceType": "crawl_observation",
+        "method": "observation",
+        "sourceRef": "https://registry.example/records/42",
+        "excerptOrSummary": "Registry record fetched and matched.",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.a.attempt",
+        "claimId": "claim.inconclusive.verified-stays-verified",
+        "evidenceType": "crawl_observation",
+        "method": "observation",
+        "sourceRef": "https://registry.example/records/42",
+        "excerptOrSummary": "Registry fetch did not complete.",
+        "observedAt": "2026-06-05T00:00:00.000Z",
+        "collectedBy": "crawler",
+        "supportStrength": "cited",
+        "inconclusive": {
+          "reason": "unreachable",
+          "detail": "HTTP 503 after 3 retries"
+        }
+      },
+      {
+        "id": "evidence.b.attempt",
+        "claimId": "claim.inconclusive.only-attempt",
+        "evidenceType": "crawl_observation",
+        "method": "observation",
+        "sourceRef": "https://registry.example/records/42",
+        "excerptOrSummary": "Registry fetch did not complete.",
+        "observedAt": "2026-06-05T00:00:00.000Z",
+        "collectedBy": "crawler",
+        "supportStrength": "cited",
+        "inconclusive": {
+          "reason": "timeout"
+        }
+      },
+      {
+        "id": "evidence.c.citation",
+        "claimId": "claim.inconclusive.requirement-unmet",
+        "evidenceType": "document_citation",
+        "method": "extraction",
+        "sourceRef": "https://registry.example/records/42",
+        "excerptOrSummary": "Annual report cites the registry record.",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.c.attempt",
+        "claimId": "claim.inconclusive.requirement-unmet",
+        "evidenceType": "crawl_observation",
+        "method": "observation",
+        "sourceRef": "https://registry.example/records/42",
+        "excerptOrSummary": "Registry fetch did not complete.",
+        "observedAt": "2026-06-05T00:00:00.000Z",
+        "collectedBy": "crawler",
+        "supportStrength": "cited",
+        "inconclusive": {
+          "reason": "permission_denied"
+        }
+      },
+      {
+        "id": "evidence.d.attempt",
+        "claimId": "claim.inconclusive.no-policy",
+        "evidenceType": "crawl_observation",
+        "method": "observation",
+        "sourceRef": "https://registry.example/records/42",
+        "excerptOrSummary": "Registry fetch did not complete.",
+        "observedAt": "2026-06-05T00:00:00.000Z",
+        "collectedBy": "crawler",
+        "supportStrength": "cited",
+        "inconclusive": {
+          "reason": "other",
+          "detail": "registry returned an unparseable response"
+        }
+      },
+      {
+        "id": "evidence.e.observed",
+        "claimId": "claim.inconclusive.corroboration",
+        "evidenceType": "crawl_observation",
+        "method": "observation",
+        "sourceRef": "https://registry.example/records/42",
+        "excerptOrSummary": "Registry record fetched and matched.",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "crawler"
+      },
+      {
+        "id": "evidence.e.attempt",
+        "claimId": "claim.inconclusive.corroboration",
+        "evidenceType": "crawl_observation",
+        "method": "observation",
+        "sourceRef": "https://registry.example/records/42",
+        "excerptOrSummary": "Registry fetch did not complete.",
+        "observedAt": "2026-06-05T00:00:00.000Z",
+        "collectedBy": "crawler",
+        "supportStrength": "cited",
+        "inconclusive": {
+          "reason": "tool_error"
+        }
+      },
+      {
+        "id": "evidence.f.observed",
+        "claimId": "claim.inconclusive.commit-anchor",
+        "evidenceType": "crawl_observation",
+        "method": "observation",
+        "sourceRef": "https://registry.example/records/42",
+        "excerptOrSummary": "Registry record fetched and matched.",
+        "observedAt": "2026-06-01T00:00:00.000Z",
+        "collectedBy": "crawler",
+        "integrityRef": "sha256:previous"
+      },
+      {
+        "id": "evidence.f.attempt",
+        "claimId": "claim.inconclusive.commit-anchor",
+        "evidenceType": "crawl_observation",
+        "method": "observation",
+        "sourceRef": "https://registry.example/records/42",
+        "excerptOrSummary": "Registry fetch did not complete.",
+        "observedAt": "2026-06-05T00:00:00.000Z",
+        "collectedBy": "crawler",
+        "supportStrength": "cited",
+        "inconclusive": {
+          "reason": "timeout"
+        },
+        "integrityRef": "sha256:current"
+      }
+    ],
+    "policies": [
+      {
+        "id": "policy.external-fact.crawl",
+        "claimType": "external-fact",
+        "requiredEvidence": [
+          "crawl_observation"
+        ],
+        "requiredMethods": [
+          "observation"
+        ],
+        "requiresCorroboration": false,
+        "acceptanceCriteria": [
+          "fact observed at its source"
+        ],
+        "reviewAuthority": "operator",
+        "validityRule": {
+          "kind": "historical"
+        },
+        "stalenessTriggers": [],
+        "conflictRules": [],
+        "impactLevel": "medium"
+      },
+      {
+        "id": "policy.corroborated-fact.crawl",
+        "claimType": "corroborated-fact",
+        "requiredEvidence": [
+          "crawl_observation"
+        ],
+        "requiredMethods": [
+          "observation"
+        ],
+        "requiresCorroboration": true,
+        "acceptanceCriteria": [
+          "fact observed at its source"
+        ],
+        "reviewAuthority": "operator",
+        "validityRule": {
+          "kind": "historical"
+        },
+        "stalenessTriggers": [],
+        "conflictRules": [],
+        "impactLevel": "medium"
+      },
+      {
+        "id": "policy.anchored-fact.crawl",
+        "claimType": "anchored-fact",
+        "requiredEvidence": [
+          "crawl_observation"
+        ],
+        "requiredMethods": [
+          "observation"
+        ],
+        "requiresCorroboration": false,
+        "acceptanceCriteria": [
+          "fact observed at its source"
+        ],
+        "reviewAuthority": "operator",
+        "validityRule": {
+          "kind": "commit"
+        },
+        "stalenessTriggers": [],
+        "conflictRules": [],
+        "impactLevel": "medium"
+      }
+    ],
+    "events": [
+      {
+        "id": "event.a.verified",
+        "claimId": "claim.inconclusive.verified-stays-verified",
+        "status": "verified",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.a.observed"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "2026-06-01T00:00:00.000Z"
+      },
+      {
+        "id": "event.c.verified",
+        "claimId": "claim.inconclusive.requirement-unmet",
+        "status": "verified",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.c.citation"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "2026-06-01T00:00:00.000Z"
+      },
+      {
+        "id": "event.e.verified",
+        "claimId": "claim.inconclusive.corroboration",
+        "status": "verified",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.e.observed",
+          "evidence.e.attempt"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "2026-06-01T00:00:00.000Z"
+      },
+      {
+        "id": "event.f.verified",
+        "claimId": "claim.inconclusive.commit-anchor",
+        "status": "verified",
+        "actor": "operator",
+        "method": "attestation",
+        "evidenceIds": [
+          "evidence.f.observed",
+          "evidence.f.attempt"
+        ],
+        "createdAt": "2026-06-01T00:00:00.000Z",
+        "verifiedAt": "2026-06-01T00:00:00.000Z"
+      }
+    ]
+  },
+  "expect": {
+    "statusByClaimId": {
+      "claim.inconclusive.verified-stays-verified": "verified",
+      "claim.inconclusive.only-attempt": "unknown",
+      "claim.inconclusive.requirement-unmet": "proposed",
+      "claim.inconclusive.no-policy": "unknown",
+      "claim.inconclusive.corroboration": "proposed",
+      "claim.inconclusive.commit-anchor": "stale"
+    }
+  }
+}

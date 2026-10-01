@@ -5,7 +5,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { readFileSync, readdirSync, mkdtempSync, writeFileSync, cpSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -13,7 +13,7 @@ import { join, dirname } from 'node:path';
 
 import Ajv2020 from 'ajv/dist/2020.js';
 
-import { validateConclusionConfidence } from '../index.mjs';
+import { validateConclusionConfidence, checkBasisInvariants } from '../index.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CLI = join(__dirname, '..', 'bin', 'hachure.mjs');
@@ -681,4 +681,447 @@ test('hachure validate exits 1 on a schema-valid v8 bundle whose value lies outs
   writeFileSync(good, JSON.stringify(buildBaseBundle(8, { ...claim, conclusionConfidence: { ...claim.conclusionConfidence, value: 0.3 } })));
   const ok = spawnSync(process.execPath, [CLI, 'validate', good], { encoding: 'utf8' });
   assert.equal(ok.status, 0, ok.stdout + ok.stderr);
+});
+
+// ---------------------------------------------------------------------------
+// schemaVersion 9: evidence.inconclusive and evidence.collectedByKind.
+// An inconclusive item is an attempt that could not run. It must be `cited`
+// and carry no `passing`, which is what keeps it out of status derivation.
+// ---------------------------------------------------------------------------
+function buildInconclusiveEvidence(overrides = {}) {
+  return {
+    id: 'ev-9',
+    claimId: 'claim.facet-rename-test.1',
+    evidenceType: 'runtime_observation',
+    method: 'monitoring',
+    supportStrength: 'cited',
+    sourceRef: 'https://metrics.example/p95',
+    excerptOrSummary: 'Metrics endpoint returned 503',
+    observedAt: '2026-09-26T10:00:00Z',
+    collectedBy: 'ci-probe',
+    inconclusive: { reason: 'unreachable', detail: 'HTTP 503 after 3 retries' },
+    ...overrides,
+  };
+}
+
+function withoutKey(object, key) {
+  const { [key]: _removed, ...rest } = object;
+  return rest;
+}
+
+test('inconclusive: a cited evidence item with each reason validates', () => {
+  const validateEvidence = compileRoot('evidence.schema.json');
+  for (const reason of ['unreachable', 'tool_error', 'permission_denied', 'timeout']) {
+    const evidence = buildInconclusiveEvidence({ inconclusive: { reason } });
+    assert.equal(validateEvidence(evidence), true, `${reason}: ${JSON.stringify(validateEvidence.errors)}`);
+  }
+  const other = buildInconclusiveEvidence({ inconclusive: { reason: 'other', detail: 'unparseable response' } });
+  assert.equal(validateEvidence(other), true, JSON.stringify(validateEvidence.errors));
+  // execution.isError may accompany it; isError alone never implies inconclusive.
+  const withExecution = buildInconclusiveEvidence({
+    inconclusive: { reason: 'tool_error' },
+    execution: { runner: 'bash', label: 'p95 probe', isError: true },
+  });
+  assert.equal(validateEvidence(withExecution), true, JSON.stringify(validateEvidence.errors));
+});
+
+test('inconclusive: rejected together with `passing` (true or false)', () => {
+  const validateEvidence = compileRoot('evidence.schema.json');
+  for (const passing of [true, false]) {
+    assert.equal(validateEvidence(buildInconclusiveEvidence({ passing })), false, `passing: ${passing}`);
+    assert.ok(
+      validateEvidence.errors.some((e) => e.keyword === 'not'),
+      JSON.stringify(validateEvidence.errors),
+    );
+  }
+});
+
+test('inconclusive: rejected with supportStrength "entails"', () => {
+  const validateEvidence = compileRoot('evidence.schema.json');
+  assert.equal(validateEvidence(buildInconclusiveEvidence({ supportStrength: 'entails' })), false);
+  assert.ok(
+    validateEvidence.errors.some((e) => e.instancePath === '/supportStrength' && e.keyword === 'const'),
+    JSON.stringify(validateEvidence.errors),
+  );
+});
+
+test('inconclusive: rejected when supportStrength is absent (absent means entails)', () => {
+  const validateEvidence = compileRoot('evidence.schema.json');
+  assert.equal(validateEvidence(withoutKey(buildInconclusiveEvidence(), 'supportStrength')), false);
+  assert.ok(
+    validateEvidence.errors.some((e) => e.keyword === 'required' && e.params.missingProperty === 'supportStrength'),
+    JSON.stringify(validateEvidence.errors),
+  );
+});
+
+test('inconclusive: reason "other" without detail is rejected', () => {
+  const validateEvidence = compileRoot('evidence.schema.json');
+  assert.equal(validateEvidence(buildInconclusiveEvidence({ inconclusive: { reason: 'other' } })), false);
+  assert.ok(
+    validateEvidence.errors.some((e) => e.keyword === 'required' && e.params.missingProperty === 'detail'),
+    JSON.stringify(validateEvidence.errors),
+  );
+  assert.equal(validateEvidence(buildInconclusiveEvidence({ inconclusive: { reason: 'other', detail: '' } })), false);
+});
+
+test('inconclusive: an unknown reason, a missing reason, and an unknown key are rejected', () => {
+  const validateEvidence = compileRoot('evidence.schema.json');
+  for (const inconclusive of [
+    { reason: 'rate_limited' },
+    { reason: 'not_applicable' },
+    { detail: 'no reason given' },
+    { reason: 'timeout', retries: 3 },
+    true,
+  ]) {
+    assert.equal(validateEvidence(buildInconclusiveEvidence({ inconclusive })), false, JSON.stringify(inconclusive));
+  }
+});
+
+test('the inconclusive constraints leave ordinary evidence alone', () => {
+  const validateEvidence = compileRoot('evidence.schema.json');
+  const base = withoutKey(buildInconclusiveEvidence(), 'inconclusive');
+  for (const evidence of [
+    base,
+    withoutKey(base, 'supportStrength'),
+    { ...base, supportStrength: 'entails', passing: false, blocking: true },
+    { ...base, passing: true },
+  ]) {
+    assert.equal(validateEvidence(evidence), true, JSON.stringify(validateEvidence.errors));
+  }
+});
+
+test('collectedByKind: each of human / deterministic / model validates', () => {
+  const validateEvidence = compileRoot('evidence.schema.json');
+  const base = withoutKey(buildInconclusiveEvidence(), 'inconclusive');
+  for (const collectedByKind of ['human', 'deterministic', 'model']) {
+    assert.equal(validateEvidence({ ...base, collectedByKind }), true, JSON.stringify(validateEvidence.errors));
+  }
+  const withModel = {
+    ...base,
+    collectedByKind: 'model',
+    metadata: { collectorModel: { name: 'example-llm', version: '2026-06' } },
+  };
+  assert.equal(validateEvidence(withModel), true, JSON.stringify(validateEvidence.errors));
+});
+
+test('collectedByKind: an unknown value is rejected', () => {
+  const validateEvidence = compileRoot('evidence.schema.json');
+  const base = withoutKey(buildInconclusiveEvidence(), 'inconclusive');
+  for (const collectedByKind of ['hybrid', 'llm', '', null]) {
+    assert.equal(validateEvidence({ ...base, collectedByKind }), false, JSON.stringify(collectedByKind));
+    assert.ok(
+      validateEvidence.errors.some((e) => e.instancePath === '/collectedByKind' && e.keyword === 'enum'),
+      JSON.stringify(validateEvidence.errors),
+    );
+  }
+});
+
+test('schemaVersion 9: a bundle using the new evidence fields validates', () => {
+  const validateBundle = compileRoot('trust-bundle.schema.json');
+  const bundle = buildBaseBundle(9, buildBaseClaim());
+  bundle.evidence = [buildInconclusiveEvidence({ collectedByKind: 'deterministic' })];
+  assert.equal(validateBundle(bundle), true, JSON.stringify(validateBundle.errors));
+});
+
+test('schemaVersion 9: a bundle declaring 8 or lower is rejected when it uses a version 9 evidence field', () => {
+  const validateBundle = compileRoot('trust-bundle.schema.json');
+  const plain = withoutKey(buildInconclusiveEvidence(), 'inconclusive');
+  for (const schemaVersion of [5, 8]) {
+    for (const evidence of [buildInconclusiveEvidence(), { ...plain, collectedByKind: 'model' }]) {
+      const bundle = buildBaseBundle(schemaVersion, buildBaseClaim());
+      bundle.evidence = [evidence];
+      assert.equal(validateBundle(bundle), false, `schemaVersion ${schemaVersion}`);
+      assert.ok(
+        validateBundle.errors.some((e) => e.instancePath === '/evidence/0' && e.keyword === 'not'),
+        JSON.stringify(validateBundle.errors),
+      );
+    }
+    // The same bundle without the new fields validates as before.
+    const bundle = buildBaseBundle(schemaVersion, buildBaseClaim());
+    bundle.evidence = [plain];
+    assert.equal(validateBundle(bundle), true, JSON.stringify(validateBundle.errors));
+  }
+});
+
+test('schemaVersion 9: 5 through 9 are accepted and 10 is not', () => {
+  const validateBundle = compileRoot('trust-bundle.schema.json');
+  assert.deepEqual(schemaFiles['trust-bundle.schema.json'].properties.schemaVersion.enum, [5, 6, 7, 8, 9]);
+  for (const schemaVersion of [5, 6, 7, 8, 9]) {
+    assert.equal(
+      validateBundle(buildBaseBundle(schemaVersion, buildBaseClaim())),
+      true,
+      `${schemaVersion}: ${JSON.stringify(validateBundle.errors)}`,
+    );
+  }
+  assert.equal(validateBundle(buildBaseBundle(10, buildBaseClaim())), false);
+});
+
+test('inconclusive: a whitespace-only detail is rejected', () => {
+  const validateEvidence = compileRoot('evidence.schema.json');
+  // U+00A0 (no-break space) is whitespace under ECMAScript \s, which is what the schema pattern uses.
+  for (const detail of [' ', '\t\n', '', '\u00a0', '\u00a0 \u00a0']) {
+    for (const reason of ['other', 'timeout']) {
+      const evidence = buildInconclusiveEvidence({ inconclusive: { reason, detail } });
+      assert.equal(validateEvidence(evidence), false, JSON.stringify({ reason, detail }));
+    }
+  }
+});
+
+// Derivation is defined only for schema-valid bundles, and deriveStatuses does
+// not validate. The CLI is the bundled caller, so it validates before deriving.
+function writeInconclusiveBundle(evidenceOverrides) {
+  const dir = mkdtempSync(join(tmpdir(), 'hachure-derive-'));
+  const claim = {
+    ...buildBaseClaim(),
+    verificationPolicyId: 'policy.coverage',
+  };
+  const bundle = buildBaseBundle(9, claim);
+  bundle.evidence = [buildInconclusiveEvidence(evidenceOverrides)];
+  bundle.policies = [
+    {
+      id: 'policy.coverage',
+      claimType: 'coverage',
+      requiredEvidence: ['runtime_observation'],
+      requiredMethods: ['monitoring'],
+      requiresCorroboration: false,
+      acceptanceCriteria: ['p95 observed'],
+      reviewAuthority: 'operator',
+      validityRule: { kind: 'historical' },
+      stalenessTriggers: [],
+      conflictRules: [],
+      impactLevel: 'medium',
+    },
+  ];
+  const path = join(dir, 'bundle.json');
+  writeFileSync(path, JSON.stringify(bundle));
+  return path;
+}
+
+test('hachure derive refuses a bundle whose inconclusive evidence is entailing, and derives the valid one', () => {
+  const now = ['--now', '2026-10-01T00:00:00.000Z'];
+  const invalid = writeInconclusiveBundle({ supportStrength: undefined });
+  const refused = spawnSync(process.execPath, [CLI, 'derive', invalid, ...now], { encoding: 'utf8' });
+  assert.equal(refused.status, 1, refused.stdout + refused.stderr);
+  assert.match(refused.stderr, /hachure: refusing to derive from /);
+  assert.match(refused.stderr, /\/evidence\/0 inconclusive evidence "ev-9" must have supportStrength "cited" \(found undefined\)/);
+  assert.equal(refused.stdout, '', 'no statuses are printed for an invalid bundle');
+
+  const valid = writeInconclusiveBundle({});
+  const derived = spawnSync(process.execPath, [CLI, 'derive', valid, ...now], { encoding: 'utf8' });
+  assert.equal(derived.status, 0, derived.stdout + derived.stderr);
+  assert.deepEqual(JSON.parse(derived.stdout).statusByClaimId, { 'claim.facet-rename-test.1': 'unknown' });
+});
+
+test('hachure vectors honours --status-function-version and rejects stray arguments', () => {
+  const v2 = spawnSync(process.execPath, [CLI, 'vectors', '--status-function-version', '2'], { encoding: 'utf8' });
+  assert.equal(v2.status, 0, v2.stdout + v2.stderr);
+  assert.match(v2.stdout, /SKIP sf-v3-no-policy/);
+  assert.match(v2.stdout, /PASS sf-inconclusive-evidence/);
+  assert.match(v2.stdout, /all 11 applicable vectors pass \(statusFunctionVersion "2"\)/);
+
+  const unsupported = spawnSync(process.execPath, [CLI, 'vectors', '--status-function-version', '4'], { encoding: 'utf8' });
+  assert.equal(unsupported.status, 1);
+  assert.match(unsupported.stderr, /unsupported --status-function-version 4/);
+
+  const stray = spawnSync(process.execPath, [CLI, 'vectors', '--verbose'], { encoding: 'utf8' });
+  assert.equal(stray.status, 1);
+  assert.match(stray.stderr, /unexpected: --verbose/);
+});
+
+test('hachure derive and vectors reject stray arguments and a flag with no value', () => {
+  const valid = writeInconclusiveBundle({});
+  const cases = [
+    [['derive', valid, 'extra.json'], /unexpected: extra.json/],
+    [['derive', valid, '--verbose'], /unexpected: --verbose/],
+    [['derive', valid, '--now'], /--now requires a value/],
+    [['derive', valid, '--now', ''], /invalid --now value: ""/],
+    [['derive', '--now', valid], /invalid --now value: .*the file path after it was read as its value/],
+    [['diff', valid, valid, '--now', ''], /invalid --now value: ""/],
+    [['validate', valid, 'extra.json'], /unexpected: extra.json/],
+    [['validate', valid, '--strict'], /unexpected: --strict/],
+    [['merge', valid, valid, '--verbose'], /unexpected: --verbose/],
+    [['derive', valid, '--status-function-version'], /--status-function-version requires a value/],
+    [['vectors', '--status-function-version'], /--status-function-version requires a value/],
+    [['diff', valid, valid, 'extra.json'], /unexpected: extra.json/],
+  ];
+  for (const [argv, pattern] of cases) {
+    const r = spawnSync(process.execPath, [CLI, ...argv], { encoding: 'utf8' });
+    assert.equal(r.status, 1, `${argv.join(' ')}: ${r.stdout}${r.stderr}`);
+    assert.match(r.stderr, pattern);
+    assert.equal(r.stdout, '', argv.join(' '));
+  }
+});
+
+test('hachure diff refuses an invalid bundle on either side', () => {
+  const now = ['--now', '2026-10-01T00:00:00.000Z'];
+  const valid = writeInconclusiveBundle({});
+  const invalid = writeInconclusiveBundle({ supportStrength: undefined });
+  for (const pair of [[invalid, valid], [valid, invalid]]) {
+    const r = spawnSync(process.execPath, [CLI, 'diff', ...pair, ...now], { encoding: 'utf8' });
+    assert.equal(r.status, 1, r.stdout + r.stderr);
+    assert.match(r.stderr, /hachure: refusing to derive from /);
+    assert.match(r.stderr, /inconclusive evidence "ev-9"/);
+    assert.equal(r.stdout, '');
+  }
+  const same = spawnSync(process.execPath, [CLI, 'diff', valid, valid, ...now], { encoding: 'utf8' });
+  assert.equal(same.status, 0, same.stdout + same.stderr);
+});
+
+// The package does not depend on ajv, so an installed consumer may not have
+// it. Reproduce that: a copy of the package with no node_modules beside it.
+function packageWithoutAjv() {
+  const dir = mkdtempSync(join(tmpdir(), 'hachure-noajv-'));
+  const root = join(__dirname, '..');
+  for (const entry of ['bin', 'lib', 'schemas', 'conformance', 'index.mjs', 'package.json']) {
+    cpSync(join(root, entry), join(dir, entry), { recursive: true });
+  }
+  return join(dir, 'bin', 'hachure.mjs');
+}
+
+// Schema-invalid (a policy field is missing) but the built-in invariants hold.
+function writeSchemaInvalidBundle() {
+  const path = writeInconclusiveBundle({});
+  const bundle = JSON.parse(readFileSync(path, 'utf8'));
+  delete bundle.policies[0].reviewAuthority;
+  writeFileSync(path, JSON.stringify(bundle));
+  return path;
+}
+
+const NOW_ARGS = ['--now', '2026-10-01T00:00:00.000Z'];
+const AJV_WARNING = /warning: full schema validation was skipped because ajv could not be loaded/;
+
+test('without ajv, hachure derive still runs the built-in check, derives, and warns once', () => {
+  const cli = packageWithoutAjv();
+  const valid = writeInconclusiveBundle({});
+
+  // The copy really has no validator.
+  const validate = spawnSync(process.execPath, [cli, 'validate', valid], { encoding: 'utf8' });
+  assert.equal(validate.status, 1);
+  assert.match(validate.stderr, /validate requires ajv/);
+
+  const derived = spawnSync(process.execPath, [cli, 'derive', valid, ...NOW_ARGS], { encoding: 'utf8' });
+  assert.equal(derived.status, 0, derived.stdout + derived.stderr);
+  assert.match(derived.stderr, AJV_WARNING);
+  assert.match(derived.stderr, /same node_modules as hachure/);
+  assert.deepEqual(JSON.parse(derived.stdout).statusByClaimId, { 'claim.facet-rename-test.1': 'unknown' });
+
+  // Full validation is what is skipped: a schema-invalid bundle that keeps the invariants derives.
+  const schemaInvalid = spawnSync(process.execPath, [cli, 'derive', writeSchemaInvalidBundle(), ...NOW_ARGS], { encoding: 'utf8' });
+  assert.equal(schemaInvalid.status, 0, schemaInvalid.stdout + schemaInvalid.stderr);
+  assert.match(schemaInvalid.stderr, AJV_WARNING);
+
+  const diffed = spawnSync(process.execPath, [cli, 'diff', valid, valid, ...NOW_ARGS], { encoding: 'utf8' });
+  assert.equal(diffed.status, 0, diffed.stdout + diffed.stderr);
+  assert.equal(diffed.stderr.match(new RegExp(AJV_WARNING, 'g')).length, 1, 'one warning for both bundles');
+});
+
+test('without ajv, the built-in check still refuses each invariant violation', () => {
+  const cli = packageWithoutAjv();
+  const valid = writeInconclusiveBundle({});
+  const lowVersion = writeInconclusiveBundle({});
+  writeFileSync(lowVersion, JSON.stringify({ ...JSON.parse(readFileSync(lowVersion, 'utf8')), schemaVersion: 8 }));
+  const cases = [
+    [writeInconclusiveBundle({ supportStrength: undefined }), /inconclusive evidence "ev-9" must have supportStrength "cited"/],
+    [writeInconclusiveBundle({ supportStrength: 'entails' }), /must have supportStrength "cited" \(found "entails"\)/],
+    [writeInconclusiveBundle({ passing: false }), /inconclusive evidence "ev-9" must not carry passing/],
+    [lowVersion, /evidence "ev-9" carries inconclusive, which requires schemaVersion 9 or later \(declared 8\)/],
+  ];
+  for (const [path, pattern] of cases) {
+    const r = spawnSync(process.execPath, [cli, 'derive', path, ...NOW_ARGS], { encoding: 'utf8' });
+    assert.equal(r.status, 1, r.stdout + r.stderr);
+    assert.match(r.stderr, /hachure: refusing to derive from /);
+    assert.match(r.stderr, pattern);
+    assert.equal(r.stdout, '', 'no statuses are printed');
+    for (const pair of [[path, valid], [valid, path]]) {
+      const d = spawnSync(process.execPath, [cli, 'diff', ...pair, ...NOW_ARGS], { encoding: 'utf8' });
+      assert.equal(d.status, 1, d.stdout + d.stderr);
+      assert.match(d.stderr, pattern);
+    }
+  }
+});
+
+test('with ajv, hachure derive also refuses a schema-invalid bundle that keeps the invariants', () => {
+  const path = writeSchemaInvalidBundle();
+  assert.deepEqual(checkBasisInvariants(JSON.parse(readFileSync(path, 'utf8'))), []);
+  const r = spawnSync(process.execPath, [CLI, 'derive', path, ...NOW_ARGS], { encoding: 'utf8' });
+  assert.equal(r.status, 1, r.stdout + r.stderr);
+  assert.match(r.stderr, /invalid TrustBundle/);
+  assert.match(r.stderr, /must have required property 'reviewAuthority'/);
+  assert.doesNotMatch(r.stderr, AJV_WARNING);
+  assert.equal(r.stdout, '');
+});
+
+test('checkBasisInvariants agrees with the schema on every inconclusive / version fixture', () => {
+  const validateBundle = compileRoot('trust-bundle.schema.json');
+  const plain = withoutKey(buildInconclusiveEvidence(), 'inconclusive');
+  const fixtures = [
+    [9, buildInconclusiveEvidence(), true],
+    [9, { ...plain, collectedByKind: 'model' }, true],
+    [9, plain, true],
+    [8, plain, true],
+    [9, buildInconclusiveEvidence({ passing: true }), false],
+    [9, buildInconclusiveEvidence({ passing: false }), false],
+    [9, buildInconclusiveEvidence({ supportStrength: 'entails' }), false],
+    [9, withoutKey(buildInconclusiveEvidence(), 'supportStrength'), false],
+    [8, buildInconclusiveEvidence(), false],
+    [5, { ...plain, collectedByKind: 'model' }, false],
+  ];
+  for (const [schemaVersion, evidence, ok] of fixtures) {
+    const bundle = buildBaseBundle(schemaVersion, buildBaseClaim());
+    bundle.evidence = [evidence];
+    const label = JSON.stringify({ schemaVersion, evidence });
+    assert.equal(validateBundle(bundle), ok, `schema: ${label}`);
+    const errors = checkBasisInvariants(bundle);
+    assert.equal(errors.length === 0, ok, `built-in: ${label} ${JSON.stringify(errors)}`);
+    for (const e of errors) {
+      assert.equal(e.instancePath, '/evidence/0');
+      assert.match(e.message, /evidence "ev-9"/);
+    }
+  }
+});
+
+test('checkBasisInvariants reports malformed input instead of throwing', () => {
+  assert.deepEqual(checkBasisInvariants(null).map((e) => e.message), ['bundle must be an object']);
+  assert.deepEqual(checkBasisInvariants([]).map((e) => e.message), ['bundle must be an object']);
+  assert.deepEqual(checkBasisInvariants({ evidence: 'x' }).map((e) => e.message), ['evidence must be an array']);
+  assert.deepEqual(checkBasisInvariants({ evidence: [null] }).map((e) => e.instancePath), ['/evidence/0']);
+  assert.deepEqual(checkBasisInvariants({}), []);
+});
+
+test('--no-validate on a structurally malformed bundle exits 1 with a hachure: message, never a stack', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'hachure-malformed-'));
+  const valid = writeInconclusiveBundle({});
+  const base = JSON.parse(readFileSync(valid, 'utf8'));
+  const shapes = [
+    ['null', null, /expected a JSON object/],
+    ['array', [], /expected a JSON object/],
+    ['claims-string', { claims: 'x' }, /claims must be an array/],
+    ['claims-null-entry', { claims: [null] }, /claims\[0\] must be an object/],
+    ['claim-no-id', { ...base, claims: [withoutKey(base.claims[0], 'id')] }, /claims\[0\] has no id/],
+    ['evidence-null-entry', { ...base, evidence: [null] }, /could not derive: /],
+    ['evidence-string', { ...base, evidence: 'x' }, /could not derive: /],
+  ];
+  for (const [name, bundle, pattern] of shapes) {
+    const path = join(dir, `${name}.json`);
+    writeFileSync(path, JSON.stringify(bundle));
+    for (const argv of [['derive', path], ['diff', valid, path]]) {
+      const r = spawnSync(process.execPath, [CLI, ...argv, ...NOW_ARGS, '--no-validate'], { encoding: 'utf8' });
+      assert.equal(r.status, 1, `${name}: ${r.stdout}${r.stderr}`);
+      assert.match(r.stderr, pattern, name);
+      assert.match(r.stderr, /^hachure: (?!warning)/m, name);
+      assert.doesNotMatch(r.stderr, /TypeError|\n\s+at /, name);
+      assert.equal(r.stdout, '', name);
+    }
+  }
+});
+
+test('--no-validate skips validation even when ajv is installed, and warns', () => {
+  const invalid = writeInconclusiveBundle({ supportStrength: undefined });
+  const r = spawnSync(process.execPath, [CLI, 'derive', invalid, '--now', '2026-10-01T00:00:00.000Z', '--no-validate'], {
+    encoding: 'utf8',
+  });
+  assert.equal(r.status, 0, r.stdout + r.stderr);
+  assert.match(r.stderr, /warning: --no-validate/);
+  // The unreliable result the warning is about: the attempt counts as evidence.
+  assert.deepEqual(JSON.parse(r.stdout).statusByClaimId, { 'claim.facet-rename-test.1': 'proposed' });
 });
