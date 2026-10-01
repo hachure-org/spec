@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.0](https://github.com/hachure-org/spec/compare/v0.16.0...v0.17.0) (2026-10-01)
+
+
+### Features
+
+* **spec:** schemaVersion 9 — evidence.inconclusive and collectedByKind; basis-annotations profile ([#28](https://github.com/hachure-org/spec/issues/28)) ([9bcb1f4](https://github.com/hachure-org/spec/commit/9bcb1f4b65adebde0ed1eec7b231ed97e4620134)), closes [#25](https://github.com/hachure-org/spec/issues/25)
+
 ## [0.16.0](https://github.com/hachure-org/spec/compare/v0.15.0...v0.16.0) (2026-09-27)
 
 
